@@ -132,6 +132,29 @@
   @keyframes diaspin{0%{transform:scale(.15) rotateY(0)}35%{transform:scale(1.3) rotateY(400deg)}60%{transform:scale(1) rotateY(680deg)}100%{transform:scale(1) rotateY(720deg)}}
   .diamanttekst{font-size:24px; font-weight:bold; letter-spacing:1px; background:var(--panel); color:var(--ink);
     padding:11px 26px; border-radius:999px; box-shadow:var(--shadow), 0 0 24px rgba(125,211,252,.5); animation:goldpulse 1s infinite}
+  /* grote foto-lichtbak */
+  #fotogroot{position:fixed; inset:0; z-index:92; display:none; flex-direction:column; align-items:center; justify-content:center;
+    gap:12px; background:rgba(5,8,22,.74); padding:22px; cursor:pointer}
+  #fotogroot.open{display:flex}
+  #fotogroot img{max-width:min(92vw,950px); max-height:70vh; border-radius:16px; box-shadow:0 22px 70px rgba(0,0,0,.65);
+    animation:fotoin .35s ease-out; background:var(--panel2)}
+  @keyframes fotoin{from{transform:scale(.7); opacity:0}}
+  .fg-cap{color:#fff; font-size:16px; text-align:center; text-shadow:0 1px 5px rgba(0,0,0,.85); max-width:90vw}
+  .fg-cap a{color:#9EC5FF}
+  .fg-tip{color:rgba(255,255,255,.6); font-size:13px}
+  /* perfecte ronde: trofee + sterrenregen */
+  #perfectpop{position:fixed; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center;
+    gap:10px; z-index:96; pointer-events:none; perspective:700px; opacity:1; transition:opacity .4s ease}
+  #perfectpop.open{display:flex}
+  .trofee3d{font-size:125px; line-height:1; animation:diaspin 1.9s ease; transform-style:preserve-3d;
+    filter:drop-shadow(0 0 26px #F7C948) drop-shadow(0 0 80px rgba(247,201,72,.6))}
+  .perfecttekst{font-size:24px; font-weight:bold; letter-spacing:1px; background:var(--gold-grad); color:#3A2A00;
+    padding:12px 28px; border-radius:999px; box-shadow:var(--shadow), 0 0 30px rgba(247,201,72,.55)}
+  .perfectsub{font-size:16px; font-weight:bold; color:#fff; text-shadow:0 1px 5px rgba(0,0,0,.8)}
+  .ster{position:fixed; top:-50px; z-index:94; pointer-events:none; animation:sterval linear forwards}
+  @keyframes sterval{to{transform:translateY(115vh) rotate(540deg)}}
+  #r-perfect{background:var(--gold-grad); color:#3A2A00; font-weight:bold; border-radius:999px; padding:10px 22px;
+    font-size:16px; animation:goldpulse 1.2s infinite}
   .iconbtn{border:none; background:var(--panel2); border-radius:10px; width:34px; height:34px; font-size:16px; cursor:pointer}
   .iconbtn:hover{outline:2px solid var(--teal)}
   .arena{display:flex; gap:10px; flex:1; min-height:0}
@@ -395,6 +418,7 @@
   <div class="hero"><span class="globe">🏁</span></div>
   <h1 id="r-titel">Ronde klaar!</h1>
   <div class="resgems" id="r-gems"></div>
+  <div id="r-perfect" style="display:none">🏆 PERFECTE RONDE — bonus: +1 💎!</div>
   <div class="statgrid">
     <div class="statbox"><div class="v" id="r-goed">0</div><div class="l">Goed</div></div>
     <div class="statbox"><div class="v" id="r-punt">0</div><div class="l">🪙 Muntjes</div></div>
@@ -442,7 +466,7 @@
 <div id="m-welkom" role="dialog" aria-modal="true">
   <div class="passcard welkomcard">
     <h2 id="w-titel">👋 Welkom terug!</h2>
-    <div class="sub">Kijk eens wat je al bij elkaar hebt gespeeld:</div>
+    <div class="sub" id="w-sub">Kijk eens wat je al bij elkaar hebt gespeeld:</div>
     <div class="statgrid">
       <div class="statbox"><div class="v" id="w-diam">0</div><div class="l">💎 Diamanten</div></div>
       <div class="statbox"><div class="v" id="w-punt">0</div><div class="l">🪙 Muntjes verdiend</div></div>
@@ -469,6 +493,16 @@
   <div class="diamant3d">💎</div>
   <div class="diamanttekst">DIAMANT VERDIEND!</div>
 </div>
+<div id="perfectpop" aria-hidden="true">
+  <div class="trofee3d">🏆</div>
+  <div class="perfecttekst">PERFECTE RONDE!</div>
+  <div class="perfectsub">Alle vragen goed — bonus: +1 💎</div>
+</div>
+<div id="fotogroot" aria-hidden="true">
+  <img id="fg-img" alt="">
+  <div class="fg-cap" id="fg-cap"></div>
+  <div class="fg-tip">Tik om verder te gaan</div>
+</div>
 <div id="toast"></div>
 <button id="update">🔄 Er is een nieuwe versie! Tik hier om te verversen</button>
 <canvas id="confetti"></canvas>
@@ -487,7 +521,7 @@ const VBSTART={"x":170.4,"y":154.5,"w":725.2,"h":635.5};
 </script>
 <script>
 "use strict";
-const VERSIE="8"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="9"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -773,7 +807,28 @@ function toon(freq,dur=.15,type="sine",vol=.18,when=0){
   }catch(e){}
 }
 const sndGoed=()=>{toon(660,.12);toon(880,.2,"sine",.18,.1);};
-const sndFout=()=>{toon(180,.3,"sawtooth",.1);};
+function sndFout(){ // grappige scheet 💨: brommende toon die zakt, met trillende volume-wobbel
+  if(db.muted)return;
+  try{
+    actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    if(actx.state==="suspended")actx.resume();
+    const t=actx.currentTime;
+    const o=actx.createOscillator();o.type="sawtooth";
+    o.frequency.setValueAtTime(100,t);
+    o.frequency.exponentialRampToValueAtTime(42,t+.5);
+    const lfo=actx.createOscillator();lfo.type="sine";
+    lfo.frequency.setValueAtTime(12,t);
+    lfo.frequency.linearRampToValueAtTime(19,t+.45);
+    const wob=actx.createGain();wob.gain.value=.16;
+    const g=actx.createGain();
+    g.gain.setValueAtTime(.32,t);
+    g.gain.exponentialRampToValueAtTime(.01,t+.55);
+    const f=actx.createBiquadFilter();f.type="lowpass";f.frequency.value=320;
+    lfo.connect(wob);wob.connect(g.gain);
+    o.connect(f);f.connect(g);g.connect(actx.destination);
+    o.start(t);o.stop(t+.6);lfo.start(t);lfo.stop(t+.6);
+  }catch(e){}
+}
 const sndKlik=()=>{toon(440,.05,"sine",.06);};
 const sndFanfare=()=>{[523,659,784,1046].forEach((f,i)=>toon(f,.22,"triangle",.2,i*.13));};
 const sndMunt=()=>{toon(1975,.06,"square",.05);toon(2637,.16,"triangle",.14,.05);}; // rinkel: ting!
@@ -830,6 +885,28 @@ function vlamEffect(){
   }
   $("#hud-streak").classList.add("bump");
   setTimeout(()=>$("#hud-streak").classList.remove("bump"),300);
+}
+const sndPerfect=()=>{[523,659,784,880,1046,1318,1568].forEach((f,i)=>toon(f,.3,"triangle",.18,i*.11));toon(2093,.8,"sine",.08,.8);};
+function perfecteRonde(){ // gouden trofee + sterrenregen bij alles goed
+  sndPerfect();
+  const pop=$("#perfectpop"),t=pop.querySelector(".trofee3d");
+  t.style.animation="none";void t.offsetWidth;t.style.animation="";
+  pop.style.opacity="1";pop.classList.add("open");
+  setTimeout(()=>{pop.style.opacity="0";},2400);
+  setTimeout(()=>{pop.classList.remove("open");pop.style.opacity="";},2850);
+  if(!matchMedia("(prefers-reduced-motion: reduce)").matches){
+    for(let i=0;i<36;i++){
+      const s=document.createElement("div");
+      s.className="ster";s.textContent=rnd(["⭐","🌟","✨"]);
+      s.style.left=Math.random()*100+"vw";
+      s.style.fontSize=(16+Math.random()*28)+"px";
+      s.style.animationDuration=(1.8+Math.random()*1.7)+"s";
+      s.style.animationDelay=(Math.random()*1.3)+"s";
+      document.body.appendChild(s);
+      setTimeout(()=>s.remove(),5200);
+    }
+  }
+  knal(innerWidth/2,innerHeight*.35,150);
 }
 function toonDiamant(){
   sndDiamant();
@@ -1140,13 +1217,25 @@ function vulFoto(c,n){
   const fotos=fotosVan(c);
   if(!fotos.length){vulWeetje(c,n);return;}
   const f=fotos[(Math.floor(n/2)-1)%fotos.length];
-  const img=$("#f-foto");
-  img.onerror=()=>{vulWeetje(c,n);}; // offline of geblokkeerd: val terug op feitje+woordje
-  $("#f-fotocap").innerHTML=`📷 <b>${esc(f.t)}</b> · <a href="${f.url}" target="_blank" rel="noopener">Wikipedia</a>`;
-  img.alt=f.t;img.src=f.src;
-  $("#f-feit").style.display="none";$("#f-woord").style.display="none";
-  $("#f-fotobox").style.display="block";
+  // de kaart toont eerst alleen het antwoord; de foto verschijnt ±1 s later groot in beeld
+  $("#f-feit").style.display="none";$("#f-woord").style.display="none";$("#f-fotobox").style.display="none";
+  const start=Date.now(),lader=new Image();
+  lader.onload=()=>{st.fotoTimer=setTimeout(()=>toonGroteFoto(f,c),Math.max(0,1000-(Date.now()-start)));};
+  lader.onerror=()=>{vulWeetje(c,n);}; // offline of geblokkeerd: val terug op feitje+woordje
+  lader.src=f.src;
 }
+function toonGroteFoto(f,c){
+  if(!$("#s-game").classList.contains("active"))return; // ronde is al afgebroken
+  $("#fg-img").src=f.src;$("#fg-img").alt=f.t;
+  $("#fg-cap").innerHTML=`📷 <b>${esc(f.t)}</b> — ${esc(c.n)} · <a href="${f.url}" target="_blank" rel="noopener">Wikipedia</a>`;
+  $("#fotogroot").classList.add("open");
+  toon(880,.09,"sine",.08);toon(1318,.14,"sine",.08,.07);
+}
+function annuleerFoto(){
+  if(st.fotoTimer){clearTimeout(st.fotoTimer);st.fotoTimer=null;}
+  $("#fotogroot").classList.remove("open");
+}
+$("#fotogroot").addEventListener("click",ev=>{if(ev.target.tagName!=="A")annuleerFoto();});
 function toonFeedback(goed,belon,timeout,geklikt){
   const q=st.q,c=q.c;
   $("#f-emoji").textContent=goed?rnd(["🎉","🌟","🚀","🥳","💪","🧭"]):(timeout?"⏰":"😅");
@@ -1172,6 +1261,7 @@ function toonFeedback(goed,belon,timeout,geklikt){
   $("#b-next").focus();
 }
 $("#b-next").onclick=()=>{
+  annuleerFoto();
   $("#fb").classList.remove("open");
   if(!$("#s-game").classList.contains("active")||!st.vragen.length)return; // ronde is afgebroken
   st.qi++;
@@ -1182,9 +1272,15 @@ function eindRonde(){
   const p=speler();
   stopSpeeltijd();
   p.rounds++;save();
-  kaartReset();stopTimer();
+  kaartReset();stopTimer();annuleerFoto();
   const pct=st.ronde.goed/st.vragen.length;
-  $("#r-titel").textContent=pct===1?`PERFECT, ${p.naam}! Alles goed! 🤩`:pct>=.7?`Super gedaan, ${p.naam}! 🎉`:pct>=.4?`Lekker bezig, ${p.naam}! 💪`:`Goed geprobeerd, ${p.naam} — oefening baart kunst! 🌱`;
+  const perfect=pct===1;
+  if(perfect){ // bijzondere beloning: bonusdiamant + trofee met sterrenregen
+    p.diamonds++;st.ronde.diam++;p.perfect=(p.perfect||0)+1;save();
+    setTimeout(perfecteRonde,600);
+  }
+  $("#r-perfect").style.display=perfect?"block":"none";
+  $("#r-titel").textContent=perfect?`PERFECT, ${p.naam}! Alles goed! 🤩`:pct>=.7?`Super gedaan, ${p.naam}! 🎉`:pct>=.4?`Lekker bezig, ${p.naam}! 💪`:`Goed geprobeerd, ${p.naam} — oefening baart kunst! 🌱`;
   $("#r-gems").textContent=st.ronde.diam>0?"💎".repeat(st.ronde.diam):"";
   $("#r-goed").textContent=`${st.ronde.goed}/${st.vragen.length}`;
   $("#r-punt").textContent=st.ronde.punt;
@@ -1206,7 +1302,7 @@ function eindRonde(){
     st.ronde.stempels.forEach(c=>{const s=document.createElement("span");s.textContent=c.f;s.title=c.n;stamps.appendChild(s);});
   }
   toonScherm("#s-result");
-  if(pct>=.7){sndFanfare();setTimeout(()=>knal(innerWidth/2,innerHeight*.3,140),300);}
+  if(!perfect&&pct>=.7){sndFanfare();setTimeout(()=>knal(innerWidth/2,innerHeight*.3,140),300);}
 }
 
 /* ================= VERKENMODUS ================= */
@@ -1282,6 +1378,7 @@ function toonWelkom(){
   if(!p||!p.rounds)return; // nieuwe speler: gewoon het startscherm
   st.naam=p.naam;
   $("#w-titel").textContent=`👋 Welkom terug, ${p.naam}!`;
+  $("#w-sub").textContent=p.perfect?`Kijk eens wat je al hebt gespeeld — met ${p.perfect} perfecte ronde${p.perfect===1?"":"s"} 🏆!`:"Kijk eens wat je al bij elkaar hebt gespeeld:";
   $("#w-diam").textContent=p.diamonds;
   $("#w-punt").textContent=p.diamonds*5+p.points;
   $("#w-tijd").textContent=Math.round((p.speeltijd||0)/60000);
@@ -1316,8 +1413,8 @@ $("#b-start").onclick=()=>{sndKlik();startRonde();};
 $("#b-verken").onclick=()=>{sndKlik();startVerken();};
 $("#b-pass").onclick=()=>{sndKlik();toonPaspoort();};
 $("#b-pass2").onclick=()=>{sndKlik();toonPaspoort();};
-$("#b-home").onclick=()=>{ // ronde ALTIJD volledig afbreken (ook bliksemronde en open feedback)
-  stopTimer();stopSpeeltijd();kaartReset();
+$("#b-home").onclick=()=>{ // ronde ALTIJD volledig afbreken (ook bliksemronde, feedback en grote foto)
+  stopTimer();stopSpeeltijd();kaartReset();annuleerFoto();
   $("#fb").classList.remove("open");
   st.verken=false;st.q=null;st.vragen=[];st.qi=0;
   chipsSync();segSync();toonScherm("#s-start");
