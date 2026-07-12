@@ -232,6 +232,11 @@
   .stamp.goud{border:2px solid var(--accent-fill); box-shadow:0 0 8px rgba(247,201,72,.4)}
 
   /* ---------- Toast & confetti ---------- */
+  #update{
+    display:none; position:fixed; left:50%; top:60px; transform:translateX(-50%); z-index:70;
+    border:none; border-radius:999px; padding:12px 22px; font-size:15px; font-weight:bold; cursor:pointer;
+    background:var(--gold-grad); color:#3A2A00; box-shadow:var(--shadow); animation:goldpulse 1.5s infinite;
+  }
   #toast{
     position:fixed; left:50%; top:14px; transform:translateX(-50%) translateY(-90px); z-index:60;
     background:var(--panel); box-shadow:var(--shadow); border-radius:999px; padding:10px 20px; font-size:16px; font-weight:bold;
@@ -400,6 +405,7 @@
 </div>
 
 <div id="toast"></div>
+<button id="update">🔄 Er is een nieuwe versie! Tik hier om te verversen</button>
 <canvas id="confetti"></canvas>
 
 <script id="geodata">
@@ -412,6 +418,7 @@ const VBSTART={"x":170.4,"y":154.5,"w":725.2,"h":635.5};
 </script>
 <script>
 "use strict";
+const VERSIE="4"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -1115,4 +1122,19 @@ if(db.last){naamIn.value=db.last;st.naam=db.last;$("#b-start").disabled=false;}
 if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostname==="localhost")){
   try{navigator.serviceWorker.register("./sw.js").catch(()=>{});}catch(e){}
 }
+// update-melding: als beginscherm-app hervat wordt met een oude versie, bied verversen aan
+let laatsteCheck=0;
+async function versieCheck(){
+  if(!/(github\.io|localhost)$/.test(location.hostname))return;
+  if(!navigator.onLine||Date.now()-laatsteCheck<5*60*1000)return;
+  laatsteCheck=Date.now();
+  try{
+    const r=await fetch(location.pathname,{cache:"no-store"});
+    const m=(await r.text()).match(/const VERSIE="(\d+)"/);
+    if(m&&m[1]!==VERSIE)$("#update").style.display="block";
+  }catch(e){}
+}
+$("#update").onclick=()=>location.reload();
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)versieCheck();});
+versieCheck();
 </script>
