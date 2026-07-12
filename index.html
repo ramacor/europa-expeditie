@@ -92,6 +92,10 @@
   .bigbtn:disabled{opacity:.45; cursor:not-allowed}
   .bigbtn:not(:disabled):hover{transform:translateY(-1px)}
   .moeilijkbtn{background:linear-gradient(135deg,#FF9A5C,#E5484D); color:#3F0D08; font-size:17px; padding:14px}
+  .wachtop{opacity:.55} /* nog geen naam: gedimd maar klikbaar, klik wijst naar het naamveld */
+  .naamnodig{animation:wiebel .5s ease; border-color:var(--accent-fill) !important;
+    box-shadow:0 0 0 4px color-mix(in srgb, var(--accent-fill) 45%, transparent)}
+  @keyframes wiebel{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}50%{transform:translateX(7px)}75%{transform:translateX(-4px)}}
   .subrow{display:flex; gap:10px; width:min(560px,100%)}
   .subbtn{flex:1; border:none; border-radius:13px; padding:12px; font-size:15px; cursor:pointer; background:var(--panel); box-shadow:var(--shadow)}
   .subbtn:hover{outline:2px solid var(--teal)}
@@ -459,8 +463,8 @@
     <div class="togglerow"><span>⚡ Bliksemronde (5 sec per vraag)</span><button class="tog" id="t-flits" aria-label="Bliksemronde aan of uit"></button></div>
   </div>
 
-  <button class="bigbtn" id="b-start" disabled>🚀 Start de expeditie!</button>
-  <button class="bigbtn moeilijkbtn" id="b-moeilijk" disabled>🎯 Moeilijke ronde — oefen je lastige landen</button>
+  <button class="bigbtn" id="b-start">🚀 Start de expeditie!</button>
+  <button class="bigbtn moeilijkbtn" id="b-moeilijk">🎯 Moeilijke ronde — oefen je lastige landen</button>
 
   <div class="card" id="expkader" style="display:none">
     <h2>🚩 Jouw expeditie</h2>
@@ -644,7 +648,7 @@ const VBSTART={"x":170.4,"y":154.5,"w":725.2,"h":635.5};
 </script>
 <script>
 "use strict";
-const VERSIE="15"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="16"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -1147,7 +1151,16 @@ $("#t-mini").onclick=()=>{db.settings.mini=!db.settings.mini;save();segSync();sn
 $("#t-flits").onclick=()=>{db.settings.flits=!db.settings.flits;save();segSync();sndKlik();};
 
 const naamIn=$("#naam");
-function knoppenSync(){const uit=!st.naam;$("#b-start").disabled=uit;$("#b-moeilijk").disabled=uit;expeditieSync();}
+function knoppenSync(){const uit=!st.naam;$("#b-start").classList.toggle("wachtop",uit);$("#b-moeilijk").classList.toggle("wachtop",uit);expeditieSync();}
+function wijsNaarNaam(){ // duidelijk maken dat eerst de voornaam nodig is
+  toast("👋 Vul eerst je voornaam in bij 'Wie gaat er spelen?'");
+  const veld=$("#naam");
+  veld.scrollIntoView({behavior:"smooth",block:"center"});
+  veld.classList.remove("naamnodig");void veld.offsetWidth;
+  veld.classList.add("naamnodig");
+  setTimeout(()=>veld.classList.remove("naamnodig"),1700);
+  setTimeout(()=>veld.focus({preventScroll:true}),400);
+}
 naamIn.addEventListener("input",()=>{st.naam=naamIn.value.trim();knoppenSync();});
 function chipsSync(){
   const c=$("#chips");c.innerHTML="";
@@ -1228,7 +1241,7 @@ function maakMoeilijkeVragen(){ // slimme training: vaakst fout geraden eerst, a
 
 /* ================= RONDE ================= */
 function startRonde(moeilijk=false){
-  if(!st.naam)return;
+  if(!st.naam){wijsNaarNaam();return;}
   db.last=st.naam;save();
   const p=speler();
   st.vragen=moeilijk?maakMoeilijkeVragen():maakVragen();
