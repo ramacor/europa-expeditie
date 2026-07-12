@@ -91,6 +91,7 @@
   }
   .bigbtn:disabled{opacity:.45; cursor:not-allowed}
   .bigbtn:not(:disabled):hover{transform:translateY(-1px)}
+  .moeilijkbtn{background:linear-gradient(135deg,#FF9A5C,#E5484D); color:#3F0D08; font-size:17px; padding:14px}
   .subrow{display:flex; gap:10px; width:min(560px,100%)}
   .subbtn{flex:1; border:none; border-radius:13px; padding:12px; font-size:15px; cursor:pointer; background:var(--panel); box-shadow:var(--shadow)}
   .subbtn:hover{outline:2px solid var(--teal)}
@@ -291,7 +292,18 @@
   .stamp{background:var(--panel2); border-radius:12px; padding:9px 6px; text-align:center; font-size:12px; line-height:1.3}
   .stamp .f{font-size:24px; display:block}
   .stamp.leeg{opacity:.35; filter:grayscale(1)}
-  .stamp.goud{border:2px solid var(--accent-fill); box-shadow:0 0 8px rgba(247,201,72,.4)}
+  .stamp.goud{ /* behaald: massief gouden tegel met glim-effect */
+    background:var(--gold-grad); color:#3A2A00; font-weight:bold;
+    box-shadow:0 0 14px rgba(247,201,72,.55), inset 0 1px 0 rgba(255,255,255,.5);
+    position:relative; overflow:hidden;
+  }
+  .stamp.goud::after{
+    content:""; position:absolute; top:-60%; left:-80%; width:45%; height:220%;
+    transform:rotate(25deg);
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.8),transparent);
+    animation:glim 2.8s ease-in-out infinite;
+  }
+  @keyframes glim{0%{left:-80%}55%,100%{left:140%}}
 
   /* ---------- Toast & confetti ---------- */
   #update{
@@ -372,6 +384,7 @@
   </div>
 
   <button class="bigbtn" id="b-start" disabled>🚀 Start de expeditie!</button>
+  <button class="bigbtn moeilijkbtn" id="b-moeilijk" disabled>🎯 Moeilijke ronde — oefen je lastige landen</button>
   <div class="subrow">
     <button class="subbtn" id="b-verken">🔍 Verken de kaart</button>
     <button class="subbtn" id="b-pass">📔 Mijn paspoort</button>
@@ -521,7 +534,7 @@ const VBSTART={"x":170.4,"y":154.5,"w":725.2,"h":635.5};
 </script>
 <script>
 "use strict";
-const VERSIE="9"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="10"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -976,12 +989,13 @@ $("#t-mini").onclick=()=>{db.settings.mini=!db.settings.mini;save();segSync();sn
 $("#t-flits").onclick=()=>{db.settings.flits=!db.settings.flits;save();segSync();sndKlik();};
 
 const naamIn=$("#naam");
-naamIn.addEventListener("input",()=>{st.naam=naamIn.value.trim();$("#b-start").disabled=!st.naam;});
+function knoppenSync(){const uit=!st.naam;$("#b-start").disabled=uit;$("#b-moeilijk").disabled=uit;}
+naamIn.addEventListener("input",()=>{st.naam=naamIn.value.trim();knoppenSync();});
 function chipsSync(){
   const c=$("#chips");c.innerHTML="";
   Object.values(db.players).sort((a,b)=>b.diamonds-a.diamonds).forEach(p=>{
     const b=document.createElement("button");b.className="pchip";b.textContent=`${p.naam} · 💎${p.diamonds}`;
-    b.onclick=()=>{naamIn.value=p.naam;st.naam=p.naam;$("#b-start").disabled=false;sndKlik();};
+    b.onclick=()=>{naamIn.value=p.naam;st.naam=p.naam;knoppenSync();sndKlik();};
     c.appendChild(b);
   });
 }
@@ -1007,39 +1021,59 @@ function afleiders(c,pool,veld){
   rest.sort((a,b)=>((a.cx-c.cx)**2+(a.cy-c.cy)**2)-((b.cx-c.cx)**2+(b.cy-c.cy)**2));
   return shuffle(rest.slice(0,6)).slice(0,3);
 }
-function maakVragen(){
-  const s=db.settings,pool=actievePool();
-  const n=Math.min(Number(s.aantal),pool.length);
-  const landen=gewogenTrek(pool,n);
+function bouwVraag(c,pool){
+  const s=db.settings;
   const kaartMag=s.stijl==="kaart"||s.stijl==="mix";
   const mcMag=s.stijl==="mc"||s.stijl==="mix";
-  return landen.map(c=>{
-    let types=[];
-    if(s.oefen==="landen"||s.oefen==="mix"){
-      if(kaartMag)types.push("klikLand");
-      if(mcMag)types.push("mcLand");
-    }
-    if(s.oefen==="hoofdsteden"||s.oefen==="mix"){
-      if(kaartMag)types.push("klikHoofdstad");
-      if(mcMag)types.push("mcHoofdstad","mcLandVan");
-    }
-    const type=rnd(types);
-    const q={c,type};
-    if(type==="mcLand"||type==="mcLandVan"){
-      q.opties=shuffle([c,...afleiders(c,pool,"n")].map(x=>({t:x.n,ok:x.id===c.id})));
-    }else if(type==="mcHoofdstad"){
-      q.opties=shuffle([c,...afleiders(c,pool,"h")].map(x=>({t:x.h,ok:x.id===c.id})));
-    }
-    return q;
-  });
+  let types=[];
+  if(s.oefen==="landen"||s.oefen==="mix"){
+    if(kaartMag)types.push("klikLand");
+    if(mcMag)types.push("mcLand");
+  }
+  if(s.oefen==="hoofdsteden"||s.oefen==="mix"){
+    if(kaartMag)types.push("klikHoofdstad");
+    if(mcMag)types.push("mcHoofdstad","mcLandVan");
+  }
+  const type=rnd(types);
+  const q={c,type};
+  if(type==="mcLand"||type==="mcLandVan"){
+    q.opties=shuffle([c,...afleiders(c,pool,"n")].map(x=>({t:x.n,ok:x.id===c.id})));
+  }else if(type==="mcHoofdstad"){
+    q.opties=shuffle([c,...afleiders(c,pool,"h")].map(x=>({t:x.h,ok:x.id===c.id})));
+  }
+  return q;
+}
+function maakVragen(){
+  const pool=actievePool();
+  const n=Math.min(Number(db.settings.aantal),pool.length);
+  return gewogenTrek(pool,n).map(c=>bouwVraag(c,pool));
+}
+function maakMoeilijkeVragen(){ // ronde met de landen die je het vaakst fout raadt
+  const p=speler(),fouten=p.fouten||{};
+  const kandidaten=LANDEN.filter(c=>GEO[c.id]&&fouten[c.id]).sort((a,b)=>fouten[b.id]-fouten[a.id]);
+  if(!kandidaten.length)return null;
+  const n=Number(db.settings.aantal);
+  let lijst=kandidaten.slice(0,n);
+  if(lijst.length<n){ // aanvullen met je minst geoefende landen
+    const rest=actievePool().filter(c=>!lijst.includes(c)).sort((a,b)=>(p.pass[a.id]||0)-(p.pass[b.id]||0));
+    lijst=lijst.concat(rest.slice(0,n-lijst.length));
+  }
+  const pool=[...new Set([...actievePool(),...lijst])];
+  return shuffle(lijst).map(c=>bouwVraag(c,pool));
 }
 
 /* ================= RONDE ================= */
-function startRonde(){
+function startRonde(moeilijk=false){
   if(!st.naam)return;
   db.last=st.naam;save();
   const p=speler();
-  st.vragen=maakVragen();
+  if(moeilijk){
+    const v=maakMoeilijkeVragen();
+    if(!v){toast("🎯 Nog geen lastige landen gevonden — speel eerst een gewone ronde!");return;}
+    st.vragen=v;
+  }else{
+    st.vragen=maakVragen();
+  }
   if(!st.vragen.length){toast("Geen vragen mogelijk met deze instellingen 🤔");return;}
   st.qi=0;st.streak=0;st.verken=false;st.rondeStart=Date.now();
   st.ronde={goed:0,punt:0,best:0,diam:0,stempels:[],uitslagen:[]};
@@ -1194,6 +1228,7 @@ function beantwoord(goed,knop,timeout=false,geklikt=null){
   }else{
     st.streak=0;sndFout();
     st.ronde.uitslagen[st.qi]={goed:false,diamant:false};
+    p.fouten=p.fouten||{};p.fouten[c.id]=(p.fouten[c.id]||0)+1; // voor de moeilijke ronde
   }
   save();hudSync();voortgangSync();
   toonFeedback(goed,belon,timeout,geklikt);
@@ -1407,9 +1442,11 @@ function toonPaspoort(){
   $("#m-pass").classList.add("open");
 }
 $("#b-passdicht").onclick=()=>$("#m-pass").classList.remove("open");
+$("#m-pass").addEventListener("click",ev=>{if(ev.target===ev.currentTarget)$("#b-passdicht").click();}); // naast het paspoort klikken = sluiten
 
 /* ================= KNOPPEN & TOETSEN ================= */
 $("#b-start").onclick=()=>{sndKlik();startRonde();};
+$("#b-moeilijk").onclick=()=>{sndKlik();startRonde(true);};
 $("#b-verken").onclick=()=>{sndKlik();startVerken();};
 $("#b-pass").onclick=()=>{sndKlik();toonPaspoort();};
 $("#b-pass2").onclick=()=>{sndKlik();toonPaspoort();};
@@ -1436,7 +1473,8 @@ addEventListener("keydown",ev=>{
 /* ================= INIT ================= */
 bouwKaart();
 segSync();chipsSync();
-if(db.last){naamIn.value=db.last;st.naam=db.last;$("#b-start").disabled=false;}
+if(db.last){naamIn.value=db.last;st.naam=db.last;}
+knoppenSync();
 toonWelkom();
 // offline spelen (GitHub Pages); faalt stil waar geen sw.js bestaat (bijv. artifact)
 if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostname==="localhost")){
