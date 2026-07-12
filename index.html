@@ -219,6 +219,15 @@
   .levelbar i{display:block; height:100%; background:var(--gold-grad); border-radius:99px; transition:width .8s ease}
   .stamps{display:flex; gap:6px; flex-wrap:wrap; justify-content:center; width:min(560px,100%); font-size:24px}
 
+  /* ---------- Welkom terug ---------- */
+  #m-welkom{display:none; position:fixed; inset:0; background:rgba(8,12,30,.55); z-index:55; align-items:center; justify-content:center; padding:18px}
+  #m-welkom.open{display:flex}
+  .welkomcard{width:min(540px,100%) !important; text-align:center}
+  .welkomcard h2{font-size:24px; text-wrap:balance}
+  .welkomcard .statgrid{margin:14px 0 16px; width:100%; grid-template-columns:repeat(2,1fr)}
+  .welkomcard .bigbtn{width:100%}
+  .welkomcard .stilknop{border:none; background:none; color:var(--muted); font-size:14px; cursor:pointer; margin-top:12px; text-decoration:underline}
+
   /* ---------- Paspoort ---------- */
   #m-pass{display:none; position:fixed; inset:0; background:rgba(8,12,30,.55); z-index:50; align-items:center; justify-content:center; padding:18px}
   #m-pass.open{display:flex}
@@ -394,6 +403,22 @@
   </div>
 </div>
 
+<!-- ============ WELKOM TERUG ============ -->
+<div id="m-welkom" role="dialog" aria-modal="true">
+  <div class="passcard welkomcard">
+    <h2 id="w-titel">👋 Welkom terug!</h2>
+    <div class="sub">Kijk eens wat je al bij elkaar hebt gespeeld:</div>
+    <div class="statgrid">
+      <div class="statbox"><div class="v" id="w-diam">0</div><div class="l">💎 Diamanten</div></div>
+      <div class="statbox"><div class="v" id="w-punt">0</div><div class="l">⭐ Punten verdiend</div></div>
+      <div class="statbox"><div class="v" id="w-tijd">0</div><div class="l">⏱️ Minuten gespeeld</div></div>
+      <div class="statbox"><div class="v" id="w-pas">0</div><div class="l">📔 Landen in paspoort</div></div>
+    </div>
+    <button class="bigbtn" id="b-w-start">🚀 Verder oefenen!</button>
+    <button class="stilknop" id="b-w-anders">Andere speler of instellingen aanpassen</button>
+  </div>
+</div>
+
 <!-- ============ PASPOORT ============ -->
 <div id="m-pass" role="dialog" aria-modal="true">
   <div class="passcard">
@@ -418,7 +443,7 @@ const VBSTART={"x":170.4,"y":154.5,"w":725.2,"h":635.5};
 </script>
 <script>
 "use strict";
-const VERSIE="4"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="5"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -528,7 +553,11 @@ const DBKEY="europa-expeditie-v1";
 let db=load();
 function load(){try{const d=JSON.parse(localStorage.getItem(DBKEY));if(d&&d.players)return d;}catch(e){}return {players:{},last:"",settings:{oefen:"mix",stijl:"mix",aantal:"10",niveau:"1",mini:false,flits:false},muted:false};}
 function save(){try{localStorage.setItem(DBKEY,JSON.stringify(db));}catch(e){}}
-function speler(){const k=st.naam.toLowerCase();if(!db.players[k])db.players[k]={naam:st.naam,diamonds:0,points:0,best:0,rounds:0,goedTotaal:0,pass:{}};return db.players[k];}
+function speler(){const k=st.naam.toLowerCase();if(!db.players[k])db.players[k]={naam:st.naam,diamonds:0,points:0,best:0,rounds:0,goedTotaal:0,speeltijd:0,pass:{}};return db.players[k];}
+function stopSpeeltijd(){ // tel de verstreken rondetijd bij de speler op
+  if(st.rondeStart&&st.naam){const p=speler();p.speeltijd=(p.speeltijd||0)+Date.now()-st.rondeStart;save();}
+  st.rondeStart=null;
+}
 
 const st={naam:"",vragen:[],qi:0,q:null,answered:false,hints:0,streak:0,verken:false,
   ronde:{goed:0,punt:0,best:0,diam:0,stempels:[]},goldIdx:-1,timerId:null,timerEind:0};
@@ -827,7 +856,7 @@ function startRonde(){
   const p=speler();
   st.vragen=maakVragen();
   if(!st.vragen.length){toast("Geen vragen mogelijk met deze instellingen 🤔");return;}
-  st.qi=0;st.streak=0;st.verken=false;
+  st.qi=0;st.streak=0;st.verken=false;st.rondeStart=Date.now();
   st.ronde={goed:0,punt:0,best:0,diam:0,stempels:[]};
   st.goldIdx=Math.floor(Math.random()*st.vragen.length);
   $("#hud-naam").textContent=p.naam;
@@ -987,6 +1016,7 @@ $("#b-next").onclick=()=>{
 
 function eindRonde(){
   const p=speler();
+  stopSpeeltijd();
   p.rounds++;save();
   kaartReset();stopTimer();
   const pct=st.ronde.goed/st.vragen.length;
@@ -1077,6 +1107,22 @@ $("#b-hint").onclick=()=>{
   }
 };
 
+/* ================= WELKOM TERUG ================= */
+function toonWelkom(){
+  const k=(db.last||"").toLowerCase();
+  const p=db.players[k];
+  if(!p||!p.rounds)return; // nieuwe speler: gewoon het startscherm
+  st.naam=p.naam;
+  $("#w-titel").textContent=`👋 Welkom terug, ${p.naam}!`;
+  $("#w-diam").textContent=p.diamonds;
+  $("#w-punt").textContent=p.diamonds*5+p.points;
+  $("#w-tijd").textContent=Math.round((p.speeltijd||0)/60000);
+  $("#w-pas").textContent=`${Object.values(p.pass).filter(n=>n>0).length}/${LANDEN.length}`;
+  $("#m-welkom").classList.add("open");
+}
+$("#b-w-start").onclick=()=>{$("#m-welkom").classList.remove("open");sndKlik();startRonde();};
+$("#b-w-anders").onclick=()=>{$("#m-welkom").classList.remove("open");sndKlik();};
+
 /* ================= PASPOORT ================= */
 function toonPaspoort(){
   const naam=st.naam||db.last;
@@ -1100,7 +1146,7 @@ $("#b-start").onclick=()=>{sndKlik();startRonde();};
 $("#b-verken").onclick=()=>{sndKlik();startVerken();};
 $("#b-pass").onclick=()=>{sndKlik();toonPaspoort();};
 $("#b-pass2").onclick=()=>{sndKlik();toonPaspoort();};
-$("#b-home").onclick=()=>{stopTimer();kaartReset();st.verken=false;st.q=null;chipsSync();segSync();toonScherm("#s-start");};
+$("#b-home").onclick=()=>{stopTimer();stopSpeeltijd();kaartReset();st.verken=false;st.q=null;chipsSync();segSync();toonScherm("#s-start");};
 $("#b-nogeens").onclick=()=>{sndKlik();startRonde();};
 $("#b-anders").onclick=()=>{chipsSync();segSync();toonScherm("#s-start");};
 $("#b-mute").onclick=()=>{db.muted=!db.muted;save();hudSync();};
@@ -1118,6 +1164,7 @@ addEventListener("keydown",ev=>{
 bouwKaart();
 segSync();chipsSync();
 if(db.last){naamIn.value=db.last;st.naam=db.last;$("#b-start").disabled=false;}
+toonWelkom();
 // offline spelen (GitHub Pages); faalt stil waar geen sw.js bestaat (bijv. artifact)
 if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostname==="localhost")){
   try{navigator.serviceWorker.register("./sw.js").catch(()=>{});}catch(e){}
