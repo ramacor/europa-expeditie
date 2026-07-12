@@ -20,11 +20,11 @@ Leerspel voor de topografie van Europa: klik landen aan op een echte kaart (Natu
 ## Release
 
 ```
-# wijzig index.html (en bump CACHE in sw.js), daarna:
+# wijzig index.html, verhoog daarin VERSIE én CACHE in sw.js (zelfde nummer), daarna:
 git add -A && git commit -m "..." && git push
 ```
 
-GitHub Pages werkt de site binnen ± een minuut bij. iPads met de app op het beginscherm halen de nieuwe versie bij de eerstvolgende start met internet.
+GitHub Pages werkt de site binnen ± een minuut bij. De beginscherm-app op de iPad hoeft **nooit** opnieuw aangemaakt te worden: bij een verse start met internet laadt hij automatisch de nieuwste versie, en een app die nog open stond toont vanzelf een "🔄 nieuwe versie"-knop (via de VERSIE-check).
 
 ## Kaartdata vernieuwen
 
