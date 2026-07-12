@@ -158,9 +158,13 @@
   .land.dim{opacity:.34}
   .land.target{animation:tpulse 1.1s ease-in-out infinite; stroke:var(--accent-fill); stroke-width:2.4}
   @keyframes tpulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.55) drop-shadow(0 0 7px var(--accent-fill))}}
-  .land.goed{stroke:var(--good); stroke-width:3; filter:drop-shadow(0 0 9px var(--good)) brightness(1.25); animation:none}
-  .land.fout{stroke:var(--bad); stroke-width:3; animation:foutflits .3s ease-in-out 3}
-  @keyframes foutflits{0%,100%{filter:none}50%{filter:brightness(.55) saturate(2)}}
+  .land.goed{
+    fill:var(--good); stroke:var(--map-line); stroke-width:2.2;
+    animation:gpulse 1.1s ease-in-out infinite;
+  }
+  @keyframes gpulse{0%,100%{filter:brightness(1) drop-shadow(0 0 4px var(--good))}50%{filter:brightness(1.35) drop-shadow(0 0 11px var(--good))}}
+  .land.fout{fill:url(#arcering); stroke:var(--bad); stroke-width:2.4; animation:foutflits .35s ease-in-out 3}
+  @keyframes foutflits{0%,100%{filter:none}50%{filter:brightness(.6) saturate(1.8)}}
   :root[data-theme="dark"] #gLand,:root[data-theme="dark"] #gDots{filter:brightness(.82) saturate(.95)}
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]) #gLand, :root:not([data-theme="light"]) #gDots{filter:brightness(.82) saturate(.95)}
@@ -539,6 +543,12 @@ const VBFULL=(typeof VBSTART!=="undefined"&&VBSTART)?VBSTART:VBMAX; // startweer
 
 function bouwKaart(){
   const mk=t=>document.createElementNS(SVGNS,t);
+  // arceerpatroon voor fout aangeklikte landen (rode diagonale strepen)
+  const defs=mk("defs");
+  defs.innerHTML='<pattern id="arcering" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">'
+    +'<rect width="9" height="9" style="fill:var(--bad);opacity:.3"/>'
+    +'<rect width="4.5" height="9" style="fill:var(--bad)"/></pattern>';
+  map.appendChild(defs);
   // echte graticule (lengte-/breedtegraden, geprojecteerd)
   if(GRATICULE){const g=mk("path");g.setAttribute("d",GRATICULE);g.setAttribute("class","graticule");map.appendChild(g);}
   // omliggende landen (niet speelbaar, voor context)
@@ -904,10 +914,13 @@ function beantwoord(goed,knop,timeout=false,geklikt=null){
   const goud=st.qi===st.goldIdx;
   map.classList.remove("klikbaar");
   // kaart-feedback
+  // zoals bij meerkeuze: alles dimmen, het goede land groen laten pulseren, de foute klik rood arceren
+  LANDEN.forEach(x=>{if(paden[x.id])paden[x.id].classList.add("dim");});
   paden[c.id].classList.remove("target","dim");
   paden[c.id].classList.add("goed");
   let zb=c.bb;
   if(!goed&&geklikt&&geklikt.id!==c.id){
+    paden[geklikt.id].classList.remove("dim");
     paden[geklikt.id].classList.add("fout");
     zb=[Math.min(c.bb[0],geklikt.bb[0]),Math.min(c.bb[1],geklikt.bb[1]),Math.max(c.bb[2],geklikt.bb[2]),Math.max(c.bb[3],geklikt.bb[3])];
   }
