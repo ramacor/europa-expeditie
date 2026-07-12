@@ -13,7 +13,7 @@
     --bg:#F2F6FC; --panel:#FFFFFF; --panel2:#E9F0FA; --sea:#D9E8F5; --ink:#182142; --muted:#5B6788;
     --accent:#B07C14; --accent-fill:#F5B83D; --teal:#0E9F87; --good:#1FA45D; --bad:#D9435A;
     --map-line:#FFFFFF; --chip:#E4ECF8; --shadow:0 6px 24px rgba(24,33,66,.12);
-    --land-context:#C7D3E4;
+    --land-context:#C7D3E4; --pagina:#F6EED8; --inkt:#4A3B2A;
     --gold-grad:linear-gradient(135deg,#F7C948,#E8940A);
   }
   @media (prefers-color-scheme: dark){
@@ -21,20 +21,20 @@
       --bg:#0B1026; --panel:#151C3A; --panel2:#1C2448; --sea:#0D1430; --ink:#EAF0FF; --muted:#93A0C4;
       --accent:#FFC94D; --accent-fill:#FFC94D; --teal:#3FE0BE; --good:#4ADE80; --bad:#FF6B7A;
       --map-line:#0B1026; --chip:#222B55; --shadow:0 8px 28px rgba(0,0,0,.45);
-      --land-context:#1B2245;
+      --land-context:#1B2245; --pagina:#282217; --inkt:#E7DCC2;
     }
   }
   :root[data-theme="light"]{
     --bg:#F2F6FC; --panel:#FFFFFF; --panel2:#E9F0FA; --sea:#D9E8F5; --ink:#182142; --muted:#5B6788;
     --accent:#B07C14; --accent-fill:#F5B83D; --teal:#0E9F87; --good:#1FA45D; --bad:#D9435A;
     --map-line:#FFFFFF; --chip:#E4ECF8; --shadow:0 6px 24px rgba(24,33,66,.12);
-    --land-context:#C7D3E4;
+    --land-context:#C7D3E4; --pagina:#F6EED8; --inkt:#4A3B2A;
   }
   :root[data-theme="dark"]{
     --bg:#0B1026; --panel:#151C3A; --panel2:#1C2448; --sea:#0D1430; --ink:#EAF0FF; --muted:#93A0C4;
     --accent:#FFC94D; --accent-fill:#FFC94D; --teal:#3FE0BE; --good:#4ADE80; --bad:#FF6B7A;
     --map-line:#0B1026; --chip:#222B55; --shadow:0 8px 28px rgba(0,0,0,.45);
-    --land-context:#1B2245;
+    --land-context:#1B2245; --pagina:#282217; --inkt:#E7DCC2;
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
@@ -48,7 +48,7 @@
   .screen.active{display:flex; flex-direction:column}
 
   /* ---------- Startscherm ---------- */
-  #s-start{align-items:center; justify-content:flex-start; gap:14px;
+  #s-start{position:relative; align-items:center; justify-content:flex-start; gap:14px;
     padding:calc(22px + env(safe-area-inset-top,0px)) 16px calc(48px + env(safe-area-inset-bottom,0px))}
   .hero{text-align:center; margin-top:10px}
   .hero h1{
@@ -128,9 +128,15 @@
   #diamantpop{position:fixed; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center;
     gap:10px; z-index:95; pointer-events:none; perspective:700px; opacity:1; transition:opacity .35s ease}
   #diamantpop.open{display:flex}
-  .diamant3d{font-size:130px; line-height:1; animation:diaspin 1.9s ease; transform-style:preserve-3d;
-    filter:drop-shadow(0 0 25px #7DD3FC) drop-shadow(0 0 70px rgba(125,211,252,.65))}
-  @keyframes diaspin{0%{transform:scale(.15) rotateY(0)}35%{transform:scale(1.3) rotateY(400deg)}60%{transform:scale(1) rotateY(680deg)}100%{transform:scale(1) rotateY(720deg)}}
+  .diamant3d{font-size:min(210px,45vw); line-height:1; animation:diaspin 2s cubic-bezier(.3,1.4,.5,1); transform-style:preserve-3d;
+    filter:drop-shadow(0 0 35px #7DD3FC) drop-shadow(0 0 110px rgba(125,211,252,.8))}
+  @keyframes diaspin{
+    0%{transform:scale(.08) rotateY(0) rotateZ(-25deg)}
+    40%{transform:scale(1.75) rotateY(540deg) rotateZ(10deg)}
+    62%{transform:scale(1.05) rotateY(690deg) rotateZ(-4deg)}
+    80%{transform:scale(1.25) rotateY(720deg) rotateZ(0deg)}
+    100%{transform:scale(1.18) rotateY(720deg)}
+  }
   .diamanttekst{font-size:24px; font-weight:bold; letter-spacing:1px; background:var(--panel); color:var(--ink);
     padding:11px 26px; border-radius:999px; box-shadow:var(--shadow), 0 0 24px rgba(125,211,252,.5); animation:goldpulse 1s infinite}
   /* grote foto-lichtbak */
@@ -271,7 +277,9 @@
   .levelbox{background:var(--panel); border-radius:15px; box-shadow:var(--shadow); padding:14px 18px; width:min(560px,100%); text-align:center; font-size:16px}
   .levelbar{height:10px; background:var(--panel2); border-radius:99px; overflow:hidden; margin-top:9px}
   .levelbar i{display:block; height:100%; background:var(--gold-grad); border-radius:99px; transition:width .8s ease}
-  .stamps{display:flex; gap:6px; flex-wrap:wrap; justify-content:center; width:min(560px,100%); font-size:24px}
+  .stamps{display:flex; gap:12px; flex-wrap:wrap; justify-content:center; width:min(560px,100%); font-size:46px}
+  .stamps span{animation:stempelplof .5s cubic-bezier(.3,1.6,.6,1) both}
+  @keyframes stempelplof{from{transform:scale(.2) rotate(-16deg); opacity:0}}
 
   /* ---------- Welkom terug ---------- */
   #m-welkom{display:none; position:fixed; inset:0; background:rgba(8,12,30,.55); z-index:55; align-items:center; justify-content:center; padding:18px}
@@ -282,16 +290,71 @@
   .welkomcard .bigbtn{width:100%}
   .welkomcard .stilknop{border:none; background:none; color:var(--muted); font-size:14px; cursor:pointer; margin-top:12px; text-decoration:underline}
 
-  /* ---------- Paspoort ---------- */
-  #m-pass{display:none; position:fixed; inset:0; background:rgba(8,12,30,.55); z-index:50; align-items:center; justify-content:center; padding:18px}
-  #m-pass.open{display:flex}
+  /* ---------- Ondermenu ---------- */
+  .menubalk{position:fixed; left:0; right:0; bottom:0; z-index:35; display:flex; justify-content:center; gap:8px;
+    background:var(--panel); box-shadow:0 -6px 24px rgba(0,0,0,.28); padding:7px 10px calc(7px + env(safe-area-inset-bottom,0px))}
+  .menubalk.weg{display:none}
+  .menuknop{flex:1; max-width:220px; border:none; background:none; border-radius:12px; padding:7px 6px; cursor:pointer;
+    font-size:12px; font-weight:bold; color:var(--muted); display:flex; flex-direction:column; align-items:center; gap:2px}
+  .menuknop .mico{font-size:22px; line-height:1}
+  .menuknop.actief{background:var(--panel2); color:var(--ink)}
+  .metmenu{padding-bottom:calc(86px + env(safe-area-inset-bottom,0px)) !important}
+
+  /* ---------- Themaknop ---------- */
+  #b-thema{position:absolute; top:calc(12px + env(safe-area-inset-top,0px)); right:12px; z-index:5;
+    border:none; background:var(--panel); box-shadow:var(--shadow); border-radius:999px; padding:9px 15px; font-size:14px; font-weight:bold; cursor:pointer}
+
+  /* ---------- Expeditie-voortgang (levels) ---------- */
+  .lvlbalk{display:flex; gap:4px; margin:10px 0 5px}
+  .lvlbalk i{flex:1; height:15px; border-radius:99px; background:var(--panel2)}
+  .lvlbalk i.vol{background:var(--gold-grad); box-shadow:0 0 6px rgba(247,201,72,.55)}
+  .lvlnamen{font-size:12px; color:var(--muted); display:flex; justify-content:space-between; gap:8px}
+  .expstats{display:grid; grid-template-columns:repeat(auto-fit,minmax(88px,1fr)); gap:8px; margin-top:12px}
+  .expstats div{background:var(--panel2); border-radius:11px; padding:8px 5px; text-align:center; font-size:11px; color:var(--muted)}
+  .expstats b{display:block; font-size:18px; color:var(--ink); font-variant-numeric:tabular-nums}
+
+  /* ---------- Paspoortboekje ---------- */
+  #s-pass{align-items:center; gap:0;
+    padding:calc(18px + env(safe-area-inset-top,0px)) 12px calc(96px + env(safe-area-inset-bottom,0px))}
+  .boekje{width:min(680px,100%); border-radius:18px; overflow:hidden; box-shadow:var(--shadow)}
+  .boekkaft{background:linear-gradient(140deg,#7A1F2B,#450D16); color:#F3D07E; padding:14px 20px 12px; text-align:center;
+    letter-spacing:3px; font-weight:bold; font-size:20px}
+  .boekkaft small{display:block; letter-spacing:4px; font-size:10px; opacity:.85; font-weight:normal}
+  .boektabs{display:flex; background:#5C121D; padding:6px 6px 0; gap:4px}
+  .boektab{flex:1; border:none; background:none; color:#E8BE72; padding:9px 4px; font-size:13px; font-weight:bold; cursor:pointer; opacity:.6; border-radius:10px 10px 0 0}
+  .boektab.actief{opacity:1; background:var(--pagina); color:#8A2433}
+  .boekpagina{background:var(--pagina); color:var(--inkt); padding:16px; min-height:320px}
+  .boekpagina .sub{color:var(--inkt); opacity:.75; font-size:13px; margin-bottom:12px}
+  .lbwissel{display:flex; gap:6px; margin-bottom:10px}
+  .lbwissel button{flex:1; border:2px solid transparent; background:rgba(0,0,0,.07); color:var(--inkt); border-radius:10px; padding:8px 4px; font-size:13px; font-weight:bold; cursor:pointer}
+  .lbwissel button.sel{border-color:#B3402F}
+  .lbrij{display:flex; align-items:center; gap:9px; padding:5px 6px; border-bottom:1px dashed color-mix(in srgb, var(--inkt) 30%, transparent); font-size:14px}
+  .lbrij .plek{width:32px; text-align:center; font-size:16px; flex:none}
+  .lbrij .telling{margin-left:auto; font-weight:bold; font-variant-numeric:tabular-nums}
+  #pk-houder svg{width:100%; height:auto; background:rgba(0,0,0,.06); border-radius:12px; display:block}
+  .pk-land{fill:color-mix(in srgb, var(--inkt) 15%, transparent); stroke:var(--pagina); stroke-width:.8}
+  .pk-zilver{fill:#B9C2CE}
+  .pk-goud{fill:#F1B62B; animation:pkgoud 2s ease-in-out infinite}
+  @keyframes pkgoud{0%,100%{filter:drop-shadow(0 0 2px rgba(247,201,72,.6))}50%{filter:drop-shadow(0 0 9px rgba(247,201,72,1)) brightness(1.15)}}
+  .pklegenda{display:flex; gap:16px; font-size:12px; margin-top:10px; justify-content:center; flex-wrap:wrap}
+  .stempel10{position:absolute; top:-9px; right:-9px; width:36px; height:36px; border-radius:50%; border:2.5px solid #B3402F;
+    color:#B3402F; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:bold; letter-spacing:0;
+    transform:rotate(14deg); background:var(--pagina); box-shadow:0 1px 4px rgba(0,0,0,.25); line-height:1.1; text-align:center}
+
+  /* ---------- Vlagvragen & goudstaaf ---------- */
+  .choice.vlagkeuze span:last-child{font-size:36px; line-height:1.1}
+  .goudstaaf{display:inline-block; width:26px; height:13px; background:var(--gold-grad); border-radius:2px;
+    clip-path:polygon(14% 0,86% 0,100% 100%,0 100%); vertical-align:-1px; box-shadow:inset 0 2px 2px rgba(255,255,255,.55)}
   .passcard{background:var(--panel); border-radius:20px; box-shadow:var(--shadow); width:min(620px,100%); max-height:85vh; overflow-y:auto; padding:20px}
   .passcard h2{margin:0 0 4px}
   .passcard .sub{color:var(--muted); font-size:14px; margin-bottom:14px}
   .passgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(96px,1fr)); gap:8px}
-  .stamp{background:var(--panel2); border-radius:12px; padding:9px 6px; text-align:center; font-size:12px; line-height:1.3}
+  .stamp{background:transparent; border:2px dashed color-mix(in srgb, var(--inkt) 45%, transparent); color:var(--inkt);
+    border-radius:10px; padding:9px 6px; text-align:center; font-size:12px; line-height:1.3; position:relative}
+  .stamp:nth-child(3n){transform:rotate(1.6deg)}
+  .stamp:nth-child(3n+1){transform:rotate(-1.4deg)}
   .stamp .f{font-size:24px; display:block}
-  .stamp.leeg{opacity:.35; filter:grayscale(1)}
+  .stamp.leeg{opacity:.3; filter:grayscale(1)}
   .stamp.goud{ /* behaald: massief gouden tegel met glim-effect */
     background:var(--gold-grad); color:#3A2A00; font-weight:bold;
     box-shadow:0 0 14px rgba(247,201,72,.55), inset 0 1px 0 rgba(255,255,255,.5);
@@ -343,6 +406,7 @@
 
 <!-- ============ STARTSCHERM ============ -->
 <div class="screen active" id="s-start">
+  <button id="b-thema" title="Wissel tussen licht en donker">🌙 Donker</button>
   <div class="hero">
     <span class="globe">🌍</span>
     <h1>Finn's Expeditie</h1>
@@ -367,6 +431,7 @@
       <div class="seg" data-set="oefen">
         <button data-v="landen">🗺️ Landen</button>
         <button data-v="hoofdsteden">🏛️ Hoofdsteden</button>
+        <button data-v="vlaggen">🚩 Vlaggen</button>
         <button data-v="mix">🎲 Mix</button>
       </div>
     </div>
@@ -396,6 +461,14 @@
 
   <button class="bigbtn" id="b-start" disabled>🚀 Start de expeditie!</button>
   <button class="bigbtn moeilijkbtn" id="b-moeilijk" disabled>🎯 Moeilijke ronde — oefen je lastige landen</button>
+
+  <div class="card" id="expkader" style="display:none">
+    <h2>🚩 Jouw expeditie</h2>
+    <div id="lvl-naam" style="font-size:19px; font-weight:bold"></div>
+    <div class="lvlbalk" id="lvl-balk"></div>
+    <div class="lvlnamen"><span>Level 1</span><span id="lvl-volgende" style="text-align:center"></span><span>Level 10</span></div>
+    <div class="expstats" id="expstats"></div>
+  </div>
   <div class="subrow">
     <button class="subbtn" id="b-verken">🔍 Verken de kaart</button>
     <button class="subbtn" id="b-pass">📔 Mijn paspoort</button>
@@ -425,7 +498,7 @@
     </div>
     <div class="dock">
       <span class="qlabel" id="q-label">Vraag</span>
-      <div class="goldbanner" id="q-gold">🏆 GOUDEN VRAAG — dubbele muntjes!</div>
+      <div class="goldbanner" id="q-gold"><span class="goudstaaf"></span> GOUDEN VRAAG — dubbele muntjes!</div>
       <div class="qtext" id="q-text">…</div>
       <div class="timerbar" id="q-timer"><i id="q-timerfill"></i></div>
       <div class="klikuitleg" id="q-klik" style="display:none">👆 Klik het juiste land aan op de kaart!</div>
@@ -503,16 +576,43 @@
   </div>
 </div>
 
-<!-- ============ PASPOORT ============ -->
-<div id="m-pass" role="dialog" aria-modal="true">
-  <div class="passcard">
-    <h2>📔 Reispaspoort</h2>
-    <div class="sub" id="pass-sub">Verzamel een stempel van elk land door de vraag goed te beantwoorden. 3× goed = gouden stempel!</div>
-    <div class="passgrid" id="pass-grid"></div>
-    <button class="nextbtn" id="b-passdicht" style="margin-top:16px">Sluiten</button>
+<!-- ============ PASPOORT (boekje met tabbladen) ============ -->
+<div class="screen" id="s-pass">
+  <div class="boekje">
+    <div class="boekkaft"><small>FINN'S EXPEDITIE · EUROPA</small>REISPASPOORT<small id="pass-houder"></small></div>
+    <div class="boektabs">
+      <button class="boektab actief" data-tab="stempels">📔 Stempels</button>
+      <button class="boektab" data-tab="kaart">🗺️ Kaart</button>
+      <button class="boektab" data-tab="leader">🏅 Toplijst</button>
+    </div>
+    <div class="boekpagina">
+      <div id="pass-stempels">
+        <div class="sub" id="pass-sub"></div>
+        <div class="passgrid" id="pass-grid"></div>
+      </div>
+      <div id="pass-kaart" style="display:none">
+        <div class="sub">Jouw veroverde kaart: 5× goed = zilver, 10× goed = goud!</div>
+        <div id="pk-houder"></div>
+        <div class="pklegenda"><span>⬜ nog te ontdekken</span><span>🥈 5× goed</span><span>🥇 10× goed</span></div>
+      </div>
+      <div id="pass-leader" style="display:none">
+        <div class="sub">Welke landen ken jij het best? Jouw toplijst:</div>
+        <div class="lbwissel">
+          <button class="sel" data-lb="l">🗺️ Landen</button>
+          <button data-lb="h">🏛️ Hoofdsteden</button>
+          <button data-lb="v">🚩 Vlaggen</button>
+        </div>
+        <div id="lb-lijst"></div>
+      </div>
+    </div>
   </div>
 </div>
 
+<nav class="menubalk" id="menubalk">
+  <button class="menuknop actief" id="m-expeditie"><span class="mico">🚀</span>Expeditie</button>
+  <button class="menuknop" id="m-verkennen"><span class="mico">🔍</span>Verkennen</button>
+  <button class="menuknop" id="m-paspoort"><span class="mico">📔</span>Paspoort</button>
+</nav>
 <div id="diamantpop" aria-hidden="true">
   <div class="diamant3d">💎</div>
   <div class="diamanttekst">DIAMANT VERDIEND!</div>
@@ -549,7 +649,7 @@ const VBSTART={"x":170.4,"y":154.5,"w":725.2,"h":635.5};
 </script>
 <script>
 "use strict";
-const VERSIE="12"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="13"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -652,14 +752,44 @@ const LANDEN=[
 const PEP_GOED=["Superknap, {n}! 🎉","Wauw {n}, jij kent Europa steeds beter! 🌍","Geweldig gedaan! 🌟","Boem! Goed zo, {n}! 💥","Jij wordt een echte topograaf, {n}! 🗺️","Kampioen! 🏆","Yes! Weer eentje goed! ✨","Knap hoor, {n}! 🚀"];
 const PEP_FOUT=["Bijna, {n}! De volgende keer weet je 'm!","Niet erg — zó leer je het juist! 💪","Oei, nét niet! Onthoud 'm voor de volgende keer 😉","Goed geprobeerd, {n}! Op naar de volgende!"];
 const PEP_TUSSEN=["Je doet het super, {n}! 🙌","Hou vol, ontdekkingsreiziger! 🧭","De diamanten wachten op je! 💎","Wat een reis, {n}! ✈️"];
-const LEVELS=[[0,"🎒 Toerist"],[3,"🥾 Backpacker"],[6,"🧭 Padvinder"],[10,"🚌 Reisleider"],[15,"⛵ Ontdekkingsreiziger"],[20,"🧑‍✈️ Kapitein"],[30,"🗺️ Topograaf"],[40,"👑 Europakampioen"],[50,"🏆 Legende van Europa"]];
+// 10 levels op basis van hoeveel landen je goed hebt geraden (L8 = alle ≥1×, L9 = alle ≥5×, L10 = alle ≥10×)
+const LVL_NAMEN=["🎒 Toerist","🚌 Dagjesmens","🥾 Backpacker","🧭 Padvinder","🗺️ Kaartlezer","🚂 Reisleider","✈️ Wereldreiziger","⛵ Ontdekkingsreiziger","🔭 Topograaf","👑 Legende van Europa"];
+const LVL_DREMPELS=[0,5,12,20,28,36,43];
+function levelInfo(p){
+  const alle=LANDEN.filter(c=>GEO[c.id]);
+  const tel=min=>alle.filter(c=>(p.pass[c.id]||0)>=min).length;
+  const m1=tel(1),m5=tel(5),m10=tel(10),tot=alle.length;
+  let nr,volgende;
+  if(m10>=tot){nr=10;volgende="Hoger kan niet — Legende van Europa! 🏆";}
+  else if(m5>=tot){nr=9;volgende=`Nog ${tot-m10} land${tot-m10===1?"":"en"} 10× goed voor level 10`;}
+  else if(m1>=tot){nr=8;volgende=`Nog ${tot-m5} land${tot-m5===1?"":"en"} 5× goed voor level 9`;}
+  else{
+    nr=1;
+    for(let i=LVL_DREMPELS.length-1;i>=0;i--){if(m1>=LVL_DREMPELS[i]){nr=i+1;break;}}
+    const doel=nr<7?LVL_DREMPELS[nr]:tot;
+    volgende=`Nog ${doel-m1} land${doel-m1===1?"":"en"} goed voor level ${nr+1}`;
+  }
+  return {nr,naam:LVL_NAMEN[nr-1],volgende};
+}
 
 /* ================= STATE & OPSLAG ================= */
 const DBKEY="europa-expeditie-v1";
 let db=load();
 function load(){try{const d=JSON.parse(localStorage.getItem(DBKEY));if(d&&d.players)return d;}catch(e){}return {players:{},last:"",settings:{oefen:"mix",stijl:"mix",aantal:"10",niveau:"1",mini:false,flits:false},muted:false};}
 function save(){try{localStorage.setItem(DBKEY,JSON.stringify(db));}catch(e){}}
-function speler(){const k=st.naam.toLowerCase();if(!db.players[k])db.players[k]={naam:st.naam,diamonds:0,points:0,best:0,rounds:0,goedTotaal:0,speeltijd:0,pass:{}};return db.players[k];}
+function speler(){
+  const k=st.naam.toLowerCase();
+  if(!db.players[k])db.players[k]={naam:st.naam,diamonds:0,points:0,best:0,rounds:0,goedTotaal:0,speeltijd:0,pass:{},log:{}};
+  const p=db.players[k];
+  if(!p.log){ // migratie: oude tellers omzetten naar de nieuwe logging per categorie
+    p.log={};
+    for(const id in (p.pass||{}))p.log[id]={lg:p.pass[id],lf:0,hg:0,hf:0,vg:0,vf:0};
+    for(const id in (p.fouten||{})){p.log[id]=p.log[id]||{lg:0,lf:0,hg:0,hf:0,vg:0,vf:0};p.log[id].lf=p.fouten[id];}
+  }
+  return p;
+}
+function logVan(p,id){p.log=p.log||{};return p.log[id]=p.log[id]||{lg:0,lf:0,hg:0,hf:0,vg:0,vf:0};}
+function catVan(type){return (type==="klikLand"||type==="mcLand")?"l":(type==="klikVlag"||type==="mcVlag")?"v":"h";}
 function stopSpeeltijd(){ // tel de verstreken rondetijd bij de speler op
   if(st.rondeStart&&st.naam){const p=speler();p.speeltijd=(p.speeltijd||0)+Date.now()-st.rondeStart;save();}
   st.rondeStart=null;
@@ -807,8 +937,14 @@ let spotEl=null;
 function toonSpot(c){
   wisSpot();
   spotEl=document.createElementNS(SVGNS,"circle");
-  const r=Math.max(28,Math.max(c.bb[2]-c.bb[0],c.bb[3]-c.bb[1])*0.8);
-  spotEl.setAttribute("cx",c.cx);spotEl.setAttribute("cy",c.cy);spotEl.setAttribute("r",r);
+  // ruime cirkel, en het land ligt bewust níét in het midden
+  const dim=Math.max(c.bb[2]-c.bb[0],c.bb[3]-c.bb[1]);
+  const r=Math.max(95,dim*1.5);
+  const marge=Math.max(0,r-dim*0.65-12);
+  const hoek=Math.random()*Math.PI*2,afst=(0.4+Math.random()*0.6)*marge;
+  spotEl.setAttribute("cx",c.cx+Math.cos(hoek)*afst);
+  spotEl.setAttribute("cy",c.cy+Math.sin(hoek)*afst);
+  spotEl.setAttribute("r",r);
   spotEl.setAttribute("class","spot");
   map.appendChild(spotEl);
 }
@@ -1017,7 +1153,7 @@ $("#t-mini").onclick=()=>{db.settings.mini=!db.settings.mini;save();segSync();sn
 $("#t-flits").onclick=()=>{db.settings.flits=!db.settings.flits;save();segSync();sndKlik();};
 
 const naamIn=$("#naam");
-function knoppenSync(){const uit=!st.naam;$("#b-start").disabled=uit;$("#b-moeilijk").disabled=uit;}
+function knoppenSync(){const uit=!st.naam;$("#b-start").disabled=uit;$("#b-moeilijk").disabled=uit;expeditieSync();}
 naamIn.addEventListener("input",()=>{st.naam=naamIn.value.trim();knoppenSync();});
 function chipsSync(){
   const c=$("#chips");c.innerHTML="";
@@ -1062,12 +1198,18 @@ function bouwVraag(c,pool){
     if(kaartMag)types.push("klikHoofdstad");
     if(mcMag)types.push("mcHoofdstad","mcLandVan");
   }
+  if(s.oefen==="vlaggen"||s.oefen==="mix"){
+    if(kaartMag)types.push("klikVlag");
+    if(mcMag)types.push("mcVlag");
+  }
   const type=rnd(types);
   const q={c,type};
   if(type==="mcLand"||type==="mcLandVan"){
     q.opties=shuffle([c,...afleiders(c,pool,"n")].map(x=>({t:x.n,ok:x.id===c.id})));
   }else if(type==="mcHoofdstad"){
     q.opties=shuffle([c,...afleiders(c,pool,"h")].map(x=>({t:x.h,ok:x.id===c.id})));
+  }else if(type==="mcVlag"){
+    q.opties=shuffle([c,...afleiders(c,pool,"f")].map(x=>({t:x.f,ok:x.id===c.id})));
   }
   return q;
 }
@@ -1076,10 +1218,10 @@ function maakVragen(){
   const n=Math.min(Number(db.settings.aantal),pool.length);
   return gewogenTrek(pool,n).map(c=>bouwVraag(c,pool));
 }
-function maakMoeilijkeVragen(){ // ronde met de landen die je het vaakst fout raadt
-  const p=speler(),fouten=p.fouten||{};
-  const kandidaten=LANDEN.filter(c=>GEO[c.id]&&fouten[c.id]).sort((a,b)=>fouten[b.id]-fouten[a.id]);
-  if(!kandidaten.length)return null;
+function maakMoeilijkeVragen(){ // slimme training: vaakst fout geraden eerst, aangevuld met minst geoefend — werkt altijd
+  const p=speler();
+  const foutScore=c=>{const l=p.log&&p.log[c.id];return l?(l.lf+l.hf+l.vf):0;};
+  const kandidaten=LANDEN.filter(c=>GEO[c.id]&&foutScore(c)>0).sort((a,b)=>foutScore(b)-foutScore(a));
   const n=Number(db.settings.aantal);
   let lijst=kandidaten.slice(0,n);
   if(lijst.length<n){ // aanvullen met je minst geoefende landen
@@ -1095,14 +1237,9 @@ function startRonde(moeilijk=false){
   if(!st.naam)return;
   db.last=st.naam;save();
   const p=speler();
-  if(moeilijk){
-    const v=maakMoeilijkeVragen();
-    if(!v){toast("🎯 Nog geen lastige landen gevonden — speel eerst een gewone ronde!");return;}
-    st.vragen=v;
-  }else{
-    st.vragen=maakVragen();
-  }
+  st.vragen=moeilijk?maakMoeilijkeVragen():maakVragen();
   if(!st.vragen.length){toast("Geen vragen mogelijk met deze instellingen 🤔");return;}
+  menuSync(null);$("#s-game").classList.remove("metmenu");
   st.qi=0;st.streak=0;st.verken=false;st.rondeStart=Date.now();
   st.ronde={goed:0,punt:0,best:0,diam:0,stempels:[],uitslagen:[]};
   st.goldIdx=Math.floor(Math.random()*st.vragen.length);
@@ -1137,13 +1274,19 @@ function voortgangSync(){
 }
 function stopTimer(){if(st.timerId){clearInterval(st.timerId);st.timerId=null;}$("#q-timer").style.display="none";}
 function startTimer(){
-  const DUUR=5000;st.timerEind=Date.now()+DUUR;
+  const DUUR=5000;st.timerEind=Date.now()+DUUR;st.laatsteTik=0;
   $("#q-timer").style.display="block";$("#q-timerfill").style.width="100%";
   st.timerId=setInterval(()=>{
     const rest=st.timerEind-Date.now();
     $("#q-timerfill").style.width=Math.max(0,rest/5000*100)+"%";
+    // tikkend klokje dat steeds sneller gaat naarmate de tijd opraakt
+    const tikTempo=rest>3000?1000:rest>1500?500:250;
+    if(Date.now()-st.laatsteTik>=tikTempo){
+      st.laatsteTik=Date.now();
+      toon(rest>1500?1150:1500,.035,"square",.07);
+    }
     if(rest<=0){stopTimer();if(!st.answered)beantwoord(false,null,true);}
-  },100);
+  },50);
 }
 
 function toonVraag(){
@@ -1182,6 +1325,16 @@ function toonVraag(){
     $("#q-label").textContent="Hoofdsteden";
     $("#q-text").innerHTML=`<b>${c.h}</b> is de hoofdstad van…?`;
     maakKeuzes(q);animVB(VBFULL);
+  }else if(q.type==="klikVlag"){
+    $("#q-label").textContent="Zoek op de kaart";
+    $("#q-text").innerHTML=`Bij welk land hoort deze vlag?<br><span style="font-size:52px; line-height:1.2">${c.f}</span>`;
+    $("#q-klik").style.display="block";
+    map.classList.add("klikbaar");
+    animVB(VBFULL);
+  }else if(q.type==="mcVlag"){
+    $("#q-label").textContent="Vlaggen";
+    $("#q-text").innerHTML=`Welke vlag hoort bij <b>${c.n}</b>?`;
+    lichtOp(c);maakKeuzes(q);
   }
   if(db.settings.flits)startTimer();
   if(st.qi>0&&st.qi%4===0&&st.ronde.goed/st.qi>=.5)toast(pep(PEP_TUSSEN));
@@ -1194,7 +1347,7 @@ function lichtOp(c){
 function maakKeuzes(q){
   const box=$("#q-choices");
   q.opties.forEach((o,i)=>{
-    const b=document.createElement("button");b.className="choice";
+    const b=document.createElement("button");b.className="choice"+(q.type==="mcVlag"?" vlagkeuze":"");
     b.innerHTML=`<span class="key">${i+1}</span><span>${esc(o.t)}</span>`;
     b.onclick=()=>{if(st.answered)return;beantwoord(o.ok,b);};
     box.appendChild(b);
@@ -1204,7 +1357,7 @@ function klikLand(c){
   if(dragDist>8)return; // dit was slepen/pannen, geen antwoord
   if(st.verken){verkenInfo(c);return;}
   if(!st.q||st.answered)return;
-  if(st.q.type!=="klikLand"&&st.q.type!=="klikHoofdstad")return;
+  if(st.q.type!=="klikLand"&&st.q.type!=="klikHoofdstad"&&st.q.type!=="klikVlag")return;
   beantwoord(c.id===st.q.c.id,null,false,c);
 }
 
@@ -1227,17 +1380,19 @@ function beantwoord(goed,knop,timeout=false,geklikt=null){
   zoomNaarBB(zb,true);
   // keuzes kleuren
   if(knop)knop.classList.add(goed?"good":"bad");
+  const juisteTekst=q.type==="mcHoofdstad"?c.h:q.type==="mcVlag"?c.f:c.n;
   document.querySelectorAll("#q-choices .choice").forEach(b=>{
     b.disabled=true;
-    if(b.textContent.slice(1)===(q.type==="mcHoofdstad"?c.h:c.n))b.classList.add("good");
+    if(b.textContent.slice(1)===juisteTekst)b.classList.add("good");
   });
+  logVan(p,c.id)[catVan(q.type)+(goed?"g":"f")]++; // logging per land én categorie, vanaf de allereerste vraag
   const belon=[];
   if(goed){
     st.ronde.goed++;st.streak++;
     if(st.streak>st.ronde.best)st.ronde.best=st.streak;
     if(st.streak>p.best)p.best=st.streak;
     let pts=goud?2:1;
-    belon.push(goud?"🏆 Gouden vraag: +2 muntjes":"🪙 +1 muntje");
+    belon.push(goud?'<span class="goudstaaf"></span> Gouden vraag: +2 muntjes':"🪙 +1 muntje");
     if(st.streak>0&&st.streak%3===0){pts+=1;belon.push("🔥 3 op een rij: bonusmuntje!");setTimeout(()=>{vlamEffect();sndVlam();},650);}
     st.ronde.punt+=pts;p.points+=pts;p.goedTotaal++;
     const eerder=p.pass[c.id]||0;
@@ -1325,7 +1480,7 @@ function toonFeedback(goed,belon,timeout,geklikt){
     $("#f-fotobox").style.display="none";
   }
   const bel=$("#f-belon");bel.innerHTML="";
-  belon.forEach(t=>{const s=document.createElement("span");if(t.includes("💎"))s.className="diamant";s.textContent=t;bel.appendChild(s);});
+  belon.forEach(t=>{const s=document.createElement("span");if(t.includes("💎"))s.className="diamant";s.innerHTML=t;bel.appendChild(s);});
   $("#b-next").textContent=st.qi+1>=st.vragen.length?"Bekijk je resultaat 🏁":"Volgende ▶";
   $("#fb").classList.add("open");
   $("#b-next").focus();
@@ -1356,15 +1511,11 @@ function eindRonde(){
   $("#r-punt").textContent=st.ronde.punt;
   $("#r-streak").textContent=st.ronde.best;
   $("#r-totdiam").textContent=p.diamonds;
-  // level
-  let lvl=LEVELS[0],next=null;
-  for(const l of LEVELS){if(p.diamonds>=l[0])lvl=l;else{next=l;break;}}
-  $("#r-level").textContent=lvl[1];
-  if(next){
-    const vorig=lvl[0];
-    $("#r-levelfill").style.width=Math.round((p.diamonds-vorig)/(next[0]-vorig)*100)+"%";
-    $("#r-levelnext").textContent=`Nog ${next[0]-p.diamonds} 💎 tot ${next[1]}`;
-  }else{$("#r-levelfill").style.width="100%";$("#r-levelnext").textContent="Hoger kan niet — jij bent de max! 🏆";}
+  // level (10 niveaus op basis van geraden landen)
+  const li=levelInfo(p);
+  $("#r-level").textContent=`Level ${li.nr} · ${li.naam}`;
+  $("#r-levelfill").style.width=(li.nr*10)+"%";
+  $("#r-levelnext").textContent=li.volgende;
   const stamps=$("#r-stamps");stamps.innerHTML="";
   if(st.ronde.stempels.length){
     const t=document.createElement("div");t.style.cssText="font-size:14px;color:var(--muted);width:100%";
@@ -1383,6 +1534,8 @@ function startVerken(){
   $("#hud-ava").textContent="🔍";
   $("#hud-vraag").textContent="Klik op een land";
   voortgangSync();
+  menuSync("verkennen");
+  $("#s-game").classList.add("metmenu");
   toonScherm("#s-game");
   kaartReset();map.classList.add("klikbaar");
   animVB(VBFULL);
@@ -1408,14 +1561,19 @@ function verkenInfo(c){
   zoomNaarLand(c);
   sndKlik();
   $("#q-label").textContent="Verkenmodus";
-  $("#q-text").innerHTML=`${c.f} <b>${esc(c.n)}</b>`;
-  const fotos=fotosVan(c);
-  const feit=feitenVan(c)[0],w=woordenVan(c)[0];
+  $("#q-text").innerHTML=`<span style="font-size:34px; vertical-align:-4px">${c.f}</span> <b>${esc(c.n)}</b>`;
+  const fotos=fotosVan(c),feiten=feitenVan(c),w=woordenVan(c)[0];
+  const naam=st.naam||db.last;const p=db.players[(naam||"").toLowerCase()];
+  const score=p?(p.pass[c.id]||0):0;
   $("#q-hint").style.display="block";
   $("#q-hint").innerHTML=`<span class="pc">${c.card}</span>
-    <b>Hoofdstad:</b> ${esc(c.h)}<br><br>
-    <b>Wist je dat?</b> ${esc(feit)}<br><br>
-    😜 "${esc(w[0])}" (${esc(w[1])}) = ${esc(w[2])}`
+    <b>Hoofdstad:</b> ${esc(c.h)}<br>
+    <b>Ligging:</b> ${esc(c.hint)}<br><br>
+    <b>Wist je dat?</b> ${esc(feiten[0])}`
+    +(feiten[1]?`<br><br>💡 ${esc(feiten[1])}`:"")
+    +(feiten[2]?`<br><br>💡 ${esc(feiten[2])}`:"")
+    +`<br><br>😜 <b>Grappig woordje:</b> "${esc(w[0])}" (${esc(w[1])}) = ${esc(w[2])}`
+    +(score?`<br><br>📔 Jij hebt ${esc(c.n)} al <b>${score}×</b> goed geraden!`:"")
     +(fotos.length?`<img class="verkenfoto" src="${fotos[0].src}" alt="${esc(fotos[0].t)}" onerror="this.remove()">`:"");
 }
 
@@ -1461,23 +1619,74 @@ $("#m-welkom").addEventListener("click",ev=>{if(ev.target===ev.currentTarget)slu
 $("#w-pastegel").onclick=()=>{sluitWelkom();sndKlik();toonPaspoort();};
 
 /* ================= PASPOORT ================= */
+function passSpeler(){const naam=st.naam||db.last;return db.players[(naam||"").toLowerCase()];}
 function toonPaspoort(){
-  const naam=st.naam||db.last;
-  const k=(naam||"").toLowerCase();
-  const p=db.players[k];
-  $("#pass-sub").textContent=p?`Paspoort van ${p.naam} — ${p.diamonds} 💎 · ${p.goedTotaal||0} vragen goed. 3× goed = gouden stempel!`:"Speel eerst een ronde om stempels te verzamelen!";
+  const p=passSpeler();
+  $("#pass-houder").textContent=p?`— ${p.naam.toUpperCase()} —`:"";
+  $("#pass-sub").textContent=p?`${p.diamonds} 💎 · ${p.goedTotaal||0} vragen goed. 3× = gouden tegel, 10× = paspoortstempel!`:"Speel eerst een ronde om stempels te verzamelen!";
   const g=$("#pass-grid");g.innerHTML="";
   LANDEN.forEach(c=>{
     const n=p?(p.pass[c.id]||0):0;
     const d=document.createElement("div");
     d.className="stamp"+(n===0?" leeg":"")+(n>=3?" goud":"");
-    d.innerHTML=`<span class="f">${c.f}</span>${esc(c.n)}${n>0?`<br>✔ ${n}×`:""}`;
+    d.innerHTML=`<span class="f">${c.f}</span>${esc(c.n)}${n>0?`<br>✔ ${n}×`:""}${n>=10?'<span class="stempel10">★ 10×</span>':""}`;
     g.appendChild(d);
   });
-  $("#m-pass").classList.add("open");
+  kleurPassKaart(p);
+  toonToplijst(p);
+  toonScherm("#s-pass");menuSync("paspoort");
 }
-$("#b-passdicht").onclick=()=>$("#m-pass").classList.remove("open");
-$("#m-pass").addEventListener("click",ev=>{if(ev.target===ev.currentTarget)$("#b-passdicht").click();}); // naast het paspoort klikken = sluiten
+// tabbladen van het boekje
+document.querySelectorAll(".boektab").forEach(b=>{
+  b.onclick=()=>{
+    sndKlik();
+    document.querySelectorAll(".boektab").forEach(x=>x.classList.toggle("actief",x===b));
+    $("#pass-stempels").style.display=b.dataset.tab==="stempels"?"block":"none";
+    $("#pass-kaart").style.display=b.dataset.tab==="kaart"?"block":"none";
+    $("#pass-leader").style.display=b.dataset.tab==="leader"?"block":"none";
+  };
+});
+// toplijst (per categorie): medailles voor de top 3, duimpjes voor 4 t/m 10
+let lbCat="l";
+document.querySelectorAll(".lbwissel button").forEach(b=>{
+  b.onclick=()=>{
+    sndKlik();lbCat=b.dataset.lb;
+    document.querySelectorAll(".lbwissel button").forEach(x=>x.classList.toggle("sel",x===b));
+    toonToplijst(passSpeler());
+  };
+});
+function toonToplijst(p){
+  const key=lbCat+"g";
+  const rijen=LANDEN.filter(c=>GEO[c.id])
+    .map(c=>({c,n:(p&&p.log&&p.log[c.id]&&p.log[c.id][key])||0}))
+    .sort((a,b)=>b.n-a.n||a.c.n.localeCompare(b.c.n));
+  $("#lb-lijst").innerHTML=rijen.map((r,i)=>{
+    const plek=r.n===0?"·":i===0?"🥇":i===1?"🥈":i===2?"🥉":i<10?"👍":String(i+1);
+    return `<div class="lbrij"><span class="plek">${plek}</span><span>${r.c.f} ${esc(r.c.n)}</span><span class="telling">${r.n}×</span></div>`;
+  }).join("");
+}
+// veroverde kaart: zilver bij 5×, goud (met glans) bij 10×
+let pkGebouwd=false;
+function kleurPassKaart(p){
+  if(!pkGebouwd){
+    pkGebouwd=true;
+    const svg=document.createElementNS(SVGNS,"svg");
+    svg.setAttribute("viewBox",`${VBFULL.x} ${VBFULL.y} ${VBFULL.w} ${VBFULL.h}`);
+    LANDEN.forEach(c=>{
+      const geo=GEO[c.id];if(!geo)return;
+      let el;
+      if(geo.d){el=document.createElementNS(SVGNS,"path");el.setAttribute("d",geo.d);el.setAttribute("fill-rule","evenodd");}
+      else{el=document.createElementNS(SVGNS,"circle");el.setAttribute("cx",geo.dot[0]);el.setAttribute("cy",geo.dot[1]);el.setAttribute("r",7);}
+      el.dataset.id=c.id;
+      svg.appendChild(el);
+    });
+    $("#pk-houder").appendChild(svg);
+  }
+  $("#pk-houder").querySelectorAll("[data-id]").forEach(el=>{
+    const n=p?(p.pass[el.dataset.id]||0):0;
+    el.setAttribute("class","pk-land"+(n>=10?" pk-goud":n>=5?" pk-zilver":""));
+  });
+}
 
 /* ================= KNOPPEN & TOETSEN ================= */
 $("#b-start").onclick=()=>{sndKlik();startRonde();};
@@ -1485,14 +1694,55 @@ $("#b-moeilijk").onclick=()=>{sndKlik();startRonde(true);};
 $("#b-verken").onclick=()=>{sndKlik();startVerken();};
 $("#b-pass").onclick=()=>{sndKlik();toonPaspoort();};
 $("#b-pass2").onclick=()=>{sndKlik();toonPaspoort();};
-$("#b-home").onclick=()=>{ // ronde ALTIJD volledig afbreken (ook bliksemronde, feedback en grote foto)
+function naarHome(){ // ronde ALTIJD volledig afbreken (ook bliksemronde, feedback en grote foto)
   stopTimer();stopSpeeltijd();kaartReset();annuleerFoto();
   $("#fb").classList.remove("open");
   st.verken=false;st.q=null;st.vragen=[];st.qi=0;
-  chipsSync();segSync();toonScherm("#s-start");
+  $("#s-game").classList.remove("metmenu");
+  chipsSync();segSync();expeditieSync();toonScherm("#s-start");menuSync("expeditie");
+}
+$("#b-home").onclick=naarHome;
+// ondermenu
+function menuSync(actief){
+  $("#menubalk").classList.toggle("weg",!actief);
+  ["expeditie","verkennen","paspoort"].forEach(k=>$("#m-"+k).classList.toggle("actief",k===actief));
+}
+$("#m-expeditie").onclick=()=>{sndKlik();naarHome();};
+$("#m-verkennen").onclick=()=>{sndKlik();startVerken();};
+$("#m-paspoort").onclick=()=>{sndKlik();stopTimer();stopSpeeltijd();annuleerFoto();$("#fb").classList.remove("open");toonPaspoort();};
+// thema licht/donker
+function themaSync(){
+  if(db.thema)document.documentElement.dataset.theme=db.thema==="donker"?"dark":"light";
+  else delete document.documentElement.dataset.theme;
+  const donker=db.thema?db.thema==="donker":matchMedia("(prefers-color-scheme: dark)").matches;
+  $("#b-thema").textContent=donker?"☀️ Licht":"🌙 Donker";
+}
+$("#b-thema").onclick=()=>{
+  const donker=db.thema?db.thema==="donker":matchMedia("(prefers-color-scheme: dark)").matches;
+  db.thema=donker?"licht":"donker";save();themaSync();sndKlik();
 };
+// expeditie-voortgang op het beginscherm
+function expeditieSync(){
+  const k=(st.naam||db.last||"").toLowerCase();
+  const p=db.players[k];
+  if(!p||!p.rounds){$("#expkader").style.display="none";return;}
+  $("#expkader").style.display="block";
+  const li=levelInfo(p);
+  $("#lvl-naam").textContent=`Level ${li.nr} · ${li.naam}`;
+  const balk=$("#lvl-balk");
+  if(!balk.children.length)for(let i=0;i<10;i++){const s=document.createElement("i");s.title=`Level ${i+1}: ${LVL_NAMEN[i]}`;balk.appendChild(s);}
+  [...balk.children].forEach((s,i)=>s.className=i<li.nr?"vol":"");
+  $("#lvl-volgende").textContent=li.volgende;
+  $("#expstats").innerHTML=
+    `<div><b>${p.diamonds*5+p.points}</b>🪙 munten</div>`+
+    `<div><b>${p.diamonds}</b>💎 diamanten</div>`+
+    `<div><b>${p.best}</b>🔥 beste reeks</div>`+
+    `<div><b>${Math.round((p.speeltijd||0)/60000)}</b>⏱️ minuten</div>`+
+    `<div><b>${p.rounds}</b>🏋️ rondes</div>`+
+    `<div><b>${p.perfect||0}</b>🏆 perfect</div>`;
+}
 $("#b-nogeens").onclick=()=>{sndKlik();startRonde();};
-$("#b-anders").onclick=()=>{chipsSync();segSync();toonScherm("#s-start");};
+$("#b-anders").onclick=()=>{chipsSync();segSync();expeditieSync();toonScherm("#s-start");menuSync("expeditie");};
 $("#s-result").addEventListener("click",ev=>{if(ev.target===ev.currentTarget)$("#b-anders").click();}); // naast het overzicht klikken = home
 $("#b-mute").onclick=()=>{db.muted=!db.muted;save();hudSync();};
 addEventListener("keydown",ev=>{
@@ -1507,9 +1757,9 @@ addEventListener("keydown",ev=>{
 
 /* ================= INIT ================= */
 bouwKaart();
-segSync();chipsSync();
+segSync();chipsSync();themaSync();
 if(db.last){naamIn.value=db.last;st.naam=db.last;}
-knoppenSync();
+knoppenSync();menuSync("expeditie");
 toonWelkom();
 // offline spelen (GitHub Pages); faalt stil waar geen sw.js bestaat (bijv. artifact)
 if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostname==="localhost")){
