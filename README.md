@@ -1,4 +1,4 @@
-# Europa Expeditie 🌍💎
+# Finn's Expeditie (Europa-topografiespel) 🌍💎
 
 Leerspel voor de topografie van Europa: klik landen aan op een echte kaart (Natural Earth-grenzen) of beantwoord meerkeuzevragen over landen en hoofdsteden. Verdien punten en diamanten, verzamel paspoortstempels en word de Legende van Europa.
 

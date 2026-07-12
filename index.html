@@ -1,11 +1,11 @@
 <meta charset="utf-8">
-<title>Europa Expeditie</title>
+<title>Finn's Expeditie</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0B1026">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Europa">
+<meta name="apple-mobile-web-app-title" content="Finn">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
 <style>
@@ -48,7 +48,8 @@
   .screen.active{display:flex; flex-direction:column}
 
   /* ---------- Startscherm ---------- */
-  #s-start{align-items:center; justify-content:flex-start; padding:22px 16px 48px; gap:14px}
+  #s-start{align-items:center; justify-content:flex-start; gap:14px;
+    padding:calc(22px + env(safe-area-inset-top,0px)) 16px calc(48px + env(safe-area-inset-bottom,0px))}
   .hero{text-align:center; margin-top:10px}
   .hero h1{
     font-size:clamp(30px,6vw,52px); margin:0; letter-spacing:.5px; text-wrap:balance;
@@ -95,7 +96,7 @@
   .subbtn:hover{outline:2px solid var(--teal)}
 
   /* ---------- Spelscherm ---------- */
-  #s-game{padding:10px; gap:10px}
+  #s-game{gap:10px; padding:calc(10px + env(safe-area-inset-top,0px)) 10px calc(12px + env(safe-area-inset-bottom,0px))}
   #s-game.active{height:100vh; height:100dvh; min-height:0; overflow:hidden}
   .hud{
     display:flex; align-items:center; gap:8px; flex-wrap:wrap;
@@ -103,7 +104,13 @@
   }
   .hud .who{font-weight:bold; font-size:15px; display:flex; align-items:center; gap:6px}
   .hud .who .ava{width:26px;height:26px;border-radius:50%;background:var(--gold-grad);color:#3A2A00;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:bold}
-  .hud .mid{flex:1; text-align:center; font-size:14px; color:var(--muted); min-width:80px}
+  .homebtn{width:auto !important; padding:0 16px; font-size:14px; font-weight:bold; height:36px; display:inline-flex; align-items:center; gap:6px; border:2px solid var(--chip)}
+  #hud-vraag{font-size:13px; color:var(--muted); white-space:nowrap}
+  #hud-voortgang{flex:1; display:flex; gap:3px; min-width:110px; align-items:center; background:var(--panel2); border-radius:99px; padding:3px 5px}
+  #hud-voortgang i{flex:1; height:18px; border-radius:99px; background:var(--chip); display:flex; align-items:center; justify-content:center; font-size:12px; font-style:normal; line-height:1; min-width:10px}
+  #hud-voortgang i.goed{background:color-mix(in srgb, var(--good) 32%, var(--panel2))}
+  #hud-voortgang i.fout{background:color-mix(in srgb, var(--bad) 30%, var(--panel2))}
+  #hud-voortgang i.nu{outline:2px solid var(--teal)}
   .stat{display:flex; align-items:center; gap:5px; font-size:15px; font-variant-numeric:tabular-nums; background:var(--panel2); border-radius:999px; padding:4px 11px}
   .stat.bump{animation:bump .26s ease}
   @keyframes bump{50%{transform:scale(1.4)}}
@@ -196,7 +203,7 @@
   /* ---------- Feedback: strook onderin, kaart blijft zichtbaar ---------- */
   #fb{
     display:none; position:fixed; inset:0; z-index:40; background:transparent; pointer-events:none;
-    align-items:flex-end; justify-content:center; padding:0 12px 12px;
+    align-items:flex-end; justify-content:center; padding:0 12px calc(12px + env(safe-area-inset-bottom,0px));
   }
   #fb.open{display:flex}
   .fbcard{
@@ -229,7 +236,8 @@
   }
 
   /* ---------- Resultaat ---------- */
-  #s-result{align-items:center; padding:26px 16px 50px; gap:14px}
+  #s-result{align-items:center; gap:14px;
+    padding:calc(26px + env(safe-area-inset-top,0px)) 16px calc(50px + env(safe-area-inset-bottom,0px))}
   #s-result h1{margin:6px 0 0; font-size:clamp(26px,5vw,40px); text-align:center; text-wrap:balance}
   .resgems{font-size:44px; letter-spacing:6px; min-height:56px}
   .statgrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px; width:min(560px,100%)}
@@ -291,7 +299,7 @@
 <div class="screen active" id="s-start">
   <div class="hero">
     <span class="globe">🌍</span>
-    <h1>Europa Expeditie</h1>
+    <h1>Finn's Expeditie</h1>
     <p>Ontdek alle landen en hoofdsteden van Europa. Verdien punten, spaar diamanten en word de Legende van Europa!</p>
     <div class="rules">
       <span>✅ goed antwoord = 🪙</span>
@@ -337,7 +345,7 @@
       </div>
     </div>
     <div class="togglerow"><span>🏰 Ook ministaatjes (Monaco, Vaticaan…)</span><button class="tog" id="t-mini" aria-label="Ministaatjes aan of uit"></button></div>
-    <div class="togglerow"><span>⚡ Bliksemronde (15 sec per vraag)</span><button class="tog" id="t-flits" aria-label="Bliksemronde aan of uit"></button></div>
+    <div class="togglerow"><span>⚡ Bliksemronde (5 sec per vraag)</span><button class="tog" id="t-flits" aria-label="Bliksemronde aan of uit"></button></div>
   </div>
 
   <button class="bigbtn" id="b-start" disabled>🚀 Start de expeditie!</button>
@@ -350,9 +358,10 @@
 <!-- ============ SPELSCHERM ============ -->
 <div class="screen" id="s-game">
   <div class="hud">
-    <button class="iconbtn" id="b-home" title="Stop en terug naar start" aria-label="Terug naar start">🏠</button>
+    <button class="iconbtn homebtn" id="b-home" title="Stop en terug naar het beginscherm">🏠 Home</button>
     <span class="who"><span class="ava" id="hud-ava">?</span><span id="hud-naam">Speler</span></span>
-    <span class="mid" id="hud-vraag">Vraag 1/10</span>
+    <span id="hud-vraag">Vraag 1/10</span>
+    <span id="hud-voortgang" aria-label="Voortgang van de ronde"></span>
     <span class="stat" id="hud-munt" title="Muntjes tot je volgende diamant">🪙 0/5</span>
     <span class="stat" id="hud-diamant">💎 0</span>
     <span class="stat" id="hud-streak">🔥 0</span>
@@ -400,7 +409,7 @@
   <div class="stamps" id="r-stamps"></div>
   <button class="bigbtn" id="b-nogeens">🚀 Nog een ronde!</button>
   <div class="subrow">
-    <button class="subbtn" id="b-anders">⚙️ Andere instellingen</button>
+    <button class="subbtn" id="b-anders">🏠 Naar het beginscherm</button>
     <button class="subbtn" id="b-pass2">📔 Paspoort</button>
   </div>
 </div>
@@ -438,10 +447,11 @@
       <div class="statbox"><div class="v" id="w-diam">0</div><div class="l">💎 Diamanten</div></div>
       <div class="statbox"><div class="v" id="w-punt">0</div><div class="l">🪙 Muntjes verdiend</div></div>
       <div class="statbox"><div class="v" id="w-tijd">0</div><div class="l">⏱️ Minuten gespeeld</div></div>
-      <div class="statbox"><div class="v" id="w-pas">0</div><div class="l">📔 Landen in paspoort</div></div>
+      <button class="statbox" id="w-pastegel" title="Bekijk je reispaspoort" style="border:2px dashed var(--accent); cursor:pointer; font:inherit">
+        <div class="v" id="w-pas">0</div><div class="l">📔 Landen in paspoort · tik!</div>
+      </button>
     </div>
-    <button class="bigbtn" id="b-w-start">🚀 Verder oefenen!</button>
-    <button class="stilknop" id="b-w-anders">Andere speler of instellingen aanpassen</button>
+    <button class="bigbtn" id="b-w-start">🚀 Aan de slag!</button>
   </div>
 </div>
 
@@ -477,7 +487,7 @@ const VBSTART={"x":170.4,"y":154.5,"w":725.2,"h":635.5};
 </script>
 <script>
 "use strict";
-const VERSIE="7"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="8"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -955,7 +965,7 @@ function startRonde(){
   st.vragen=maakVragen();
   if(!st.vragen.length){toast("Geen vragen mogelijk met deze instellingen 🤔");return;}
   st.qi=0;st.streak=0;st.verken=false;st.rondeStart=Date.now();
-  st.ronde={goed:0,punt:0,best:0,diam:0,stempels:[]};
+  st.ronde={goed:0,punt:0,best:0,diam:0,stempels:[],uitslagen:[]};
   st.goldIdx=Math.floor(Math.random()*st.vragen.length);
   $("#hud-naam").textContent=p.naam;
   $("#hud-ava").textContent=p.naam[0].toUpperCase();
@@ -970,13 +980,29 @@ function hudSync(){
   $("#hud-munt").textContent=`🪙 ${p.points}/5`;
   $("#b-mute").textContent=db.muted?"🔇":"🔊";
 }
+// brede voortgangsbalk: per vraag een muntje (goed), diamant (diamant erbij) of 😞 (fout)
+function voortgangSync(){
+  const bar=$("#hud-voortgang");
+  if(!st.vragen.length||st.verken){bar.style.display="none";return;}
+  bar.style.display="flex";
+  if(bar.children.length!==st.vragen.length){
+    bar.innerHTML="";
+    for(let i=0;i<st.vragen.length;i++)bar.appendChild(document.createElement("i"));
+  }
+  [...bar.children].forEach((el,i)=>{
+    const u=st.ronde.uitslagen[i];
+    el.className="";el.textContent="";
+    if(u){el.className=u.goed?"goed":"fout";el.textContent=u.goed?(u.diamant?"💎":"🪙"):"😞";}
+    else if(i===st.qi)el.className="nu";
+  });
+}
 function stopTimer(){if(st.timerId){clearInterval(st.timerId);st.timerId=null;}$("#q-timer").style.display="none";}
 function startTimer(){
-  const DUUR=15000;st.timerEind=Date.now()+DUUR;
+  const DUUR=5000;st.timerEind=Date.now()+DUUR;
   $("#q-timer").style.display="block";$("#q-timerfill").style.width="100%";
   st.timerId=setInterval(()=>{
     const rest=st.timerEind-Date.now();
-    $("#q-timerfill").style.width=Math.max(0,rest/DUUR*100)+"%";
+    $("#q-timerfill").style.width=Math.max(0,rest/5000*100)+"%";
     if(rest<=0){stopTimer();if(!st.answered)beantwoord(false,null,true);}
   },100);
 }
@@ -985,6 +1011,7 @@ function toonVraag(){
   const q=st.vragen[st.qi];st.q=q;st.answered=false;st.hints=0;
   kaartReset();stopTimer();
   $("#hud-vraag").textContent=`Vraag ${st.qi+1}/${st.vragen.length}`;
+  voortgangSync();
   $("#q-gold").style.display=st.qi===st.goldIdx?"block":"none";
   $("#q-hint").style.display="none";$("#q-hint").innerHTML="";
   $("#b-hint").disabled=false;$("#b-hint").textContent="💡 Hint (nog 2)";
@@ -1080,6 +1107,7 @@ function beantwoord(goed,knop,timeout=false,geklikt=null){
     let diamant=false;
     while(p.points>=5){p.points-=5;p.diamonds++;st.ronde.diam++;belon.push("💎 DIAMANT verdiend!");diamant=true;}
     if(diamant)setTimeout(toonDiamant,1000); // ná de muntjes: grote 3D-diamant-viering
+    st.ronde.uitslagen[st.qi]={goed:true,diamant};
     sndGoed();
     // muntjes vliegen vanaf het goede land naar de teller
     const lr=paden[c.id].getBoundingClientRect();
@@ -1088,8 +1116,9 @@ function beantwoord(goed,knop,timeout=false,geklikt=null){
     knal(r.left+r.width/2,r.top+r.height/2,70);
   }else{
     st.streak=0;sndFout();
+    st.ronde.uitslagen[st.qi]={goed:false,diamant:false};
   }
-  save();hudSync();
+  save();hudSync();voortgangSync();
   toonFeedback(goed,belon,timeout,geklikt);
 }
 
@@ -1144,6 +1173,7 @@ function toonFeedback(goed,belon,timeout,geklikt){
 }
 $("#b-next").onclick=()=>{
   $("#fb").classList.remove("open");
+  if(!$("#s-game").classList.contains("active")||!st.vragen.length)return; // ronde is afgebroken
   st.qi++;
   if(st.qi>=st.vragen.length)eindRonde();else toonVraag();
 };
@@ -1186,6 +1216,7 @@ function startVerken(){
   $("#hud-naam").textContent="Verkennen";
   $("#hud-ava").textContent="🔍";
   $("#hud-vraag").textContent="Klik op een land";
+  voortgangSync();
   toonScherm("#s-game");
   kaartReset();map.classList.add("klikbaar");
   animVB(VBFULL);
@@ -1257,8 +1288,10 @@ function toonWelkom(){
   $("#w-pas").textContent=`${Object.values(p.pass).filter(n=>n>0).length}/${LANDEN.length}`;
   $("#m-welkom").classList.add("open");
 }
-$("#b-w-start").onclick=()=>{$("#m-welkom").classList.remove("open");sndKlik();startRonde();};
-$("#b-w-anders").onclick=()=>{$("#m-welkom").classList.remove("open");sndKlik();};
+function sluitWelkom(){$("#m-welkom").classList.remove("open");}
+$("#b-w-start").onclick=()=>{sluitWelkom();sndKlik();}; // naar het beginscherm
+$("#m-welkom").addEventListener("click",ev=>{if(ev.target===ev.currentTarget)sluitWelkom();}); // naast de pop-up klikken = ook beginscherm
+$("#w-pastegel").onclick=()=>{sluitWelkom();sndKlik();toonPaspoort();};
 
 /* ================= PASPOORT ================= */
 function toonPaspoort(){
@@ -1283,9 +1316,15 @@ $("#b-start").onclick=()=>{sndKlik();startRonde();};
 $("#b-verken").onclick=()=>{sndKlik();startVerken();};
 $("#b-pass").onclick=()=>{sndKlik();toonPaspoort();};
 $("#b-pass2").onclick=()=>{sndKlik();toonPaspoort();};
-$("#b-home").onclick=()=>{stopTimer();stopSpeeltijd();kaartReset();st.verken=false;st.q=null;chipsSync();segSync();toonScherm("#s-start");};
+$("#b-home").onclick=()=>{ // ronde ALTIJD volledig afbreken (ook bliksemronde en open feedback)
+  stopTimer();stopSpeeltijd();kaartReset();
+  $("#fb").classList.remove("open");
+  st.verken=false;st.q=null;st.vragen=[];st.qi=0;
+  chipsSync();segSync();toonScherm("#s-start");
+};
 $("#b-nogeens").onclick=()=>{sndKlik();startRonde();};
 $("#b-anders").onclick=()=>{chipsSync();segSync();toonScherm("#s-start");};
+$("#s-result").addEventListener("click",ev=>{if(ev.target===ev.currentTarget)$("#b-anders").click();}); // naast het overzicht klikken = home
 $("#b-mute").onclick=()=>{db.muted=!db.muted;save();hudSync();};
 addEventListener("keydown",ev=>{
   if($("#fb").classList.contains("open")){if(ev.key==="Enter"){ev.preventDefault();$("#b-next").click();}return;}
