@@ -1,0 +1,1103 @@
+<meta charset="utf-8">
+<title>Europa Expeditie</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B1026">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Europa">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+  :root{
+    --bg:#F2F6FC; --panel:#FFFFFF; --panel2:#E9F0FA; --sea:#D9E8F5; --ink:#182142; --muted:#5B6788;
+    --accent:#B07C14; --accent-fill:#F5B83D; --teal:#0E9F87; --good:#1FA45D; --bad:#D9435A;
+    --map-line:#FFFFFF; --chip:#E4ECF8; --shadow:0 6px 24px rgba(24,33,66,.12);
+    --land-context:#C7D3E4;
+    --gold-grad:linear-gradient(135deg,#F7C948,#E8940A);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0B1026; --panel:#151C3A; --panel2:#1C2448; --sea:#0D1430; --ink:#EAF0FF; --muted:#93A0C4;
+      --accent:#FFC94D; --accent-fill:#FFC94D; --teal:#3FE0BE; --good:#4ADE80; --bad:#FF6B7A;
+      --map-line:#0B1026; --chip:#222B55; --shadow:0 8px 28px rgba(0,0,0,.45);
+      --land-context:#1B2245;
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#F2F6FC; --panel:#FFFFFF; --panel2:#E9F0FA; --sea:#D9E8F5; --ink:#182142; --muted:#5B6788;
+    --accent:#B07C14; --accent-fill:#F5B83D; --teal:#0E9F87; --good:#1FA45D; --bad:#D9435A;
+    --map-line:#FFFFFF; --chip:#E4ECF8; --shadow:0 6px 24px rgba(24,33,66,.12);
+    --land-context:#C7D3E4;
+  }
+  :root[data-theme="dark"]{
+    --bg:#0B1026; --panel:#151C3A; --panel2:#1C2448; --sea:#0D1430; --ink:#EAF0FF; --muted:#93A0C4;
+    --accent:#FFC94D; --accent-fill:#FFC94D; --teal:#3FE0BE; --good:#4ADE80; --bad:#FF6B7A;
+    --map-line:#0B1026; --chip:#222B55; --shadow:0 8px 28px rgba(0,0,0,.45);
+    --land-context:#1B2245;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--ink); min-height:100vh;
+    font-family:ui-rounded,"Arial Rounded MT Bold","Trebuchet MS","Segoe UI",sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  button{font-family:inherit; color:inherit; touch-action:manipulation; -webkit-tap-highlight-color:transparent}
+  .screen{display:none; min-height:100vh}
+  .screen.active{display:flex; flex-direction:column}
+
+  /* ---------- Startscherm ---------- */
+  #s-start{align-items:center; justify-content:flex-start; padding:22px 16px 48px; gap:14px}
+  .hero{text-align:center; margin-top:10px}
+  .hero h1{
+    font-size:clamp(30px,6vw,52px); margin:0; letter-spacing:.5px; text-wrap:balance;
+    background:linear-gradient(100deg,var(--teal),var(--accent-fill)); -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .hero .globe{font-size:clamp(36px,7vw,58px); display:block; margin-bottom:2px; animation:bob 3.5s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-7px) rotate(4deg)}}
+  .hero p{color:var(--muted); margin:8px auto 0; max-width:46ch; font-size:15px}
+  .rules{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:10px}
+  .rules span{background:var(--chip); border-radius:999px; padding:5px 12px; font-size:13px}
+  .card{background:var(--panel); border-radius:18px; box-shadow:var(--shadow); padding:18px; width:min(560px,100%)}
+  .card h2{margin:0 0 10px; font-size:16px; letter-spacing:.6px; text-transform:uppercase; color:var(--muted)}
+  #naam{
+    width:100%; font-size:20px; padding:12px 14px; border-radius:12px; border:2px solid var(--chip);
+    background:var(--panel2); color:var(--ink); outline:none; font-family:inherit;
+  }
+  #naam:focus{border-color:var(--teal)}
+  .chips{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px}
+  .pchip{
+    border:none; background:var(--chip); border-radius:999px; padding:7px 13px; font-size:14px; cursor:pointer;
+  }
+  .pchip:hover,.pchip:focus-visible{outline:2px solid var(--teal)}
+  .optrow{display:flex; flex-direction:column; gap:5px; margin-bottom:12px}
+  .optrow label{font-size:13px; color:var(--muted); letter-spacing:.4px}
+  .seg{display:flex; gap:6px; flex-wrap:wrap}
+  .seg button{
+    flex:1; min-width:90px; border:2px solid transparent; background:var(--panel2); color:var(--ink);
+    border-radius:11px; padding:9px 8px; font-size:14px; cursor:pointer;
+  }
+  .seg button.sel{border-color:var(--teal); background:var(--chip); font-weight:bold}
+  .togglerow{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:7px 2px; font-size:15px}
+  .tog{width:46px; height:26px; border-radius:999px; background:var(--panel2); border:2px solid var(--chip); position:relative; cursor:pointer; flex:none}
+  .tog::after{content:""; position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%; background:var(--muted); transition:transform .15s, background .15s}
+  .tog.on{background:var(--teal)}
+  .tog.on::after{transform:translateX(20px); background:#fff}
+  .bigbtn{
+    width:min(560px,100%); border:none; border-radius:16px; padding:16px; font-size:20px; font-weight:bold; cursor:pointer;
+    background:var(--gold-grad); color:#3A2A00; box-shadow:var(--shadow);
+  }
+  .bigbtn:disabled{opacity:.45; cursor:not-allowed}
+  .bigbtn:not(:disabled):hover{transform:translateY(-1px)}
+  .subrow{display:flex; gap:10px; width:min(560px,100%)}
+  .subbtn{flex:1; border:none; border-radius:13px; padding:12px; font-size:15px; cursor:pointer; background:var(--panel); box-shadow:var(--shadow)}
+  .subbtn:hover{outline:2px solid var(--teal)}
+
+  /* ---------- Spelscherm ---------- */
+  #s-game{padding:10px; gap:10px}
+  #s-game.active{height:100vh; height:100dvh; min-height:0; overflow:hidden}
+  .hud{
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    background:var(--panel); border-radius:14px; padding:8px 12px; box-shadow:var(--shadow);
+  }
+  .hud .who{font-weight:bold; font-size:15px; display:flex; align-items:center; gap:6px}
+  .hud .who .ava{width:26px;height:26px;border-radius:50%;background:var(--gold-grad);color:#3A2A00;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:bold}
+  .hud .mid{flex:1; text-align:center; font-size:14px; color:var(--muted); min-width:80px}
+  .stat{display:flex; align-items:center; gap:5px; font-size:15px; font-variant-numeric:tabular-nums; background:var(--panel2); border-radius:999px; padding:4px 11px}
+  .gemslots{display:flex; gap:3px; align-items:center}
+  .gemslots i{width:9px; height:9px; border-radius:2px; transform:rotate(45deg); background:var(--chip); display:inline-block}
+  .gemslots i.fill{background:var(--teal); box-shadow:0 0 5px var(--teal)}
+  .iconbtn{border:none; background:var(--panel2); border-radius:10px; width:34px; height:34px; font-size:16px; cursor:pointer}
+  .iconbtn:hover{outline:2px solid var(--teal)}
+  .arena{display:flex; gap:10px; flex:1; min-height:0}
+  .mapwrap{
+    flex:1; position:relative; background:var(--sea); border-radius:18px; box-shadow:var(--shadow); overflow:hidden; min-height:300px;
+  }
+  #map{width:100%; height:100%; display:block; touch-action:none; cursor:default}
+  .zoomui{position:absolute; right:10px; bottom:10px; display:flex; flex-direction:column; gap:6px}
+  .zoomui button{width:38px; height:38px; border:none; border-radius:10px; background:var(--panel); box-shadow:var(--shadow); font-size:18px; cursor:pointer}
+  .dock{
+    width:340px; flex:none; background:var(--panel); border-radius:18px; box-shadow:var(--shadow);
+    padding:16px; display:flex; flex-direction:column; gap:12px; overflow-y:auto;
+  }
+  .dock .qlabel{font-size:12px; letter-spacing:1px; text-transform:uppercase; color:var(--muted)}
+  .dock .qtext{font-size:21px; font-weight:bold; line-height:1.25; text-wrap:balance}
+  .dock .qtext .flag{font-size:26px}
+  .goldbanner{
+    display:none; background:var(--gold-grad); color:#3A2A00; border-radius:11px; padding:8px 12px; font-weight:bold; font-size:14px; text-align:center;
+    animation:goldpulse 1.2s ease-in-out infinite;
+  }
+  @keyframes goldpulse{0%,100%{box-shadow:0 0 0 rgba(247,201,72,.0)}50%{box-shadow:0 0 18px rgba(247,201,72,.75)}}
+  .choices{display:flex; flex-direction:column; gap:8px}
+  .choice{
+    border:2px solid var(--chip); background:var(--panel2); border-radius:12px; padding:12px 13px; font-size:16px;
+    text-align:left; cursor:pointer; display:flex; gap:9px; align-items:center;
+  }
+  .choice .key{width:22px;height:22px;border-radius:6px;background:var(--chip);display:inline-flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted);flex:none}
+  .choice:not(:disabled):hover{border-color:var(--teal)}
+  .choice.good{border-color:var(--good); background:color-mix(in srgb, var(--good) 18%, var(--panel2))}
+  .choice.bad{border-color:var(--bad); background:color-mix(in srgb, var(--bad) 18%, var(--panel2))}
+  .choice.gone{opacity:.32; text-decoration:line-through}
+  .choice:disabled{cursor:default}
+  .klikuitleg{font-size:14px; color:var(--muted); background:var(--panel2); padding:10px 12px; border-radius:11px}
+  .hintbtn{
+    border:2px dashed var(--accent); background:transparent; color:var(--ink); border-radius:12px; padding:11px; font-size:15px; cursor:pointer;
+  }
+  .hintbtn:disabled{opacity:.4; cursor:not-allowed}
+  .hintbox{display:none; background:var(--panel2); border-radius:12px; padding:11px 13px; font-size:14px; line-height:1.45}
+  .hintbox .pc{font-size:26px; letter-spacing:3px; display:block; margin-bottom:4px}
+  .timerbar{display:none; height:8px; background:var(--panel2); border-radius:99px; overflow:hidden}
+  .timerbar i{display:block; height:100%; width:100%; background:linear-gradient(90deg,var(--teal),var(--accent-fill)); border-radius:99px}
+  .dockfoot{margin-top:auto; font-size:13px; color:var(--muted); text-align:center}
+
+  /* ---------- Kaart states ---------- */
+  .land{stroke:var(--map-line); stroke-width:1.4; vector-effect:non-scaling-stroke; transition:opacity .25s}
+  .klikbaar .land{cursor:pointer}
+  .klikbaar .land:hover{filter:brightness(1.18) saturate(1.15)}
+  .land.dim{opacity:.34}
+  .land.target{animation:tpulse 1.1s ease-in-out infinite; stroke:var(--accent-fill); stroke-width:2.4}
+  @keyframes tpulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.55) drop-shadow(0 0 7px var(--accent-fill))}}
+  .land.goed{stroke:var(--good); stroke-width:3; filter:drop-shadow(0 0 9px var(--good)) brightness(1.25); animation:none}
+  .land.fout{stroke:var(--bad); stroke-width:3; animation:foutflits .3s ease-in-out 3}
+  @keyframes foutflits{0%,100%{filter:none}50%{filter:brightness(.55) saturate(2)}}
+  :root[data-theme="dark"] #gLand,:root[data-theme="dark"] #gDots{filter:brightness(.82) saturate(.95)}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) #gLand, :root:not([data-theme="light"]) #gDots{filter:brightness(.82) saturate(.95)}
+  }
+  .spot{fill:none; stroke:var(--accent-fill); stroke-width:3; stroke-dasharray:10 8; animation:spotspin 6s linear infinite, spotpulse 1.2s ease-in-out infinite; pointer-events:none}
+  @keyframes spotspin{to{stroke-dashoffset:-180}}
+  @keyframes spotpulse{0%,100%{stroke-opacity:1}50%{stroke-opacity:.4}}
+  .zeetekst{fill:var(--muted); opacity:.55; font-size:17px; font-style:italic; letter-spacing:2px; pointer-events:none}
+  .graticule{stroke:var(--muted); stroke-width:.4; opacity:.14; fill:none}
+  .context{fill:var(--land-context); stroke:var(--map-line); stroke-width:.7; vector-effect:non-scaling-stroke; pointer-events:none}
+
+  /* ---------- Feedback: strook onderin, kaart blijft zichtbaar ---------- */
+  #fb{
+    display:none; position:fixed; inset:0; z-index:40; background:transparent; pointer-events:none;
+    align-items:flex-end; justify-content:center; padding:0 12px 12px;
+  }
+  #fb.open{display:flex}
+  .fbcard{
+    pointer-events:auto; background:var(--panel); border:1px solid var(--chip); border-radius:18px; box-shadow:var(--shadow);
+    width:min(720px,100%); padding:14px 18px; text-align:left; animation:cardin .28s ease-out;
+    max-height:46vh; overflow-y:auto;
+  }
+  @keyframes cardin{from{transform:translateY(50px); opacity:0}}
+  .fbkop{display:flex; gap:12px; align-items:center}
+  .fbcard .big{font-size:34px; line-height:1; flex:none}
+  .fbcard h3{margin:0; font-size:19px; text-wrap:balance}
+  .fbcard .landregel{font-size:14px; color:var(--muted); margin-top:2px}
+  .fbcard .pc{font-size:22px; letter-spacing:3px; margin-left:auto; flex:none}
+  .feit{background:var(--panel2); border-radius:12px; padding:9px 12px; font-size:14px; line-height:1.45; margin:9px 0 0}
+  .feit b{color:var(--teal)}
+  .woord{background:var(--panel2); border-radius:12px; padding:9px 12px; font-size:14px; line-height:1.45; border:2px dashed var(--accent); margin:8px 0 0}
+  .fbvoet{display:flex; gap:10px; align-items:center; margin-top:10px; flex-wrap:wrap}
+  .beloning{display:flex; gap:7px; flex-wrap:wrap; flex:1; min-width:150px}
+  .beloning span{background:var(--chip); border-radius:999px; padding:5px 12px; font-size:13px; font-weight:bold}
+  .beloning span.diamant{background:var(--gold-grad); color:#3A2A00; animation:goldpulse 1.2s infinite}
+  .nextbtn{border:none; border-radius:13px; padding:11px 24px; font-size:16px; font-weight:bold; cursor:pointer; background:var(--teal); color:#03251E; flex:none; margin-left:auto}
+  @media (max-width:820px){
+    .fbcard{max-height:55vh}
+    .fbcard .pc{display:none}
+  }
+
+  /* ---------- Resultaat ---------- */
+  #s-result{align-items:center; padding:26px 16px 50px; gap:14px}
+  #s-result h1{margin:6px 0 0; font-size:clamp(26px,5vw,40px); text-align:center; text-wrap:balance}
+  .resgems{font-size:44px; letter-spacing:6px; min-height:56px}
+  .statgrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px; width:min(560px,100%)}
+  .statbox{background:var(--panel); border-radius:15px; box-shadow:var(--shadow); padding:13px; text-align:center}
+  .statbox .v{font-size:26px; font-weight:bold; font-variant-numeric:tabular-nums}
+  .statbox .l{font-size:12px; color:var(--muted); letter-spacing:.5px; text-transform:uppercase; margin-top:2px}
+  .levelbox{background:var(--panel); border-radius:15px; box-shadow:var(--shadow); padding:14px 18px; width:min(560px,100%); text-align:center; font-size:16px}
+  .levelbar{height:10px; background:var(--panel2); border-radius:99px; overflow:hidden; margin-top:9px}
+  .levelbar i{display:block; height:100%; background:var(--gold-grad); border-radius:99px; transition:width .8s ease}
+  .stamps{display:flex; gap:6px; flex-wrap:wrap; justify-content:center; width:min(560px,100%); font-size:24px}
+
+  /* ---------- Paspoort ---------- */
+  #m-pass{display:none; position:fixed; inset:0; background:rgba(8,12,30,.55); z-index:50; align-items:center; justify-content:center; padding:18px}
+  #m-pass.open{display:flex}
+  .passcard{background:var(--panel); border-radius:20px; box-shadow:var(--shadow); width:min(620px,100%); max-height:85vh; overflow-y:auto; padding:20px}
+  .passcard h2{margin:0 0 4px}
+  .passcard .sub{color:var(--muted); font-size:14px; margin-bottom:14px}
+  .passgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(96px,1fr)); gap:8px}
+  .stamp{background:var(--panel2); border-radius:12px; padding:9px 6px; text-align:center; font-size:12px; line-height:1.3}
+  .stamp .f{font-size:24px; display:block}
+  .stamp.leeg{opacity:.35; filter:grayscale(1)}
+  .stamp.goud{border:2px solid var(--accent-fill); box-shadow:0 0 8px rgba(247,201,72,.4)}
+
+  /* ---------- Toast & confetti ---------- */
+  #toast{
+    position:fixed; left:50%; top:14px; transform:translateX(-50%) translateY(-90px); z-index:60;
+    background:var(--panel); box-shadow:var(--shadow); border-radius:999px; padding:10px 20px; font-size:16px; font-weight:bold;
+    transition:transform .3s ease; pointer-events:none; max-width:92vw; text-align:center;
+  }
+  #toast.show{transform:translateX(-50%) translateY(0)}
+  #confetti{position:fixed; inset:0; pointer-events:none; z-index:80}
+
+  :focus-visible{outline:3px solid var(--teal); outline-offset:2px}
+  @media (max-width:820px){
+    .arena{flex-direction:column-reverse}
+    .dock{width:100%; max-height:44vh}
+    .mapwrap{min-height:44vh}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important}
+  }
+</style>
+
+<!-- ============ STARTSCHERM ============ -->
+<div class="screen active" id="s-start">
+  <div class="hero">
+    <span class="globe">🌍</span>
+    <h1>Europa Expeditie</h1>
+    <p>Ontdek alle landen en hoofdsteden van Europa. Verdien punten, spaar diamanten en word de Legende van Europa!</p>
+    <div class="rules">
+      <span>✅ goed antwoord = punt</span>
+      <span>⭐ 5 punten = 💎</span>
+      <span>🔥 3 op rij = bonus</span>
+      <span>🏆 gouden vraag = dubbel</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>👋 Wie gaat er spelen?</h2>
+    <input id="naam" type="text" maxlength="20" placeholder="Typ je voornaam…" autocomplete="off">
+    <div class="chips" id="chips"></div>
+  </div>
+
+  <div class="card">
+    <h2>⚙️ Stel je ronde in</h2>
+    <div class="optrow"><label>Wat wil je oefenen?</label>
+      <div class="seg" data-set="oefen">
+        <button data-v="landen">🗺️ Landen</button>
+        <button data-v="hoofdsteden">🏛️ Hoofdsteden</button>
+        <button data-v="mix">🎲 Mix</button>
+      </div>
+    </div>
+    <div class="optrow"><label>Hoe wil je vragen krijgen?</label>
+      <div class="seg" data-set="stijl">
+        <button data-v="kaart">👆 Aanwijzen op de kaart</button>
+        <button data-v="mc">🔤 Meerkeuze</button>
+        <button data-v="mix">🎲 Mix</button>
+      </div>
+    </div>
+    <div class="optrow"><label>Vragen per ronde</label>
+      <div class="seg" data-set="aantal">
+        <button data-v="5">5</button>
+        <button data-v="10">10</button>
+        <button data-v="15">15</button>
+      </div>
+    </div>
+    <div class="optrow"><label>Niveau</label>
+      <div class="seg" data-set="niveau">
+        <button data-v="1">🧭 Ontdekker (bekende landen)</button>
+        <button data-v="2">🌍 Expert (heel Europa)</button>
+      </div>
+    </div>
+    <div class="togglerow"><span>🏰 Ook ministaatjes (Monaco, Vaticaan…)</span><button class="tog" id="t-mini" aria-label="Ministaatjes aan of uit"></button></div>
+    <div class="togglerow"><span>⚡ Bliksemronde (15 sec per vraag)</span><button class="tog" id="t-flits" aria-label="Bliksemronde aan of uit"></button></div>
+  </div>
+
+  <button class="bigbtn" id="b-start" disabled>🚀 Start de expeditie!</button>
+  <div class="subrow">
+    <button class="subbtn" id="b-verken">🔍 Verken de kaart</button>
+    <button class="subbtn" id="b-pass">📔 Mijn paspoort</button>
+  </div>
+</div>
+
+<!-- ============ SPELSCHERM ============ -->
+<div class="screen" id="s-game">
+  <div class="hud">
+    <button class="iconbtn" id="b-home" title="Stop en terug naar start" aria-label="Terug naar start">🏠</button>
+    <span class="who"><span class="ava" id="hud-ava">?</span><span id="hud-naam">Speler</span></span>
+    <span class="mid" id="hud-vraag">Vraag 1/10</span>
+    <span class="stat" title="Punten tot je volgende diamant"><span class="gemslots" id="hud-slots"><i></i><i></i><i></i><i></i><i></i></span></span>
+    <span class="stat" id="hud-diamant">💎 0</span>
+    <span class="stat" id="hud-streak">🔥 0</span>
+    <button class="iconbtn" id="b-mute" title="Geluid aan/uit" aria-label="Geluid aan of uit">🔊</button>
+  </div>
+  <div class="arena">
+    <div class="mapwrap">
+      <svg id="map" viewBox="0 0 1050 920" role="img" aria-label="Kaart van Europa"></svg>
+      <div class="zoomui">
+        <button id="z-in" aria-label="Inzoomen">＋</button>
+        <button id="z-uit" aria-label="Uitzoomen">－</button>
+        <button id="z-reset" aria-label="Hele kaart">🗺️</button>
+      </div>
+    </div>
+    <div class="dock">
+      <span class="qlabel" id="q-label">Vraag</span>
+      <div class="goldbanner" id="q-gold">🏆 GOUDEN VRAAG — dubbele punten!</div>
+      <div class="qtext" id="q-text">…</div>
+      <div class="timerbar" id="q-timer"><i id="q-timerfill"></i></div>
+      <div class="klikuitleg" id="q-klik" style="display:none">👆 Klik het juiste land aan op de kaart!</div>
+      <div class="choices" id="q-choices"></div>
+      <button class="hintbtn" id="b-hint">💡 Hint (nog 2)</button>
+      <div class="hintbox" id="q-hint"></div>
+      <div class="dockfoot" id="q-voet"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ RESULTAAT ============ -->
+<div class="screen" id="s-result">
+  <div class="hero"><span class="globe">🏁</span></div>
+  <h1 id="r-titel">Ronde klaar!</h1>
+  <div class="resgems" id="r-gems"></div>
+  <div class="statgrid">
+    <div class="statbox"><div class="v" id="r-goed">0</div><div class="l">Goed</div></div>
+    <div class="statbox"><div class="v" id="r-punt">0</div><div class="l">Punten</div></div>
+    <div class="statbox"><div class="v" id="r-streak">0</div><div class="l">Beste reeks</div></div>
+    <div class="statbox"><div class="v" id="r-totdiam">0</div><div class="l">💎 totaal</div></div>
+  </div>
+  <div class="levelbox">
+    <div id="r-level">🎒 Toerist</div>
+    <div class="levelbar"><i id="r-levelfill"></i></div>
+    <div style="font-size:13px;color:var(--muted);margin-top:6px" id="r-levelnext"></div>
+  </div>
+  <div class="stamps" id="r-stamps"></div>
+  <button class="bigbtn" id="b-nogeens">🚀 Nog een ronde!</button>
+  <div class="subrow">
+    <button class="subbtn" id="b-anders">⚙️ Andere instellingen</button>
+    <button class="subbtn" id="b-pass2">📔 Paspoort</button>
+  </div>
+</div>
+
+<!-- ============ FEEDBACK (strook onderin) ============ -->
+<div id="fb" role="dialog">
+  <div class="fbcard">
+    <div class="fbkop">
+      <div class="big" id="f-emoji">🎉</div>
+      <div>
+        <h3 id="f-titel">Goed zo!</h3>
+        <div class="landregel" id="f-land"></div>
+      </div>
+      <div class="pc" id="f-pc"></div>
+    </div>
+    <div class="feit" id="f-feit"></div>
+    <div class="woord" id="f-woord"></div>
+    <div class="fbvoet">
+      <div class="beloning" id="f-belon"></div>
+      <button class="nextbtn" id="b-next">Volgende ▶</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ PASPOORT ============ -->
+<div id="m-pass" role="dialog" aria-modal="true">
+  <div class="passcard">
+    <h2>📔 Reispaspoort</h2>
+    <div class="sub" id="pass-sub">Verzamel een stempel van elk land door de vraag goed te beantwoorden. 3× goed = gouden stempel!</div>
+    <div class="passgrid" id="pass-grid"></div>
+    <button class="nextbtn" id="b-passdicht" style="margin-top:16px">Sluiten</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+<canvas id="confetti"></canvas>
+
+<script id="geodata">
+// Echte landgrenzen: Natural Earth 50m (publiek domein), Lambert azimuthal equal-area (52N 10E), vereenvoudigd.
+const GEO={"IS":{"d":"M306.8 230.5L301.8 233.3L303.8 235.9L301.3 239.6L304.3 240.3L302.4 243.5L304.9 243.2L307.7 246.4L305.5 248.6L305.3 253.7L300.1 257.7L297.8 256.8L294.8 261.1L284.3 262L276.7 264.7L267.6 263.7L265.5 266.1L259.7 265.9L250.3 258.8L249.3 255.9L250.8 254.3L248.7 254.6L247 249.8L236.2 246.6L237.9 242.6L238.4 244.7L240.9 245L248.4 242.2L244 241.3L246.3 238.6L249.5 238.1L245.5 237.8L245.3 232.7L236 228.1L237.2 226.1L252 230.2L252.8 229L250.7 229.1L248.3 226.5L254.3 225.3L253.9 223.7L249.1 219.5L241.5 218.8L239 215.6L241.2 214.6L242.9 217L243.6 212.7L245.6 215.7L248.2 215.8L245.8 212.5L247.9 213.1L247.5 210.2L249.6 211.2L250.9 208.8L251.8 213.2L254.3 213.6L253.2 216.2L254.6 216.1L256 213.7L254.1 209.9L257.4 210.6L254.2 207.5L256.4 206.7L259.1 208.3L261.9 217.5L259.8 221.9L257.9 221.3L257.5 229.9L262.5 225.2L264.2 227.3L269.2 220L271.7 227.1L274.7 222.7L278.8 222.6L279.9 231.5L282 224.5L284.4 225.8L285.3 229.5L289.5 226.9L290.9 228.9L293.6 228.7L295 224.7L297.3 224.2L298.9 225L299.8 230.6Z","bb":[236,206.7,307.7,266.1],"cx":271.9,"cy":241.7},"IE":{"d":"M304 431.2L301.3 435.1L297.6 435.4L298.6 437.4L294.4 439.5L296.1 443.5L300.4 446.2L304.9 442.3L307 448.9L311.2 449.3L311.6 450.7L309.4 451.5L308.7 469L302.2 477.6L303.2 479.6L297.2 479.7L296.8 478L284.1 482.3L280.8 480.4L280 483.3L270.1 484.4L264.6 483.1L268.1 480.5L262.3 480.4L268.8 477.4L263.4 477.7L261 475.2L266.8 472.4L262.1 470.9L262.8 469.8L268.8 470.7L268.1 467.8L271.5 466.3L280.5 466.4L278.8 464.6L276.4 466.1L268.8 465.1L274.4 462.2L277.3 458.1L281.3 457.3L275.8 455.2L271 450.8L271.4 448.5L275.5 448.7L274.3 446.2L277.8 445.8L278.1 444.6L274.8 443.9L276.5 440.3L274.5 438.7L275.3 437.1L289.6 441.3L289.3 439.4L295.2 435.8L289.5 433.5L294 431.1L296.1 427.1L302.2 426.8L301.1 431.5L306 425.8L308.7 428.7Z","bb":[261,425.8,311.6,484.4],"cx":288.7,"cy":460.2},"GB":{"d":"M331.2 500.2L325.7 495.7L322 495.4L323.8 494.2L321.1 492.2L315.4 493L312.6 488.1L325.4 483L327.8 479.7L327.8 473.3L321.7 473.9L326.9 469.1L335.9 467.5L338.9 469.4L339.8 466.7L342.5 469.2L340 465.3L344 454.5L340.9 454.8L338.2 446.8L340.1 443.5L344.7 441.3L339.8 440.5L335.4 442.5L332.8 440.8L330 441.8L327.4 439.7L326 442.2L324.5 438.9L324.6 436.7L331.1 429.1L330.6 422.6L333.5 422.1L331.5 419.7L332.3 418L327.3 421.7L330.7 416.4L326 419.5L322.4 429.2L320.4 429.2L324.5 422.5L323.4 422.1L325.9 415L330.9 407.3L325.8 410.1L322.2 406.1L326.4 404.7L325.4 403.6L329.3 398.7L327.8 395.8L330.3 393.5L329.3 391.2L331.4 387.9L335.3 388.8L333.8 385.2L335.1 382.5L338 382.7L339.5 377.6L343.9 379.7L356.3 380L353.9 384.9L345.8 389.6L345.1 391.3L346.5 392.2L343.3 395.7L350.2 394.8L362 397L364 401L353.9 415.2L346.6 417.3L350.7 417.5L352.2 420.2L345.1 422.8L341.4 420.9L347.8 424.6L352.2 424.1L356 426.9L359.7 433.3L361.3 448.4L371 459.9L369.6 461.3L371.8 468.7L368.3 466L364.4 465.7L367.9 466.7L372.7 473.5L373.1 476.6L369.4 480.4L371.6 482.4L374.7 480.1L381.9 481.7L385.4 485L386 488.1L383.5 495.6L379.5 497.7L379.7 499.9L374 501.1L375.1 504L370 505.1L380.2 508.1L379.6 511.2L374.5 514.9L366.2 516.6L355.7 515.1L349.4 511.9L350 513.3L347.9 514.2L342.4 513.7L342.1 515.7L332.2 512L327.7 512.7L323.6 518.7L318.6 515.1L312.7 515.6L307.7 519L302.1 517.1L311.7 511.2L321.3 501.8L332.3 503.6L341.1 496ZM307 448.9L304.9 442.3L300.8 446.1L298.1 445.2L294.3 438.8L298.6 437.4L297.6 435.4L301.3 435.1L304 431.2L313.3 429.7L316.4 430.9L318.8 438.4L316.6 440.9L319.5 441.2L320 443.2L319.6 445.1L318.2 442.9L317.8 447.6L313 450.4ZM324 382.5L324.8 384L319 387.3L318.2 386L320.6 384.7L319.2 382.9L320.4 379.4L322.9 380.6L323.3 378.4L328.3 376.4L328.4 377.6ZM324.5 396.2L328.4 398.2L324.8 401L325 398.3L322.4 397.7L319.5 392.8L324.4 390ZM378.6 352.7L375 361.9L375.6 356.7L373.1 355L375.6 354.2L374.5 351.2L376.1 349.7Z","bb":[294.3,349.7,386,519],"cx":347.6,"cy":461.4},"PT":{"d":"M238.9 641.9L243.8 641.7L243.3 647.2L252.6 649.1L256.3 647.4L262.6 649.5L262.6 654.2L266.2 657.4L255.6 664.1L254.8 675.5L251.4 677.7L252.6 680.5L250.8 684L248.6 685.5L243.2 684.6L246 694.4L248 696.2L241.5 705L243.6 710.3L245.6 710.6L237.7 716.8L236.3 725.9L230.1 727.5L220.4 723.1L214.8 723.2L218.7 717.3L221.6 700.4L224.3 701.4L222.9 699.5L217.3 699.2L217.6 695.7L220.9 695L225.1 690.3L219.4 694.7L216.4 694.6L215.2 692.6L218.7 684.1L228.4 673L232.8 663L235.5 647.2L234.5 644.7Z","bb":[214.8,641.7,266.2,727.5],"cx":237.3,"cy":683.8},"ES":{"d":"M330.2 640L329.1 643.1L331.2 642.6L339.3 648.9L352.7 652.6L356 650.5L363 653.8L363.8 658.2L367.1 657.5L370.3 660.3L373.1 659.5L378.6 661.4L382.7 659.7L385.7 660.6L386.7 663.1L384.6 665L385.5 668.8L382.2 671.5L369.8 678.4L356 680.7L351.5 684.2L353.6 686.1L349.6 687.5L335.5 704.2L336.2 712.1L340.9 717.9L330.5 724L325.4 732.5L326.4 735L318.1 735L313.6 737.3L304.7 746.8L301.4 744.8L296.6 746L275.3 742.1L270.6 744.8L263.7 744.9L260.3 749.1L256.4 750.2L251.3 746.3L248.1 737.9L251.2 733.8L248.6 734.7L243.3 727.3L243.8 725.9L236.3 725.9L236.3 720L237.7 716.8L245.6 710.6L243.6 710.3L241.5 705L248 696.2L246 694.4L243.2 684.6L248.6 685.5L250.8 684L252.6 680.5L251.4 677.7L254.8 675.5L255.6 664.1L265 658.5L266.1 656.2L262.6 654.2L262.6 649.5L256.3 647.4L252.6 649.1L243.3 647.2L244.4 643.9L243.2 641.5L235.2 643.2L235.5 640.1L238.5 638L237.1 637.4L238.5 631.6L235.7 631.6L237.7 628.6L234.8 624.7L236.2 621.6L240.5 619.9L246.9 620.5L248.8 617.8L256.1 616.3L262.9 621.6L277.8 623.4L292.9 630.5L304.3 630.9L310.7 634.6L313 633.5L319.1 636.8L326 636.5ZM385.2 706.8L379.5 713L376.1 711.2L375 708.5L372.3 709.3L370.7 707.5L381.6 701.8L381.2 704.8Z","bb":[234.8,616.3,386.7,750.2],"cx":295.9,"cy":683.2},"FR":{"d":"M440.2 579.4L435.9 578.9L436.2 581.1L429.7 587.2L423.4 599.3L423.8 600.5L426.1 599.8L429 595.9L433 596.5L432.8 600.6L435.5 604.7L432.7 607.7L436.8 613.6L435.8 616.3L430.4 619L434.5 623.2L433.1 631.5L438 635L441.9 634.7L439.9 641.4L428.2 650.5L422.5 652.3L413.9 649.2L409.8 645.3L405.5 646.2L395.9 642.3L387.4 647.8L384.4 652.3L385.7 660.6L381.7 659.8L378.6 661.4L373.1 659.5L370.3 660.3L367.1 657.5L367.3 655.8L363.8 655.5L356 650.5L354.1 652.8L345.8 651.7L331.2 642.6L329.1 643.1L330.2 640L326 636.5L330.1 634.5L335.4 618.3L337.7 616.4L337 615L335.6 616.5L339.7 602.3L344.7 612.1L342.9 603.9L338.8 599L340.7 598.9L340.8 589.1L333.9 584.6L331.6 579.1L332.6 575.4L330.9 573L333.2 571.4L336.2 572.9L333.8 570.9L328.6 570.4L327.8 568.7L329.2 567.4L325.4 566L325.6 564.1L309.1 557.6L305.7 553.2L310 551.8L307.7 549.2L311.4 549.8L306.4 547.7L306.9 544.8L309.3 543.9L324.2 542.9L329.2 549L332.2 547.6L336.9 549.6L338.3 547.8L344 549.5L342.3 546.6L343.2 539.9L341.5 531.4L347.9 532.5L348.5 537.6L358.9 540.7L365.5 539L362.6 537.6L363.6 534.4L375.7 530.9L379.9 527.1L382 516.5L391.4 513.9L393.3 520L397 519.9L398.4 524.2L401.8 525.4L402.5 528.4L407.7 529.9L407.3 534.7L411.3 535L414.5 532L414.6 538.2L421.3 543.3L429.4 544L432.5 545.9L434.5 549.9L442.4 550.4L449.9 553.6L449.9 555.1L446.5 559.3L443.7 567.3L443.4 576.8ZM465.1 668.9L460.3 682L455.5 678.5L456.5 676.6L454.4 675.6L454.7 672.8L453.1 672.2L454.3 669.9L452.6 667.8L454.5 662.3L462.1 659.6L463.4 654.4Z","bb":[305.7,513.9,465.1,682],"cx":383.2,"cy":590.2},"NL":{"d":"M424.1 520.9L426.1 515.7L420 513.2L418.3 509.9L416.3 510.9L415.4 509.3L412.8 509.4L411.3 511.3L401.8 507.4L405 506.7L410.4 509.3L407.7 507L409.6 506.9L407.4 503.3L413.6 495.3L417.4 484.9L420.4 484.7L425.5 479.8L430.9 477.8L438.6 477.6L442.3 480.5L440.2 491.1L436.9 491.5L437.1 494.1L440 495.6L436.6 500.6L437.3 502.5L428.3 504.9L430.6 511L429.6 516L426.6 517.9L428.5 520.1L427.8 522.7Z","bb":[401.8,477.6,442.3,522.7],"cx":425.5,"cy":496.6},"BE":{"d":"M412.8 509.4L415.4 509.3L416.3 510.9L418.3 509.9L420 513.2L426.1 515.7L424.1 520.9L430.2 525.4L431.4 530.2L428.5 533.4L427.1 532.5L424.3 536.6L424.7 542.8L421.3 543.3L414.6 538.2L414.5 532L411.3 535L407 534.5L407.7 529.9L402.5 528.4L401.8 525.4L398.4 524.2L397 519.9L393.3 520L391.4 513.9L400.5 510L401.2 512.3L406.1 513.4Z","bb":[391.4,509.3,431.4,543.3],"cx":413.4,"cy":523.8},"LU":{"d":"M432.3 539.8L430.4 544.8L426.8 544.7L424.4 543L425.5 541.3L424 538.4L427.1 532.5Z","bb":[424,532.5,432.3,544.8],"cx":428,"cy":539.6,"halo":1},"DE":{"d":"M454.4 574L452.4 575.4L454.2 576.6L452.5 577.1L442.9 576.6L443.7 567.3L449.9 553.6L442.4 550.4L434.5 549.9L430.4 544.8L432.3 539L429.8 537.7L428.4 533.8L431.4 530.2L431.2 527.9L426.6 517.9L429.6 516L430.6 511L428.3 504.9L436.6 503.5L436.6 500.6L439.8 497.6L439.7 495L436.6 493L437.3 491.2L440 491.4L441.9 485.8L442.3 480.5L440.9 478.8L442.6 474.2L450.7 473.8L451.6 477.6L453 478L453.9 475.3L455.5 479L456.9 470.9L462.7 471.3L468.5 476.4L459.9 469.4L459.8 464.4L457.1 462.8L460.3 460.9L457.7 453.5L469.6 455.7L470.9 459L469.3 460.9L477.9 463.5L480.6 462.4L480.6 465.7L478.7 467.6L479.8 468.9L484.6 469.7L488.4 466.2L491.5 465.7L496 460.5L500.5 461.3L504.8 465.7L507.5 465.3L509.2 470.3L513.2 472.2L515.3 481.1L512.8 486.6L518.1 492.3L517.7 495.1L520 499.7L518.7 504L523.7 513.5L521.5 521L516.6 517.6L517.2 519.9L508.7 523.7L502.4 529L498.1 529.4L495.3 533.1L493.2 531.1L498 537.8L496.8 540.5L500.1 545.9L513.2 556.3L512.3 560.1L509.7 559.6L508.6 563.4L501.8 568L504.2 571.5L503.6 574.4L505.5 575.5L505.1 578.5L501.3 575.4L495.8 574.8L495.6 576.4L482.6 580.5L480.6 578.4L475.7 577.9L472.7 582.6L468.8 577.9L465.2 578.4ZM507.5 462.6L505 462.3L503.9 463.9L501.7 461.5L502.4 457.4L504.1 456.2Z","bb":[426.6,453.5,523.7,582.6],"cx":474.5,"cy":519.1},"DK":{"d":"M457.7 453.5L457.3 444.8L452.8 441.6L453.5 424.6L458.2 426.6L460.3 422.5L462 421.6L463.2 423.1L463.8 417.9L461.4 417.8L459.2 422.7L456.4 423.7L454.6 422.1L456.1 418.2L457.9 416.1L465.4 415.2L470.3 408.3L475.5 405.7L473.3 424.6L479.3 427.5L477.7 430.9L473.6 431.4L472.4 437.3L469.7 437.7L470.9 439.1L466.7 443.6L467.5 447.4L465.3 451.3L468 452.5L468.1 454.9ZM495.2 439.9L491.9 443.7L493.9 446.7L490.8 448.5L490.6 454.8L488.8 455.6L486.6 448.6L483.1 448.4L480 439.7L483.2 439.1L486.1 435.6L488 439.9L489.9 433.9L492.6 432.6L495.3 434ZM478.5 446.5L478.2 449.7L474.9 451.1L470.5 449.2L469.3 445.9L469.3 443.2L476.6 441.6ZM487.6 455L487.9 457.2L484.9 458.1L480.7 455.7L480.9 452.9L482.9 452.7Z","bb":[452.8,405.7,495.3,458.1],"cx":464.5,"cy":431},"NO":{"d":"M532.3 211.2L534.2 213.9L533.2 222.4L522.4 220.5L521.2 230.6L517.2 228.7L514.2 232.5L510.7 240.7L513.2 246.8L507.5 256.8L508.2 259.8L502 263.2L502.5 277.1L497.3 289.6L500.5 291.4L501.3 296.2L500.1 299L494.5 298.2L491.5 299.6L485.9 311.8L488.8 328.6L488 338.2L494.1 344.2L492.9 349.2L489.5 350.2L492.3 359.5L491.6 365.3L487.1 369.5L485.1 374.2L486.2 379.3L485 385.4L483.5 385.7L482.5 382.5L477.9 381.2L475.7 371.4L472.2 384.2L469.3 385.1L466.8 382.4L467.6 384.8L454.2 398.6L443.8 400.3L442.7 398.1L440.1 398.9L440.9 396.1L435.6 393.9L431.2 387.7L432.4 383L436.5 385.6L438.9 383.5L436.6 384.2L434.9 381.7L435.6 378.3L439.8 374.1L430.4 380.2L428.5 379.1L430.4 372.2L434.5 372.1L438.4 369.7L434.3 368.7L438.2 362.6L441.5 359.9L441.3 364.2L445.6 358.3L438.4 360.7L429.1 372.1L430.1 364.6L434.2 364.3L430.9 362.7L430 358.6L434.5 354.7L431 356.5L430 355.3L429.7 348.5L444.3 347.6L446.2 350.9L446.4 348.6L451.1 346.7L449 345.1L449.9 342.9L447.5 347.3L442.9 345L441 347.6L433.4 347.7L430.6 346L430.1 341.8L432.9 341.2L429.9 337.1L430.1 334.3L438.7 336.4L444.5 335.3L432.9 333.6L432.1 329.7L433.8 330L438.5 325.8L443.7 326.2L444.7 325.2L440.3 326L442.1 322.7L452.3 323.9L451.4 322.1L455.4 320.5L445.2 321L447 317.5L452 314.9L456 315.2L460 319.4L456.5 314L460.2 311L458.2 308.3L459.9 306.7L464.1 306.9L464.2 309.1L468.3 306.4L470.8 310.3L476.4 309.1L476.1 306.3L480.9 303.2L479.4 301.7L481.5 299.9L480.4 299.1L477.5 301.3L477.7 303.9L471.1 308.3L467.4 305L474.8 293L481.7 287.4L482.5 286.2L480.1 287.3L481.4 283.5L486.1 280L488.6 281.2L491.4 277.1L487.9 279.8L485.8 278.3L489.3 267.7L491.7 266.7L489.9 264.4L498.3 260.6L492.1 262.1L492.3 255.2L497.2 252.3L495.1 250.6L497.9 246.8L506.4 244.9L499.9 244.2L502.9 238.9L507.4 242.3L507.7 239.4L504.8 238.3L504.9 235.5L502.1 237.4L501.6 235L503.5 232.1L506.6 232.3L504.5 230.4L508.7 227.4L511.2 233L509.8 225.8L518 223.2L511.3 222L516.2 217.1L517.5 211.8L519.8 210.6L520.1 205.3L524 207.4L522.1 204.7L525 200L527.7 198.6L528.4 205L531 195.8L531.4 206L533.1 202.3L534.6 202.4L532.8 196L536 195.9L537.2 193.6L540.9 196L536.1 190.1L541.5 188.6L543.2 186.4L548.3 192.1L547.5 187.7L550.3 183.1L551.6 179.1L550.3 177.3L552.3 173.7L558.6 175.6L556.9 180.5L557.5 188L562.9 172.4L564.8 181.1L566.6 178.9L566.6 174.8L568.3 173.4L565.9 171.5L567.2 168.7L572 169.4L570.8 174.9L572.9 174.5L574.5 181.3L574.9 170.5L580.9 172.5L582.4 171.1L584 173.4L588.7 174.5L589.5 176.4L586.6 180L578.3 182.1L583.7 183.5L585.5 187L587.8 186.8L587.9 184.2L589.7 186.1L591.9 184.4L593.3 187.9L588.8 187.9L589.4 191.3L586.1 194.7L585 199.8L583.6 197.5L584.8 192L582.7 189.1L572.9 185L570.2 188.5L566.7 189.2L565.1 193.4L566.2 205.3L563 212.9L555.6 210.8L553 214L547.2 213.9L540.6 205.7L538.5 206L538 210ZM509.3 216.6L511.2 219L507.8 224.8L503.9 225.4L500 228.6L497.6 227.8L504.3 221.3L504.1 214.1L506.7 209.5L506.6 222ZM519.2 206.7L518.8 210L516 210.4L513.9 213.7L512.2 212.5L515.3 203.7ZM526.7 196L522.9 203.1L518.6 203.3L521.8 199.8L523.3 191.8ZM504 218.5L503.2 221.3L497.8 220.1L501.9 214.9Z","bb":[428.5,168.7,593.3,400.3],"cx":486.9,"cy":303.9},"SE":{"d":"M484.2 386L485.6 383.9L485.1 374.2L487.1 369.5L491.6 365.3L492.3 359.5L489.5 350.2L492.9 349.2L494.1 344.2L488 338.2L488.8 328.6L485.9 311.8L487.1 306.6L491.5 299.6L494.5 298.2L500.1 299L500.8 297.6L500.5 291.4L497.3 289.6L502.5 277.1L502 263.2L508.2 259.8L507.5 256.8L513.2 246.8L511 239.4L517.2 228.7L521.2 230.6L521.6 221L533.2 222.4L534.2 213.9L532.3 211.2L535.3 210.5L545.3 217.6L552 219.9L557.4 225L558 233.4L560 233.6L560.4 238.6L563.9 243.4L564 252.9L568.7 259.7L561.7 262.3L556.5 261.1L556.4 265.6L552.2 269.6L552.9 272L551.4 271.3L553.1 274.2L550.9 280L554.7 285.3L550.9 296.1L544.2 304L541.4 304.1L539.6 308.4L536.5 309.8L534.6 313.2L536.1 313.1L536 314.7L534 316.7L531.7 315.3L533.3 320L531.9 321.8L528.6 322.1L530.9 326.5L529.6 332.9L530.6 335.9L528.4 335.4L528.1 338L530.7 352.6L534.4 355L536.8 353.8L545.4 362.3L547 366.7L539.3 374.4L544.3 373.2L542.6 378.3L532 387.2L525.4 388.1L531.8 389.9L529.5 391.1L531.1 406.9L529.6 420.4L525.5 430.7L515.7 430.8L515.6 433L512.3 434.2L510.7 436.7L512.2 441.8L510.7 444.1L498.4 444.4L499 438.7L493.9 429.7L497 430.1L495.5 427.1L497.4 426.9L497.5 424.1L493 419.3L486.3 405.8L483.4 395.4L481.7 394.9L480.7 384.5L481.9 382.8ZM552.2 398.8L550.2 401.3L551.7 406.3L545.7 415.2L546.7 412.3L544.4 404.5L547.4 399.5L550.5 397.7ZM531.5 428.2L530.3 424.2L535.6 409.5Z","bb":[480.7,210.5,568.7,444.4],"cx":519.6,"cy":324.3},"FI":{"d":"M564.3 253.5L563.9 243.4L560.4 238.6L560 233.6L558 233.4L557.4 225L551.1 219.2L545.3 217.6L535.3 210.5L538 210L537.5 207.2L540.5 205.7L547.2 213.9L553 214L555.6 210.8L563 212.9L566.2 205.3L564.9 194.1L566.7 189.2L570.2 188.5L573.7 184.8L582.7 189.1L584.8 192L583.6 197.5L585 199.8L582.4 202.7L585 203.5L584.8 209.3L587.5 213.7L592.2 214.6L598.2 219.8L596.4 234L609.1 250.8L607.1 253.2L608.3 259.5L610.3 260.7L609.7 264L613.9 266.3L615.4 271.6L620 274.5L620.8 277.4L618.7 283.1L630 289L634.3 293.4L634 300.7L627.5 319.2L616.4 340.7L612.5 340.9L607.7 344.4L607.1 340.8L606.3 344.5L602.7 344.5L603.9 346.5L601.9 348.2L600.8 347.3L592.1 354.7L584 356.9L580.9 360.4L581.7 356.7L578.7 354L577.9 356.8L575.6 357.7L575.5 351.7L565.4 349.7L563.7 343.6L563.9 332.9L560 326.7L556.9 314.4L559.9 308.8L558.6 306.2L564.1 303.4L563.5 300.2L571.1 289.5L575.3 275.6L580.2 273.5L580.2 270.9L578.1 263.2L572.7 261.1L571.7 258.1L568.7 259.7Z","bb":[535.3,184.8,634.3,360.4],"cx":589,"cy":281.9},"PL":{"d":"M620.1 507.3L619.1 509L621.1 513L615 520.3L608.8 532.4L612 540.7L602.9 539L598.2 536.3L592.1 537.2L590 539.3L584.4 538.9L581.5 542.8L578.7 543L578 540L573.9 536.7L569.1 540.7L563.8 533.1L557.7 531.2L555.7 532.3L552.8 529.9L553.7 527L550.7 528.2L544.7 525.8L546.2 528.9L542.6 531.5L537.5 526.5L539.5 523.8L537.9 522.6L535.1 523.5L523.7 517.6L523.8 519.7L522 520.3L523.7 513.5L518.7 504L520 499.7L517.7 495.1L518.1 492.3L512.8 486.6L515.3 481.1L513.2 472.2L516.6 473.5L516.1 470.4L512.4 469L531.7 461.3L534.9 456.6L549.3 450.3L556.1 452.1L552.8 451.5L555.7 456.5L558.9 457.5L564.8 454.8L597.8 451.2L603.1 454L610.9 471.8L612.1 477.2L607.8 481.2L606.1 485.5L611.8 488.7L611.9 496Z","bb":[512.4,450.3,621.1,543],"cx":568.3,"cy":494.4},"CZ":{"d":"M567.4 539L560.6 544.1L560.1 547.4L556.8 550.8L550 552.3L548.3 556.6L543.5 553.7L538.1 554.8L526 551.6L523.1 558.6L517.5 559.2L500.1 545.9L496.8 540.5L498 537.8L493.2 531.1L495.3 533.1L498.1 529.4L502.4 529L508.7 523.7L517.2 519.9L516.2 517.8L519 518.2L521.1 521.1L523.8 519.7L523.7 517.6L535.1 523.5L538.8 523.1L537.5 526.5L542.6 531.5L546.2 528.9L544.7 525.8L550.7 528.2L553.7 527L553.2 530.3L556.1 532.4L557.7 531.2L563.8 533.1Z","bb":[493.2,517.6,567.4,559.2],"cx":528.9,"cy":538.9},"AT":{"d":"M465.2 578.4L470.3 578.7L472.7 582.6L475.7 577.9L480.6 578.4L482.6 580.5L495.6 576.4L495.8 574.8L501.3 575.4L505.1 578.5L502.4 567L508.6 563.4L509.7 559.6L512.3 560.1L513.2 556.3L515.9 558.9L523.1 558.6L526 551.6L538.1 554.8L543.5 553.7L547.4 554.9L547.7 560.2L551.4 566.3L551 571.5L545.5 571.2L543.7 572.7L546.8 574.8L544.4 577.3L545.1 583.6L540.5 587L539.8 589.9L527.5 592.1L523.7 595.8L499.4 592.3L495.5 588L495.7 585.5L485 587.6L482.2 591L476.2 589.7L474.7 587.5L472.2 589.8L465.8 586.3Z","bb":[465.2,551.6,551.4,595.8],"cx":517.5,"cy":576},"CH":{"d":"M466.4 579.4L464.7 586.2L472.2 589.8L474.7 587.5L475.9 589L475.7 594.9L471.7 594L472.1 600.1L469.9 598.1L465.1 599L462.5 595.8L458.3 607L456.8 602.8L452.6 599.8L452.2 596.4L444.6 605.1L435.9 605.1L432.8 600.6L432.8 596.3L429 595.9L426.1 599.8L423.4 600.3L426 592.7L435.6 582L435.9 578.9L440.2 579.4L443.4 576.8L453 577L454.3 576.3L452.5 575.9L453.7 574.1L461.3 575.9Z","bb":[423.4,574.1,475.9,607],"cx":449.8,"cy":590.4},"IT":{"d":"M445.3 604.7L451.6 596.4L458.3 607L462 596.1L464 596L465.1 599L469.9 598.1L472.1 600.1L471.7 594L475.7 594.9L475.9 589.5L482.2 591L485 587.6L495.7 585.5L498.4 591.9L513.7 594.3L510.2 598.8L513.2 600.1L511.7 603.4L516.5 609.5L514.7 610L513.5 607L508.5 607.2L506.5 609.6L497.7 613.1L497.2 616.6L500.9 621.1L497.7 625.3L499.8 633.7L514.4 644.1L520.6 658.7L527.7 665.8L535.9 670.5L548.5 670.2L545.6 677L573 688.9L580.8 697.4L579.4 702.4L575.8 700.8L572.5 695.3L566.3 695L563.3 692.5L560.1 693.5L555.8 705.9L564.1 711.4L565.4 717.7L558.3 721.7L557.9 728.4L552 736.7L547.5 737.1L546.2 733.2L548.4 730.9L549.4 724.6L552.8 722.9L552.8 719.8L544.8 702.7L534.9 699.2L534.6 695.4L532 692.2L526.6 693.7L528.1 691.4L522.6 690.3L518.3 683.4L510.1 683.6L504.1 680L491.2 666.6L484.9 665L485.2 662.5L479.4 655.8L477 655.3L473.6 640.4L471.2 637.6L455.7 630.7L446.3 639.7L439.9 641.4L441.9 634.7L438 635L433.1 631.5L434.5 623.2L431.5 621.5L430.3 618.2L435.8 616.3L436.8 613.6L432.9 606.5L435.5 604.7ZM539.6 745.8L542.7 752.3L540.6 758.7L532.1 757.3L527 752.5L523.8 752.7L513.5 746.8L506.3 745.2L503.4 741.5L507.3 735.2L509.6 737.6L514.7 734.8L521.5 738L545.9 731.7ZM468.1 696.9L466 700.8L464.9 719.4L458.2 718.1L457 722.7L452.7 723.2L449.8 718.5L451.7 707.9L449.9 706.5L450.8 700.2L447.2 692.1L447.8 689.7L452.3 690.9L460.8 684.1L465.7 688.2L464.9 689.6Z","bb":[430.3,585.5,580.8,758.7],"cx":498.9,"cy":646.1},"GR":{"d":"M679.4 655.3L680.6 658.5L677.5 662L678.4 666.7L675.5 671.3L663 669.3L659.5 672.3L655.2 671.6L650.9 676.3L646.8 676.7L649 681.9L653.7 682.6L655.9 685.3L649.8 682.8L647.5 683.7L651.2 686.7L651.3 689.2L647 685.6L643.9 685.5L644.3 687.9L647.9 690L644.2 690.1L642.5 686.5L636.7 684.4L636.6 681.2L633.1 683.4L633.8 691.1L645.5 703.8L643.5 705.5L643.2 702.8L639.9 702.6L639.8 704.9L642.5 706.7L636.4 710.7L645.9 712.6L656.3 717.3L658.8 724.6L658 727.2L650.8 722.4L645.1 726.1L647.9 730L650.6 730.2L652.3 732.3L648.2 734.8L645.8 732.7L641.8 732.4L650.4 749.5L643.6 744.8L640.4 750.8L634.4 742.3L632.9 743.2L632.6 747.6L627.6 742.5L628.2 737.2L619.7 729.9L622.7 724.3L626.1 724.1L628 721.2L643.4 725L642.8 723.5L645.7 722.6L645.8 720.9L635.6 718.1L634.4 719.7L629.6 719.5L623.4 722.1L621.1 719.6L619.5 722.2L612.9 714.2L617.3 713.2L617.1 710.9L611.8 711.6L601.1 701.6L604.4 701.7L605.9 699.4L604.6 696.6L608.8 693.6L612.4 684.5L611.1 680.8L618.8 679.3L623.4 674.1L631.1 672.7L632.9 669.1L643.4 666.3L648.2 663L653.9 661.5L657.7 664.1L664 664.8L672.2 661.9L674.6 660.1L672.7 655.5L674.2 654ZM666.3 761.2L665.8 763L668.9 764.7L688.3 761.1L689.8 764.6L696.5 759.9L695.3 765.3L676.8 770.5L675.1 768.2L671.6 767.7L660 768.5L658.3 763.7L659.8 763.8L660.3 761.3L662.2 763ZM649.1 709.4L656.9 710.4L660.5 717.4L664.5 717.9L665.1 720L662.2 720.6L657 715.2L651.7 715.2L645.5 710.2L640.4 709.9L645.7 706.2ZM688.1 697.5L685.7 699.3L681.7 698.3L683.5 695.9L681.2 698.2L678 697.1L683.8 692.6ZM714.1 745.7L712.5 741.6L714.6 738.1L718.7 736.6L717.8 742.1Z","bb":[601.1,654,718.7,770.5],"cx":635,"cy":700.7},"HU":{"d":"M607.6 552L615.8 558.5L607.2 567.6L603.6 581.9L599.4 590.5L590.5 594L582.1 594.4L569.2 602.8L562.7 602.9L556.5 600L546.5 592.4L543.3 586.6L541.1 586.7L545.1 583.9L544.4 577.3L546.8 574.8L543.7 572.7L545.5 571.2L551 571.5L551.7 566.2L558.8 569.6L569.6 568.1L570 564.4L577.3 561.6L578.8 559.5L582.6 560.3L586.6 557.2L587.8 553.1L598.3 551.1L602.4 554.1Z","bb":[541.1,551.1,615.8,602.9],"cx":578.3,"cy":577.6},"HR":{"d":"M522.5 611.4L524.7 608.3L527.5 611.2L534 610.9L533 606.5L537.3 604L536.4 598.8L543.3 594.8L544.2 592L549.3 593.5L556.5 600L562.7 602.9L569.2 602.8L575.3 599L577.5 607.8L582.6 610.8L579.4 611.1L579.4 615.7L577.8 616.9L574.1 613.7L564 614.8L553 612.6L548.5 614L546 617.7L542.6 614.9L539.7 615.4L539.6 622.4L544.3 626.1L547.2 632.6L560.1 642.9L565.4 649.9L564.7 651.1L555.6 644.3L549.2 642.3L544.2 643.1L532.8 631.5L537 630.9L529.6 624.1L528.7 617.8L522 613.9L517 622.6L512.4 611.9Z","bb":[512.4,592,582.6,651.1],"cx":547.6,"cy":615.3},"SI":{"d":"M546.5 592.4L544.2 592L543.3 594.8L536.6 598.3L537.3 604L533 606.5L534 610.9L532.9 611.4L527.5 611.2L524.7 608.3L522.5 611.4L513.6 612L516.5 609.5L511.7 603.4L513.2 600.1L510.2 598.8L513.7 594.3L523.7 595.8L527.5 592.1L539.8 589.9L541.1 586.7L543.3 586.6Z","bb":[510.2,586.6,546.5,612],"cx":527.1,"cy":600.4},"SK":{"d":"M608.9 540.4L606.1 552.5L601.9 554L598.3 551.1L587.8 553.1L586.6 557.2L582.6 560.3L578.8 559.5L577.3 561.6L570 564.4L569.6 568.1L557.3 569.1L550.7 565.8L547.6 559.3L550 552.3L555.4 551.7L559.8 547.9L560.6 544.1L564.9 539.6L571.1 540.4L573.9 536.7L578 540L578.7 543L581.5 542.8L584.4 538.9L590.9 539.1L595 536.6L601.1 537L602.9 539Z","bb":[547.6,536.6,608.9,569.1],"cx":576.1,"cy":551.5},"EE":{"d":"M622.9 389.6L619.4 391.8L606.4 385.8L598.7 390.5L598.8 382.1L595.5 384.3L592.1 383.3L588.9 378.8L589.9 376.4L587.3 374.6L587 369.9L591.6 367.4L593.5 363.8L602.2 361.1L602.3 359.1L615.3 359.3L623.1 358L623.8 356.6L625.4 358.1L622 369.2L625 378.4L628.9 383.8L627.1 385.2L626.6 390.1ZM583 380.6L588 382.6L583.5 387.2L580.4 388L578 393.3L579 389.3L576 388L575.1 384.1ZM580.4 379.9L578.8 377.2L575.5 376.4L580.1 373.1L584 376.7Z","bb":[575.1,356.6,628.9,393.3],"cx":608.8,"cy":374.4},"LV":{"d":"M617.1 417.2L611.3 416.8L608.5 413.7L602.4 417.5L583.2 418.6L574.5 425.8L572.8 413.2L576.6 399.8L583.5 395.9L592.1 405.3L595.7 406.6L598.2 405.5L601.4 400.7L598.7 390.5L606.4 385.8L613.4 387.9L618.7 391.7L622.9 389.6L628.1 390.1L632.1 393.6L632.1 400.7L634.3 400.5L639.7 410.2L635.9 418.1L631 418.7L627.4 422.4Z","bb":[572.8,385.8,639.7,425.8],"cx":607.5,"cy":406.2},"LT":{"d":"M594.8 443L591.7 440.3L587 441.1L578.5 439L574.5 425.8L583.2 418.6L602.4 417.5L608.5 413.7L611.3 416.8L617.1 417.2L627.4 422.4L627.4 428.1L630.7 428.5L623 438L622.7 446.8L625.3 449.2L622.9 449.7L622 447.6L616.8 451.3L616.4 454.3L604.8 457.6L602.1 453.2L595.8 451.7Z","bb":[574.5,413.7,630.7,457.6],"cx":603.6,"cy":433.5},"BA":{"d":"M580.9 625.1L587.2 630.3L583.2 631.6L586.6 635.6L586.5 638L580.7 639.1L581.8 643.2L579.6 642.5L577.4 648.2L575.4 648.9L577.1 654.8L575.9 656.3L564.7 651.1L565.4 649.9L560.1 642.9L547.2 632.6L544.3 626.1L539.5 620.8L540.9 614.6L546 617.7L548.5 614L553 612.6L564 614.8L574.1 613.7L576.5 616.7L582.6 616Z","bb":[539.5,612.6,587.2,656.3],"cx":565.2,"cy":630.2},"RS":{"d":"M616 617L620.4 613.4L623.3 614.6L621.1 617L624.1 620.8L621.4 625.2L621.3 629.1L624.4 634.2L630.3 638.6L627.8 643.4L625 644.6L626.7 650.5L625.8 653.3L616 656.3L614.6 655.1L616.6 648.9L612 648.3L603.6 640.8L598.9 648.9L588.4 643.7L583.4 639.1L586.8 636.6L583.2 631.6L587.2 630.3L580.9 625.1L582.7 616.4L578.3 616.2L579.4 611.1L582.5 610.4L577.5 607.8L578 605.8L574.7 600.7L582.1 594.4L589.5 593.6L597.5 599.2L598.4 603.9L607.4 608L606.1 610.6L608.5 612L606.6 613.6Z","bb":[574.7,593.6,630.3,656.3],"cx":601.5,"cy":625.1},"ME":{"d":"M589.2 644.3L598.9 648.9L595.5 650.5L596.1 653.9L594.6 654.9L592.8 655.7L590.8 653.3L587.1 661.6L588.5 666.6L576 656.9L577.1 654.8L575.2 649.5L577.4 648.2L579.6 642.5L581.8 643.2L580.4 639.4L583 638.9Z","bb":[575.2,638.9,598.9,666.6],"cx":585.3,"cy":651.5},"XK":{"d":"M600.4 648.1L601.5 642.2L603.6 640.8L612 648.3L616.7 649.2L615.3 656.3L612.2 659.3L609.3 658.6L606 660.8L605.4 664.5L603.8 664.4L602.6 659.5L598.7 657.2L595.3 651Z","bb":[595.3,640.8,616.7,664.5],"cx":606.1,"cy":652.4},"AL":{"d":"M587.1 661.6L591.4 652.9L592.8 655.7L596.1 654L602 658.7L603.9 663.7L604.1 674.6L607.6 680L610.6 680L612.4 684.5L608.8 693.6L604.6 696.6L605.9 699.4L604.4 701.7L601.1 701.6L598.5 696.3L591 691.1L592.8 690.9L590.7 686.8L591.6 667.6L588.5 666.6Z","bb":[587.1,652.9,612.4,701.7],"cx":599,"cy":677.6},"MK":{"d":"M623.4 653.2L631.8 658L634.5 661.9L634.6 668.4L631.1 672.7L623.4 674.1L618.8 679.3L611.1 680.8L607.6 680L603.1 670.5L603.6 664.7L605.8 664.2L606 660.8L609.3 658.6L612.2 659.3L613.2 657.1Z","bb":[603.1,653.2,634.6,680.8],"cx":618.5,"cy":667},"BG":{"d":"M690 647.3L685.8 645.3L678.5 649.2L675.8 654.1L673.1 654.5L674.6 660.1L672.2 661.9L664 664.8L657.7 664.1L653.5 661.5L635.9 668.7L634.5 668.8L634.5 661.9L631.8 658L624.8 653.7L626.7 651.2L625 644.6L627.8 643.4L630.3 637.8L624.4 634.2L621.1 627.8L624.1 620.8L628.5 622.8L626.9 625.3L627.8 627.1L659.2 623.9L666.7 616.4L676.4 611.4L681 612.9L686.5 612.1L691.3 614.7L695.7 614.1L696.4 618.1L695.7 620.3L691.7 621.2L690.1 625.2L691.2 632.5L687.4 638.4L695.7 645.1Z","bb":[621.1,611.4,696.4,668.8],"cx":658.9,"cy":639.5},"RO":{"d":"M686.3 588.4L691.8 589L696.5 584.8L700.5 584.3L702.6 585.7L703 590.5L702.6 593L697.1 596L696.8 592.2L694.9 592.9L696 599.5L694.3 604.8L695.7 614.1L691.3 614.7L686.5 612.1L681 612.9L676.4 611.4L666.7 616.4L659.2 623.9L627.8 627.1L626.9 625.3L628.5 622.8L621.1 617.9L623.3 614.6L620.4 613.4L616 617L606.6 613.6L608.5 612L606.1 610.6L607.4 608L598.4 603.9L597.5 599.2L590.5 594L600.3 589.6L607.2 567.6L618.3 555.7L630.4 556.5L634.8 555.2L639 558.1L652.1 550.5L652.9 546.6L658 544.5L677.1 562.2L680.3 567.3L682.5 585Z","bb":[590.5,544.5,703,627.1],"cx":646,"cy":588.9},"MD":{"d":"M656.1 544.9L658.1 542.2L665.4 538.9L676.9 542.8L680.2 541.4L682.5 543.8L684.7 542.9L686.8 550.7L692.1 553.1L693.8 558.1L697.8 559.4L699.6 564L702.4 565.2L699.4 567.3L697.5 566.1L693 567.1L692.2 568.8L691.4 566.5L689.1 568.2L690.7 575L687 582.7L687.7 585.1L684.7 587L682.5 585L680.3 567.3L677.1 562.2L670.6 557.5L660.5 545.7Z","bb":[656.1,538.9,702.4,587],"cx":680.5,"cy":557.8},"UA":{"d":"M779.9 527.3L774 536.2L771.2 536.4L764.1 541.6L758.1 553.1L760.1 549.3L758.6 546.9L755.8 552.4L760 559.2L757.4 559.1L755.2 556.5L752.6 557.6L744.3 556.1L740.9 559.9L737.7 558.9L730.1 562.9L722 562L723.3 558.9L717.7 558.4L727 557L728.7 553.9L722.7 555.3L716.8 547L720.7 555.8L716.9 556.7L716.7 554.8L715.6 557.7L709.2 561L705.8 574.1L699.7 578.3L702.6 585.7L698.5 584L691.8 589L684.7 587L687.7 585.1L687 582.7L690.7 575L689.1 568.2L691.4 566.5L692.2 568.8L693 567.1L697.5 566.1L699.4 567.3L702.4 565.2L699.6 564L697.8 559.4L693.8 558.1L692.1 553.1L686.8 550.7L684.7 542.9L682.5 543.8L680.2 541.4L676.9 542.8L665.4 538.9L658.1 542.2L652.9 546.6L652.1 550.5L639 558.1L633.7 555.2L630.4 556.5L618.3 555.7L615.8 558.5L614.1 556L606.3 552.3L605.9 549.5L608.9 540.4L612.3 540.4L610.4 538.4L609.2 531.1L617.6 516.3L621.1 513L619.1 509L620.1 507.3L614.2 500.9L613 495.6L616.5 495.5L619.6 490.2L633.9 486.2L648.3 485.8L650.4 488L654.5 487.4L655 489L656.2 486.7L659.4 485.6L665.7 487L668.6 482.8L672.2 486.1L680 482.3L684.8 484.6L683.2 477.6L685.5 470.6L696.7 467L698.5 461.9L702.4 461.6L710.9 457L720.5 463.9L718.3 466.5L721.6 473L730.3 470.8L733.7 472.5L737.6 480.2L740.3 482.3L745.4 479.7L751.6 481L758.4 474.6L767.6 479.9L768.9 476.9L776.9 477.7L779.3 476.2L787.1 478L790.1 476.6L792.5 481.6L789.9 487.3L794.3 488.9L792.3 490L792.2 494.1L794.5 494L797.5 497.8L798.2 504.6L788.6 509.7L784.8 516.4L786.9 524.1Z","bb":[605.9,457,798.2,589],"cx":702.4,"cy":516.1},"BY":{"d":"M686.3 469.8L683.9 473.7L683.1 479.2L684.8 484.6L680 482.3L672.2 486.1L668.6 482.8L665.7 487L659.4 485.6L656.2 486.7L655 489L654.5 487.4L650.4 488L648.3 485.8L628.5 487.1L619.6 490.2L616.5 495.5L613.6 495.3L612.9 497.5L611.8 488.7L606.1 485.5L612.1 476L604 457.4L612.3 456.6L616.4 454.3L616.8 451.3L622 447.6L622.9 449.7L625.3 449.2L622.7 446.8L623 438L630.7 428.5L627.4 428.1L627.4 422.4L631 418.7L635.9 418.1L639.4 411.1L641.3 412.2L643.7 410.9L646.4 412.8L648.2 410.9L651.7 411.4L653.9 415.3L660 410.7L667.1 413L668 418.4L670.7 421.6L670.3 426.5L674.4 428L674.4 430.4L678.9 434.3L683.7 435.8L684.2 439.5L691.4 439.3L695.7 444.3L691.6 450.1L683.8 450.8L683.4 453.9L687.7 457.2L690 464.4L692.9 467.3Z","bb":[604,410.7,695.7,497.5],"cx":649.6,"cy":454.6},"RU":{"d":"M883.2 383.7L879.8 390L872.3 389.7L871.6 399.3L866.8 406.5L867.3 410.9L864.9 417.5L863.1 418.3L870.2 426.1L869.2 429.5L866.9 431.2L856.8 426.8L854.7 427.6L855.8 444.8L860.6 449L860.3 456L863 462.2L868.4 462.7L870.9 466.9L874.5 468.9L875.8 466.9L883.2 464.5L898.7 473.9L898.5 475.4L894.9 476.6L896 478.9L905.5 479.5L901.7 485.9L903.7 488.5L900.9 489.4L895.2 499.7L892.7 499.3L894.6 501.1L895.2 506.9L894.1 521.6L903.5 524.2L909.4 531.6L908.7 525.5L913.4 539.6L934.5 550.9L931.7 565L927.8 566.9L924.3 567.2L915 562.6L913.1 563.9L899.9 563.2L898.5 558.3L894.3 559.9L891.2 558.7L887.5 559.1L887.4 561.8L883.5 561.2L877.3 567.8L875.6 565.3L861.4 564.2L848 569.6L835.6 569.3L829.8 571.2L828.9 574.4L809.4 566.5L802.7 566.9L797.4 563.9L793.4 565.5L788.6 562.4L781.2 562L783.9 558.4L781 558L782.2 556.5L787 557.5L791.1 554L789.6 551.1L790.5 542.7L791.1 541.7L792.5 543.2L792.7 540.2L796 538.9L787.9 536.4L784.9 533.3L792.6 529.7L791 527.6L798.3 520.2L796.1 517L791.4 521.3L790.1 521.7L791.6 519.1L789.8 520.2L786.9 524.1L785.4 520.6L784.8 516.4L788.6 509.7L798.2 504.6L797.5 497.8L794.5 494L792.2 494.1L792.3 490L794.3 488.9L789.9 487.3L792.5 481.6L790.1 476.6L787.1 478L779.3 476.2L776.9 477.7L768.9 476.9L767.6 479.9L758.4 474.6L751.6 481L745.4 479.7L740.3 482.3L737.6 480.2L733.7 472.5L730.3 470.8L721.6 473L718.3 466.5L720.5 463.9L710.9 457L702.4 461.6L698.5 461.9L696.7 467L692.9 467.3L690 464.4L687.7 457.2L683.4 453.9L684.1 450.5L691.6 450.1L695.7 444.3L694.9 442.6L691.4 439.3L684.2 439.5L683.7 435.8L678.9 434.3L674.4 430.4L674.4 428L670.3 426.5L670.7 421.6L668 418.4L667.1 413L660 410.7L653.9 415.3L650.8 411.1L648.2 410.9L646.4 412.8L643.7 410.9L641.3 412.2L634.3 400.5L632.1 400.7L631.8 392.9L626.5 389.7L628.9 383.5L625 378.4L622 369.2L625.4 358.1L622.8 351.6L625.5 352.5L626.3 349.5L629.9 348.9L630.7 345.6L639.2 345.4L639.2 343.9L634.4 341.1L629.1 342.7L624.8 340.6L622.4 336L617.3 339.8L627.5 319.2L634 300.7L634.3 293.4L630 289L618.7 283.1L620.8 277.4L620 274.5L615.4 271.6L613.9 266.3L609.7 264L610.3 260.7L608.3 259.5L607.1 253.2L609.1 250.8L596.4 234L598.2 219.8L592.2 214.6L587.5 213.7L584.8 209.3L584.8 203.1L582.4 202.7L585.8 199.1L586.1 194.7L589 192.2L588.8 187.9L593.2 188.3L591.9 184.4L596.1 184.5L598 181.9L597.1 179.7L604.1 181.4L604.3 183.4L599.8 183.7L602.1 186.4L605.6 185.3L606.1 187L608.4 185.1L608.9 191.4L610.5 186.5L623.4 183.7L637.4 187L643.8 190.4L652.4 191.8L654 191.3L653.2 189.9L658.9 193.2L663.2 193.4L667.8 199.6L669.5 199.8L671.6 206.1L669.3 217.2L662.1 224.9L640.2 228L634.5 226.3L632.7 228.1L631.9 226.6L622.5 226.5L619.7 223.1L612.8 224.1L628.2 231.7L627 234.2L632.4 234.1L637.9 237L639.6 239.7L639.5 246.5L649.8 260L655.7 259.6L661.7 263.3L670.4 263.2L673 259.6L672.6 257.1L670.3 253.9L664.5 254.7L658.4 250.9L656.5 248.2L657.2 243.6L658.8 242.6L666.6 245L680.3 244.6L680.8 240.7L683.2 239.4L674.7 232.6L672.9 228.8L675.5 220.6L679 215.8L680.2 207.7L687.1 206L691 207.1L691.4 209.4L693.1 208.1L695.8 209.3L692.2 198.2L687.3 192.6L683.1 191.9L676.7 175.9L668.3 172.3L673.2 172L678.4 168.5L683.6 167.4L693.8 173.9L688.3 179L688 186L693.7 187.2L698.2 190.4L702.5 189.7L707.3 183.2L702.6 173.8L706.8 169.1L704.2 166.3L706.6 165.3L714.1 146ZM742.6 556.5L752.6 557.6L755.2 556.5L767.3 564.1L774.4 559L779.2 558.3L779.1 564.3L773.6 567.5L768.6 567.6L765.9 573.9L759.4 577.7L754.7 585.2L748.7 584.3L748.7 577.9L747.1 575.1L733.8 573.9L744 560.9ZM573.1 444.7L578.9 444.6L578.5 439L579.9 438.6L587 441.1L591.7 440.3L594.8 443L595.8 451.7L564.8 454.8L567.3 446.6L572.4 444.6L575.2 439.2ZM700 145.2L698.6 144.6L699 149.9L695.5 154.9L691.1 152.5L688.2 147.1L690.5 142.1L697.6 142.5ZM682.4 106.4L678.5 105.6L674.3 99.1L675.3 97.5Z","bb":[564.8,97.5,934.5,585.2],"cx":753.2,"cy":365.4},"TR":{"d":"M869.7 592.9L872.1 589.2L886.4 594.5L892.2 606.8L901.6 604.7L908.8 607.6L905.3 607.1L905.4 613.7L901.4 616.5L908 623.5L911.3 630.4L913.5 630.3L913.5 638.4L919.3 639.2L921 643.6L924.6 644.5L925.2 647L923.1 647.4L920.5 652.5L916.3 648.4L911.5 652.2L899.7 655.1L896.2 661.6L893.2 659.6L886 666.7L876 670.9L861.5 684.7L854 687.5L845.7 687.1L837.5 694.9L832.7 696.5L826.7 696.1L827 702.2L829.4 705.3L826.3 707.6L824.8 714.2L821.4 713.9L821.8 712.3L818.4 707.9L821.5 700.6L818.4 697.2L811.7 705.6L801.6 704.7L791.5 719.3L780.4 725.4L774.3 724.7L768.1 720.4L758.2 718.6L748.7 720.2L748.5 730.7L745.5 730.8L738.9 735.2L732.1 734.1L727.3 728.5L718.1 729.1L715 733L715.4 730.8L707.2 733.5L714.1 729.8L716.5 725.8L703.8 729.7L703.7 727.1L706.7 725.8L701.8 723L698.9 719.1L700.7 717.5L700 713.3L686.7 711.1L688 709.2L687.5 704.7L691.5 709L691.9 707.5L697.2 705.7L694 705.9L691.4 702.6L694.1 698.9L691.2 698.3L691.2 695.6L688.4 693.2L690.3 688.3L680.6 691.9L679.7 685.1L685.4 674.7L692.1 672.2L695 673.9L698.1 673L699.4 671.7L697.6 670.5L699.3 669.5L700.8 669.5L700.9 671.6L713.9 668L710.6 666.3L712.4 664.2L722.9 659.1L716.7 659.9L713.1 658.6L712.4 653.9L738.8 648.5L740.3 644.3L748.7 634.5L760.3 625.8L776.9 621.3L779.3 618.5L781.3 618.5L781.6 620.8L784.5 622.7L788.1 623.1L793.7 620.2L800.1 625.2L804 622.2L808.4 623.7L825.5 621.8L836.7 613.8L847.4 611.9L858.3 596.7ZM699.5 651.3L711.3 654L711.3 655.5L708.8 659.1L700.9 659.2L692.9 663L690.9 668.5L685.5 673L679.7 681.6L679.6 677.5L685.3 670.8L676.7 673L675.5 671.3L678.4 666.7L677.5 662L680.6 658.5L679.4 655.3L675.6 653.1L678.5 649.2L685.8 645.3L690 647.3L695.7 645.1Z","bb":[675.5,589.2,925.2,735.2],"cx":799.2,"cy":664.8},"CY":{"d":"M786.2 740.3L792 737.2L793.9 739.4L798.7 736.3L801.6 737.2L797 739L789.6 748.4L781.4 748.1L777.9 742.9L782.2 739.9ZM793.9 739.4L792 737.2L786.2 740.3L783 739.8L785.2 739L785.1 735.3L794.1 733.1L805.2 724L798.8 732.7L800.7 736.1Z","bb":[777.9,724,805.2,748.4],"cx":787.8,"cy":742.9},"MT":{"dot":[533.1,772.4]},"AD":{"dot":[364.8,657.1]},"MC":{"dot":[439,641.9]},"LI":{"dot":[465.1,584.9]},"SM":{"dot":[500.5,638.5]},"VA":{"dot":[501.6,672.8]}};
+const GRATICULE="M51 739.9L53.7 732L56.5 724L59.3 716L62.1 708.1L64.9 700.1L67.8 692.2L70.6 684.2L73.5 676.3L76.4 668.3L79.3 660.3L82.3 652.4L85.2 644.4L88.2 636.5L91.2 628.6L94.2 620.6L97.2 612.7L100.3 604.7L103.4 596.8L106.4 588.9L109.6 580.9L112.7 573L115.8 565.1L119 557.2L122.1 549.2L125.3 541.3L128.5 533.4L131.8 525.5L135 517.6L138.3 509.7L141.6 501.8L144.8 493.9L148.2 486.1L151.5 478.2L154.8 470.3L158.2 462.5L161.6 454.6L165 446.7L168.4 438.9L171.8 431L175.3 423.2L178.7 415.4L182.2 407.5L185.7 399.7L189.2 391.9L192.7 384.1L196.3 376.3L199.8 368.5L203.4 360.7L207 353L210.6 345.2L214.2 337.4L217.8 329.7L221.5 321.9L225.2 314.2L228.8 306.5L232.5 298.8L236.2 291.1L240 283.4L243.7 275.7L247.5 268L251.2 260.3L255 252.7L258.8 245L262.6 237.4L266.5 229.7L270.3 222.1L274.2 214.5L278 206.9L281.9 199.3L285.8 191.7L289.7 184.2L293.7 176.6L297.6 169L301.6 161.5L305.5 154L309.5 146.5L313.5 139L317.5 131.5M186.4 785.8L188.3 777.6L190.1 769.4L192 761.2L193.9 753.1L195.8 744.9L197.7 736.7L199.6 728.5L201.5 720.3L203.5 712.1L205.4 703.9L207.4 695.7L209.4 687.5L211.4 679.3L213.4 671.1L215.4 662.9L217.5 654.7L219.5 646.5L221.6 638.3L223.7 630L225.7 621.8L227.8 613.6L229.9 605.4L232.1 597.2L234.2 589L236.4 580.8L238.5 572.6L240.7 564.4L242.9 556.2L245.1 548L247.3 539.8L249.5 531.6L251.7 523.3L254 515.2L256.2 507L258.5 498.8L260.8 490.6L263 482.4L265.3 474.2L267.7 466L270 457.8L272.3 449.6L274.7 441.5L277 433.3L279.4 425.1L281.8 416.9L284.2 408.8L286.6 400.6L289 392.5L291.4 384.3L293.8 376.2L296.3 368L298.7 359.9L301.2 351.8L303.7 343.6L306.2 335.5L308.7 327.4L311.2 319.3L313.7 311.2L316.2 303.1L318.8 295L321.3 286.9L323.9 278.8L326.5 270.8L329.1 262.7L331.6 254.6L334.3 246.6L336.9 238.5L339.5 230.5L342.1 222.5L344.8 214.4L347.4 206.4L350.1 198.4L352.8 190.4L355.5 182.4L358.2 174.5L360.9 166.5L363.6 158.5L366.3 150.6M327.2 813.4L328.1 805.1L329.1 796.8L330 788.5L330.9 780.2L331.9 771.9L332.9 763.5L333.8 755.2L334.8 746.9L335.8 738.5L336.7 730.2L337.7 721.8L338.7 713.5L339.7 705.1L340.7 696.8L341.8 688.4L342.8 680L343.8 671.7L344.8 663.3L345.9 654.9L346.9 646.5L348 638.2L349.1 629.8L350.1 621.4L351.2 613L352.3 604.6L353.4 596.3L354.4 587.9L355.5 579.5L356.7 571.1L357.8 562.7L358.9 554.3L360 545.9L361.1 537.5L362.3 529.1L363.4 520.7L364.5 512.3L365.7 503.9L366.9 495.6L368 487.2L369.2 478.8L370.4 470.4L371.5 462L372.7 453.6L373.9 445.2L375.1 436.8L376.3 428.5L377.5 420.1L378.8 411.7L380 403.3L381.2 395L382.4 386.6L383.7 378.2L384.9 369.8L386.2 361.5L387.4 353.1L388.7 344.8L390 336.4L391.2 328.1L392.5 319.7L393.8 311.4L395.1 303.1L396.4 294.7L397.7 286.4L399 278.1L400.3 269.8L401.6 261.5L402.9 253.1L404.2 244.8L405.6 236.5L406.9 228.3L408.2 220L409.6 211.7L410.9 203.4L412.3 195.2L413.7 186.9L415 178.6L416.4 170.4L417.8 162.2M470.6 822.7L470.6 814.3L470.6 806L470.6 797.6L470.6 789.3L470.6 780.9L470.6 772.5L470.6 764.1L470.6 755.8L470.6 747.4L470.6 739L470.6 730.6L470.6 722.2L470.6 713.8L470.6 705.4L470.6 696.9L470.6 688.5L470.6 680.1L470.6 671.7L470.6 663.2L470.6 654.8L470.6 646.4L470.6 637.9L470.6 629.5L470.6 621.1L470.6 612.6L470.6 604.2L470.6 595.7L470.6 587.3L470.6 578.8L470.6 570.4L470.6 561.9L470.6 553.5L470.6 545L470.6 536.5L470.6 528.1L470.6 519.6L470.6 511.2L470.6 502.7L470.6 494.2L470.6 485.8L470.6 477.3L470.6 468.9L470.6 460.4L470.6 452L470.6 443.5L470.6 435L470.6 426.6L470.6 418.1L470.6 409.7L470.6 401.2L470.6 392.8L470.6 384.4L470.6 375.9L470.6 367.5L470.6 359L470.6 350.6L470.6 342.2L470.6 333.7L470.6 325.3L470.6 316.9L470.6 308.5L470.6 300.1L470.6 291.6L470.6 283.2L470.6 274.8L470.6 266.4L470.6 258L470.6 249.7L470.6 241.3L470.6 232.9L470.6 224.5L470.6 216.1L470.6 207.8L470.6 199.4L470.6 191.1L470.6 182.7L470.6 174.4L470.6 166.1M614.1 813.4L613.1 805.1L612.2 796.8L611.3 788.5L610.3 780.2L609.4 771.9L608.4 763.5L607.5 755.2L606.5 746.9L605.5 738.5L604.5 730.2L603.5 721.8L602.5 713.5L601.5 705.1L600.5 696.8L599.5 688.4L598.5 680L597.5 671.7L596.4 663.3L595.4 654.9L594.3 646.5L593.3 638.2L592.2 629.8L591.2 621.4L590.1 613L589 604.6L587.9 596.3L586.8 587.9L585.7 579.5L584.6 571.1L583.5 562.7L582.4 554.3L581.3 545.9L580.1 537.5L579 529.1L577.9 520.7L576.7 512.3L575.6 503.9L574.4 495.6L573.3 487.2L572.1 478.8L570.9 470.4L569.7 462L568.5 453.6L567.3 445.2L566.1 436.8L564.9 428.5L563.7 420.1L562.5 411.7L561.3 403.3L560.1 395L558.8 386.6L557.6 378.2L556.4 369.8L555.1 361.5L553.9 353.1L552.6 344.8L551.3 336.4L550.1 328.1L548.8 319.7L547.5 311.4L546.2 303.1L544.9 294.7L543.6 286.4L542.3 278.1L541 269.8L539.7 261.5L538.4 253.1L537 244.8L535.7 236.5L534.4 228.3L533 220L531.7 211.7L530.3 203.4L529 195.2L527.6 186.9L526.2 178.6L524.9 170.4L523.5 162.2M754.8 785.8L753 777.6L751.1 769.4L749.3 761.2L747.4 753.1L745.5 744.9L743.6 736.7L741.7 728.5L739.7 720.3L737.8 712.1L735.8 703.9L733.9 695.7L731.9 687.5L729.9 679.3L727.9 671.1L725.8 662.9L723.8 654.7L721.8 646.5L719.7 638.3L717.6 630L715.5 621.8L713.4 613.6L711.3 605.4L709.2 597.2L707.1 589L704.9 580.8L702.8 572.6L700.6 564.4L698.4 556.2L696.2 548L694 539.8L691.8 531.6L689.6 523.3L687.3 515.2L685.1 507L682.8 498.8L680.5 490.6L678.2 482.4L675.9 474.2L673.6 466L671.3 457.8L669 449.6L666.6 441.5L664.3 433.3L661.9 425.1L659.5 416.9L657.1 408.8L654.7 400.6L652.3 392.5L649.9 384.3L647.4 376.2L645 368L642.5 359.9L640.1 351.8L637.6 343.6L635.1 335.5L632.6 327.4L630.1 319.3L627.6 311.2L625 303.1L622.5 295L619.9 286.9L617.4 278.8L614.8 270.8L612.2 262.7L609.6 254.6L607 246.6L604.4 238.5L601.8 230.5L599.1 222.5L596.5 214.4L593.8 206.4L591.2 198.4L588.5 190.4L585.8 182.4L583.1 174.5L580.4 166.5L577.7 158.5L575 150.6M890.3 739.9L887.6 732L884.8 724L882 716L879.2 708.1L876.4 700.1L873.5 692.2L870.7 684.2L867.8 676.3L864.9 668.3L861.9 660.3L859 652.4L856 644.4L853.1 636.5L850.1 628.6L847.1 620.6L844 612.7L841 604.7L837.9 596.8L834.8 588.9L831.7 580.9L828.6 573L825.5 565.1L822.3 557.2L819.1 549.2L815.9 541.3L812.7 533.4L809.5 525.5L806.3 517.6L803 509.7L799.7 501.8L796.4 493.9L793.1 486.1L789.8 478.2L786.4 470.3L783.1 462.5L779.7 454.6L776.3 446.7L772.9 438.9L769.5 431L766 423.2L762.6 415.4L759.1 407.5L755.6 399.7L752.1 391.9L748.6 384.1L745 376.3L741.5 368.5L737.9 360.7L734.3 353L730.7 345.2L727.1 337.4L723.4 329.7L719.8 321.9L716.1 314.2L712.4 306.5L708.7 298.8L705 291.1L701.3 283.4L697.6 275.7L693.8 268L690 260.3L686.3 252.7L682.5 245L678.6 237.4L674.8 229.7L671 222.1L667.1 214.5L663.2 206.9L659.3 199.3L655.4 191.7L651.5 184.2L647.6 176.6L643.7 169L639.7 161.5L635.7 154L631.7 146.5L627.7 139L623.7 131.5M1017.7 676.2L1014.1 668.5L1010.4 660.9L1006.7 653.3L1003 645.6L999.3 638L995.5 630.4L991.7 622.8L987.9 615.1L984.1 607.5L980.2 599.9L976.3 592.3L972.4 584.8L968.5 577.2L964.6 569.6L960.6 562L956.6 554.5L952.6 546.9L948.5 539.4L944.4 531.8L940.4 524.3L936.2 516.8L932.1 509.3L928 501.7L923.8 494.2L919.6 486.7L915.4 479.3L911.1 471.8L906.9 464.3L902.6 456.9L898.3 449.4L893.9 442L889.6 434.5L885.2 427.1L880.8 419.7L876.4 412.3L872 404.9L867.5 397.5L863 390.2L858.6 382.8L854 375.4L849.5 368.1L844.9 360.8L840.4 353.5L835.8 346.1L831.2 338.9L826.5 331.6L821.9 324.3L817.2 317L812.5 309.8L807.8 302.5L803.1 295.3L798.3 288.1L793.5 280.9L788.8 273.7L783.9 266.5L779.1 259.4L774.3 252.2L769.4 245.1L764.5 238L759.6 230.9L754.7 223.8L749.8 216.7L744.8 209.6L739.9 202.6L734.9 195.5L729.9 188.5L724.8 181.5L719.8 174.5L714.7 167.5L709.7 160.5L704.6 153.6L699.5 146.7L694.3 139.7L689.2 132.8L684 126L678.8 119.1L673.6 112.2L668.4 105.4M21.4 595.1L27.1 598.1L32.8 601.1L38.6 604L44.3 606.9L50.1 609.8L55.9 612.6L61.8 615.3L67.6 618.1L73.5 620.7L79.4 623.4L85.3 626L91.2 628.6L97.2 631.1L103.1 633.6L109.1 636L115.1 638.4L121.1 640.7L127.2 643.1L133.2 645.3L139.3 647.6L145.4 649.8L151.5 651.9L157.6 654L163.8 656.1L169.9 658.1L176.1 660.1L182.3 662L188.5 663.9L194.7 665.8L200.9 667.6L207.2 669.4L213.4 671.1L219.7 672.8L226 674.4L232.2 676L238.6 677.6L244.9 679.1L251.2 680.6L257.5 682L263.9 683.4L270.2 684.7L276.6 686.1L283 687.3L289.4 688.5L295.8 689.7L302.2 690.9L308.6 691.9L315 693L321.4 694L327.9 695L334.3 695.9L340.7 696.8L347.2 697.6L353.7 698.4L360.1 699.2L366.6 699.9L373.1 700.5L379.6 701.1L386 701.7L392.5 702.3L399 702.8L405.5 703.2L412 703.6L418.5 704L425 704.3L431.6 704.6L438.1 704.8L444.6 705L451.1 705.2L457.6 705.3L464.1 705.3L470.6 705.4L477.2 705.3L483.7 705.3L490.2 705.2L496.7 705L503.2 704.8L509.7 704.6L516.2 704.3L522.7 704L529.2 703.6L535.7 703.2L542.2 702.8L548.7 702.3L555.2 701.7L561.7 701.1L568.2 700.5L574.7 699.9L581.1 699.2L587.6 698.4L594.1 697.6L600.5 696.8L607 695.9L613.4 695L619.9 694L626.3 693L632.7 691.9L639.1 690.9L645.5 689.7L651.9 688.5L658.3 687.3L664.7 686.1L671 684.7L677.4 683.4L683.7 682L690.1 680.6L696.4 679.1L702.7 677.6L709 676L715.3 674.4L721.6 672.8L727.9 671.1L734.1 669.4L740.4 667.6L746.6 665.8L752.8 663.9L759 662L765.2 660.1L771.4 658.1L777.5 656.1L783.6 654L789.8 651.9L795.9 649.8L802 647.6L808 645.3L814.1 643.1L820.1 640.7L826.2 638.4L832.2 636L838.2 633.6L844.1 631.1L850.1 628.6L856 626L861.9 623.4L867.8 620.7L873.7 618.1L879.5 615.3L885.3 612.6L891.2 609.8L896.9 606.9L902.7 604L908.4 601.1L914.2 598.1L919.9 595.1L925.5 592.1L931.2 589L936.8 585.8L942.4 582.7L948 579.5L953.5 576.2L959.1 572.9L964.6 569.6L970 566.2L975.5 562.8L980.9 559.4L986.3 555.9M97.2 441.6L101.9 444.2L106.6 446.7L111.4 449.2L116.1 451.7L120.9 454.2L125.7 456.6L130.5 459L135.3 461.3L140.2 463.6L145 465.9L149.9 468.1L154.8 470.3L159.8 472.5L164.7 474.6L169.7 476.7L174.6 478.8L179.6 480.8L184.6 482.8L189.6 484.8L194.7 486.7L199.7 488.6L204.8 490.4L209.9 492.2L215 494L220.1 495.8L225.2 497.5L230.3 499.1L235.5 500.8L240.7 502.4L245.8 503.9L251 505.5L256.2 507L261.4 508.4L266.6 509.8L271.9 511.2L277.1 512.6L282.4 513.9L287.6 515.1L292.9 516.4L298.2 517.6L303.5 518.7L308.8 519.9L314.1 521L319.4 522L324.8 523L330.1 524L335.4 525L340.8 525.9L346.1 526.7L351.5 527.6L356.9 528.4L362.3 529.1L367.6 529.8L373 530.5L378.4 531.2L383.8 531.8L389.2 532.4L394.6 532.9L400 533.4L405.5 533.9L410.9 534.3L416.3 534.7L421.7 535L427.2 535.4L432.6 535.6L438 535.9L443.5 536.1L448.9 536.2L454.3 536.4L459.8 536.5L465.2 536.5L470.6 536.5L476.1 536.5L481.5 536.5L487 536.4L492.4 536.2L497.8 536.1L503.3 535.9L508.7 535.6L514.1 535.4L519.5 535L525 534.7L530.4 534.3L535.8 533.9L541.2 533.4L546.6 532.9L552 532.4L557.5 531.8L562.9 531.2L568.2 530.5L573.6 529.8L579 529.1L584.4 528.4L589.8 527.6L595.1 526.7L600.5 525.9L605.8 525L611.2 524L616.5 523L621.8 522L627.2 521L632.5 519.9L637.8 518.7L643.1 517.6L648.4 516.4L653.6 515.1L658.9 513.9L664.2 512.6L669.4 511.2L674.6 509.8L679.9 508.4L685.1 507L690.3 505.5L695.4 503.9L700.6 502.4L705.8 500.8L710.9 499.1L716.1 497.5L721.2 495.8L726.3 494L731.4 492.2L736.5 490.4L741.5 488.6L746.6 486.7L751.6 484.8L756.7 482.8L761.7 480.8L766.7 478.8L771.6 476.7L776.6 474.6L781.5 472.5L786.4 470.3L791.3 468.1L796.2 465.9L801.1 463.6L806 461.3L810.8 459L815.6 456.6L820.4 454.2L825.2 451.7L829.9 449.2L834.7 446.7L839.4 444.2L844.1 441.6L848.7 439L853.4 436.3L858 433.6L862.6 430.9L867.2 428.2L871.8 425.4L876.3 422.6L880.8 419.7L885.3 416.8L889.8 413.9L894.2 411L898.6 408M180.7 291.2L184.4 293.3L188 295.3L191.6 297.3L195.3 299.3L199 301.3L202.7 303.2L206.4 305.1L210.1 307L213.8 308.8L217.6 310.7L221.4 312.4L225.2 314.2L229 316L232.8 317.7L236.6 319.3L240.4 321L244.3 322.6L248.2 324.2L252.1 325.8L256 327.3L259.9 328.9L263.8 330.3L267.7 331.8L271.7 333.2L275.6 334.6L279.6 336L283.6 337.4L287.6 338.7L291.6 340L295.6 341.2L299.6 342.4L303.7 343.6L307.7 344.8L311.8 345.9L315.9 347.1L319.9 348.1L324 349.2L328.1 350.2L332.2 351.2L336.3 352.2L340.4 353.1L344.6 354L348.7 354.9L352.8 355.8L357 356.6L361.1 357.4L365.3 358.1L369.5 358.9L373.6 359.6L377.8 360.2L382 360.9L386.2 361.5L390.4 362.1L394.6 362.6L398.8 363.1L403 363.6L407.2 364.1L411.4 364.5L415.6 364.9L419.8 365.3L424.1 365.7L428.3 366L432.5 366.3L436.7 366.5L441 366.7L445.2 366.9L449.4 367.1L453.7 367.2L457.9 367.3L462.2 367.4L466.4 367.5L470.6 367.5L474.9 367.5L479.1 367.4L483.4 367.3L487.6 367.2L491.8 367.1L496.1 366.9L500.3 366.7L504.5 366.5L508.8 366.3L513 366L517.2 365.7L521.4 365.3L525.7 364.9L529.9 364.5L534.1 364.1L538.3 363.6L542.5 363.1L546.7 362.6L550.9 362.1L555.1 361.5L559.3 360.9L563.5 360.2L567.7 359.6L571.8 358.9L576 358.1L580.1 357.4L584.3 356.6L588.4 355.8L592.6 354.9L596.7 354L600.8 353.1L605 352.2L609.1 351.2L613.2 350.2L617.3 349.2L621.3 348.1L625.4 347.1L629.5 345.9L633.5 344.8L637.6 343.6L641.6 342.4L645.7 341.2L649.7 340L653.7 338.7L657.7 337.4L661.7 336L665.6 334.6L669.6 333.2L673.5 331.8L677.5 330.3L681.4 328.9L685.3 327.3L689.2 325.8L693.1 324.2L697 322.6L700.8 321L704.7 319.3L708.5 317.7L712.3 316L716.1 314.2L719.9 312.4L723.7 310.7L727.4 308.8L731.2 307L734.9 305.1L738.6 303.2L742.3 301.3L746 299.3L749.7 297.3L753.3 295.3L756.9 293.3L760.5 291.2L764.1 289.1L767.7 287L771.3 284.8L774.8 282.7L778.3 280.5L781.8 278.2L785.3 276L788.8 273.7L792.2 271.4L795.6 269.1L799 266.7L802.4 264.3M271.3 145.2L273.7 146.7L276.2 148.1L278.7 149.5L281.2 150.9L283.7 152.3L286.2 153.7L288.7 155.1L291.3 156.4L293.8 157.7L296.4 159L299 160.3L301.6 161.5L304.2 162.7L306.8 164L309.4 165.2L312 166.3L314.7 167.5L317.3 168.6L320 169.7L322.7 170.8L325.4 171.9L328.1 173L330.8 174L333.5 175L336.2 176L338.9 177L341.7 178L344.4 178.9L347.2 179.8L349.9 180.7L352.7 181.6L355.5 182.4L358.2 183.3L361 184.1L363.8 184.9L366.6 185.6L369.4 186.4L372.3 187.1L375.1 187.8L377.9 188.5L380.8 189.2L383.6 189.8L386.4 190.5L389.3 191.1L392.2 191.7L395 192.2L397.9 192.8L400.8 193.3L403.6 193.8L406.5 194.3L409.4 194.7L412.3 195.2L415.2 195.6L418.1 196L421 196.3L423.9 196.7L426.8 197L429.7 197.3L432.6 197.6L435.5 197.9L438.5 198.1L441.4 198.4L444.3 198.6L447.2 198.7L450.1 198.9L453.1 199L456 199.2L458.9 199.3L461.9 199.3L464.8 199.4L467.7 199.4L470.6 199.4L473.6 199.4L476.5 199.4L479.4 199.3L482.4 199.3L485.3 199.2L488.2 199L491.1 198.9L494.1 198.7L497 198.6L499.9 198.4L502.8 198.1L505.7 197.9L508.7 197.6L511.6 197.3L514.5 197L517.4 196.7L520.3 196.3L523.2 196L526.1 195.6L529 195.2L531.9 194.7L534.8 194.3L537.6 193.8L540.5 193.3L543.4 192.8L546.3 192.2L549.1 191.7L552 191.1L554.8 190.5L557.7 189.8L560.5 189.2L563.4 188.5L566.2 187.8L569 187.1L571.8 186.4L574.6 185.6L577.4 184.9L580.2 184.1L583 183.3L585.8 182.4L588.6 181.6L591.4 180.7L594.1 179.8L596.9 178.9L599.6 178L602.4 177L605.1 176L607.8 175L610.5 174L613.2 173L615.9 171.9L618.6 170.8L621.3 169.7L623.9 168.6L626.6 167.5L629.2 166.3L631.9 165.2L634.5 164L637.1 162.7L639.7 161.5L642.3 160.3L644.9 159L647.4 157.7L650 156.4L652.5 155.1L655.1 153.7L657.6 152.3L660.1 150.9L662.6 149.5L665.1 148.1L667.5 146.7L670 145.2L672.4 143.7L674.9 142.2L677.3 140.7L679.7 139.2L682.1 137.6L684.5 136L686.8 134.5L689.2 132.8L691.5 131.2L693.8 129.6L696.1 127.9L698.4 126.2";
+const CONTEXT="M305.8 785.6L305.4 810.4L203.6 790.2L232.7 780.4L251.6 753.3L259.2 752.4L264.9 764.7L284.5 769.5L290.8 767.3L292 772.2L300.4 774ZM451.5 758.4L446 763.5L448.2 785.6L446 793.4L435.1 805.8L438.1 817.7L444.1 822.4L305.4 810.4L305.5 780.8L300.4 774L308.2 773.9L326.7 765.1L331.9 766.2L351 757L385.8 754.1L399.2 755.1L406.2 759.7L422.8 753.2ZM492.2 819.4L491.8 822.5L444.1 822.4L438.1 817.7L435.1 808.2L448.2 785.6L446 763.5L451.2 756.6L467.4 750.2L468.3 753.5L473.3 752.3L476.3 760.2L485 754.4L486 757.8L477.2 769.6L486.3 785.1L471.3 805L475 810.5L480.8 811.1L481 814L484.3 812.1ZM834 731.9L838.8 738L829.5 760.9L824.5 763.3L828.8 734.3ZM825.2 714L829.4 705.3L826.7 696.1L837.5 694.9L845.7 687.1L861.5 684.7L893.2 659.6L896.4 662.5L887.5 679.1L892.7 690.5L895.1 711.7L864.6 750.2L835 761.1L833 748.8L837.8 745.2L838.8 738L834 731.9L828.8 734.3L821 715.2ZM899.3 655.5L915.7 648.6L920 652.6L925.2 647L940 660.9L952.7 658.9L950.4 663.3L955.4 669.8L951.2 682.4L953.9 692.6L965.4 697.2L969 703.2L875.7 745.9L872.1 740.6L895.1 711.7L888.3 676.3ZM969 703.2L965.4 697.2L953.9 692.6L951.2 682.4L955.4 669.8L950.4 663.3L952.7 658.9L940 660.9L933.2 655.7L919.3 639.2L913.5 638.4L913.5 630.3L901.4 616.5L905.4 613.7L905.3 607.1L920.9 613.7L929.9 611.6L944.7 587.5L950.6 589.8L949.3 593.6L953.1 595.8L951 600.3L961.1 603.1L964 600.9L972.3 611.3L986.3 608L1000 611.5L1013.8 606.7L1042 661.4ZM872.1 589.2L858.3 596.7L858.2 588.3L850.7 578.9L828.9 574.4L835.6 569.3L848 569.6L861.4 564.2L877.3 567.8L887.5 559.1L897.8 558.2L899.9 563.2L910.9 563.3L910.2 568.9L918.5 573.4L901.4 576.9L898.2 583.2L883 592.8ZM892.2 606.8L888.9 597.2L883 592.8L899.4 581L909.1 584.5L909.9 590.1L917.8 591.7L915.2 598L928.5 599L933.3 609L929.2 611.8L920.1 603.4L913.4 606.7L910.4 604.6ZM907.8 607.1L920.6 603.5L929.2 611.8L920.9 613.7ZM961.6 603.1L951 600.3L953.1 595.8L949.3 593.6L950.6 589.8L944.7 587.5L933.3 609L928.5 599L915.2 598L917.8 591.7L909.9 590.1L909.1 584.5L899.4 581L901.4 576.9L918 575.1L918 571.2L909.9 568.4L910.9 563.3L925.2 567.3L931 565.6L934.5 550.9L952.3 561.1L966.3 562.9L958.1 569.6L962.6 583.7L962.8 589.9L960.2 590.5L964 600.9ZM962.2 513.2L952.3 513.2L938.9 501.1L931.3 501.5L931 497.3L943.2 491.4L934.5 489L934.8 479.9L940.2 475.7L926.8 453.4L917.1 455.5L905 478.9L896 478.9L898.7 473.9L883.2 464.5L874.5 468.9L868.4 462.7L863 462.2L860.6 449L854.8 441.5L854.1 430.4L855.5 426.9L869.2 429.5L870.2 426.1L863.1 418.3L871.6 399.3L872.3 389.7L879.8 390L883.2 383.7Z";
+const ZEELABELS=[["Atlantische Oceaan",160.1,500.5],["Noordzee",407.6,428.7],["Middellandse Zee",412.1,727.2],["Oostzee",555.1,385.4],["Zwarte Zee",759.4,604.9],["Noordelijke IJszee",443.6,171.7]];
+</script>
+<script>
+"use strict";
+/* ================= DATA ================= */
+// poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
+const LANDEN=[
+ {id:"NL",n:"Nederland",h:"Amsterdam",f:"🇳🇱",lvl:1,card:"🚲🌷🧀🥞",hint:"West-Europa, aan de Noordzee. Buren: België en Duitsland.",
+  fact:"In Nederland zijn meer fietsen dan mensen — zo'n 23 miljoen!",w:["flierefluiter","Nederlands","iemand die lekker niks loopt te doen"]},
+ {id:"BE",n:"België",h:"Brussel",f:"🇧🇪",lvl:1,card:"🍟🍫🧇🏰",hint:"Buurland van Nederland, Duitsland, Luxemburg en Frankrijk.",
+  fact:"Friet is uitgevonden in België — nergens eten ze meer frietjes per persoon!",w:["curieuzeneuzemosterdpot","Vlaams","een héél nieuwsgierig iemand"]},
+ {id:"DE",n:"Duitsland",h:"Berlijn",f:"🇩🇪",lvl:1,card:"🏰🥨🚗⚽",hint:"Groot land midden in Europa. Buren: o.a. Nederland en Polen.",
+  fact:"Het sprookjeskasteel Neuschwanstein was het voorbeeld voor het Disney-kasteel.",w:["Pups","Duits","scheetje"]},
+ {id:"FR",n:"Frankrijk",h:"Parijs",f:"🇫🇷",lvl:1,card:"🗼🥐🧀🎨",hint:"Grenst aan Spanje én aan België. Beroemd om de Eiffeltoren.",
+  fact:"De Eiffeltoren wordt 's zomers wel 15 cm langer, omdat het ijzer uitzet door de warmte.",w:["prout","Frans","scheetje"]},
+ {id:"ES",n:"Spanje",h:"Madrid",f:"🇪🇸",lvl:1,card:"🥘💃🍅☀️",hint:"Zuid-Europa. Buren: Portugal en Frankrijk.",
+  fact:"In Spanje is elk jaar La Tomatina: een mega-tomatengevecht met duizenden mensen.",w:["caca","Spaans","poep"]},
+ {id:"PT",n:"Portugal",h:"Lissabon",f:"🇵🇹",lvl:1,card:"🌊🚋🐟🏄",hint:"Helemaal in het westen, aan de oceaan, naast Spanje.",
+  fact:"In Lissabon vind je de oudste boekwinkel ter wereld — al open sinds 1732.",w:["pum","Portugees","scheetje"]},
+ {id:"IT",n:"Italië",h:"Rome",f:"🇮🇹",lvl:1,card:"🍕🍝🛵🏛️",hint:"Dit land heeft de vorm van een laars.",
+  fact:"In de Trevi-fontein in Rome gooien mensen elke dag zo'n €3000 aan muntjes!",w:["puzzetta","Italiaans","scheetje"]},
+ {id:"GB",n:"Verenigd Koninkrijk",h:"Londen",f:"🇬🇧",lvl:1,card:"💂👑☕🚌",hint:"Een groot eiland, ten westen van Nederland.",
+  fact:"Big Ben is niet de toren, maar de enorme bel die erin hangt.",w:["collywobbles","Engels","kriebels of zenuwen in je buik"]},
+ {id:"IE",n:"Ierland",h:"Dublin",f:"🇮🇪",lvl:1,card:"☘️🎻🐑🌈",hint:"Het groene eiland, naast Groot-Brittannië.",
+  fact:"In Ierland leven geen wilde slangen — helemaal nul!",w:["banjaxed","Iers-Engels","helemaal kapot"]},
+ {id:"AT",n:"Oostenrijk",h:"Wenen",f:"🇦🇹",lvl:1,card:"🏔️⛷️🎻🍰",hint:"Bergland ten zuiden van Duitsland, vol skipistes.",
+  fact:"Mozart kwam uit Oostenrijk en schreef zijn eerste muziek toen hij 5 jaar was.",w:["Oachkatzlschwoaf","Oostenrijks","eekhoornstaartje — een echte tongbreker!"]},
+ {id:"CH",n:"Zwitserland",h:"Bern",f:"🇨🇭",lvl:1,card:"🏔️🧀🍫⌚",hint:"Bergland tussen Frankrijk, Duitsland en Italië.",
+  fact:"In Zwitserland mag je niet één cavia hebben: ze zijn zó sociaal dat het er minstens twee moeten zijn.",w:["Chuchichäschtli","Zwitserduits","keukenkastje"]},
+ {id:"DK",n:"Denemarken",h:"Kopenhagen",f:"🇩🇰",lvl:1,card:"🧱🧜‍♀️🚲🏰",hint:"Boven Duitsland, met heel veel eilandjes.",
+  fact:"LEGO komt uit Denemarken: 'leg godt' betekent 'speel goed'.",w:["prut","Deens","scheet — echt waar, zo heet dat daar!"]},
+ {id:"NO",n:"Noorwegen",h:"Oslo",f:"🇳🇴",lvl:1,card:"⛰️🛶❄️🦌",hint:"Langgerekt land met fjorden, helemaal in het noorden.",
+  fact:"In Noord-Noorwegen gaat de zon 's zomers wékenlang niet onder: de middernachtzon.",w:["promp","Noors","scheet"]},
+ {id:"SE",n:"Zweden",h:"Stockholm",f:"🇸🇪",lvl:1,card:"🫎🛋️🍬❄️",hint:"Tussen Noorwegen en Finland in.",
+  fact:"Alle IKEA-namen zijn echte Zweedse woorden en plaatsnamen.",w:["bajs","Zweeds","poep"]},
+ {id:"FI",n:"Finland",h:"Helsinki",f:"🇫🇮",lvl:1,card:"🧖🌲🐻❄️",hint:"Rechtsboven, tussen Zweden en Rusland. Land van duizend meren.",
+  fact:"Finland heeft ruim 3 miljoen sauna's — op maar 5,5 miljoen mensen!",w:["pieru","Fins","scheet"]},
+ {id:"PL",n:"Polen",h:"Warschau",f:"🇵🇱",lvl:1,card:"🥟🧝🏰🌲",hint:"Groot land ten oosten van Duitsland.",
+  fact:"In de stad Wrocław staan honderden kleine kabouterbeeldjes verstopt.",w:["kupa","Pools","poep"]},
+ {id:"CZ",n:"Tsjechië",h:"Praag",f:"🇨🇿",lvl:1,card:"🏰🕰️🌉🎻",hint:"Tussen Duitsland en Slowakije in.",
+  fact:"De astronomische klok in Praag is uit 1410 — en hij doet het nog steeds.",w:["prd","Tsjechisch","scheet (ja, één woordje zonder klinker!)"]},
+ {id:"GR",n:"Griekenland",h:"Athene",f:"🇬🇷",lvl:1,card:"🏛️🫒⛵🌞",hint:"Helemaal onderin, met duizenden eilandjes.",
+  fact:"De Olympische Spelen zijn bijna 3000 jaar geleden in Griekenland uitgevonden.",w:["papáki","Grieks","eendje — zo noemen Grieken het @-teken!"]},
+ {id:"HU",n:"Hongarije",h:"Boedapest",f:"🇭🇺",lvl:1,card:"🧩♨️🌶️🌉",hint:"Land zonder zee, ten oosten van Oostenrijk.",
+  fact:"De Rubiks kubus is bedacht door de Hongaar Ernő Rubik.",w:["kaki","Hongaars","poep"]},
+ {id:"HR",n:"Kroatië",h:"Zagreb",f:"🇭🇷",lvl:1,card:"🐕🏝️⛵🧱",hint:"Boemerang-vormig land aan de Adriatische Zee.",
+  fact:"Dalmatiërs — de witte honden met zwarte stippen — komen uit Dalmatië in Kroatië.",w:["prdac","Kroatisch","scheet"]},
+ {id:"IS",n:"IJsland",h:"Reykjavik",f:"🇮🇸",lvl:1,card:"🌋♨️🐋🧊",hint:"Eiland helemaal linksboven: land van vuur en ijs.",
+  fact:"Op IJsland zijn geen muggen — en veel IJslanders geloven in elfjes.",w:["prump","IJslands","scheet"]},
+ {id:"LU",n:"Luxemburg",h:"Luxemburg-Stad",f:"🇱🇺",lvl:1,card:"🏰🚋🌳💶",hint:"Piepklein land tussen België, Duitsland en Frankrijk.",
+  fact:"In Luxemburg zijn alle bussen en treinen gratis!",w:["Gromperekichelcher","Luxemburgs","aardappelkoekjes — probeer maar eens te zeggen!"]},
+ {id:"EE",n:"Estland",h:"Tallinn",f:"🇪🇪",lvl:2,card:"🏰📶🌲🦉",hint:"Bovenste van de drie Baltische landen, onder Finland.",
+  fact:"Estland heeft meer dan 2000 eilanden en bijna overal gratis wifi.",w:["kakk","Estisch","uil (klinkt als iets anders, hè?)"]},
+ {id:"LV",n:"Letland",h:"Riga",f:"🇱🇻",lvl:2,card:"🌲🏰🥛💦",hint:"Middelste van de drie Baltische landen.",
+  fact:"De Ventas Rumba in Letland is de breedste waterval van Europa: bijna 250 meter!",w:["puņķi","Lets","snottebellen"]},
+ {id:"LT",n:"Litouwen",h:"Vilnius",f:"🇱🇹",lvl:2,card:"🎈🏰🌳🥔",hint:"Onderste van de drie Baltische landen, naast Polen.",
+  fact:"In de wijk Užupis in Vilnius geldt een eigen grondwet met: 'Iedere hond heeft het recht om hond te zijn.'",w:["bezdalas","Litouws","scheet"]},
+ {id:"SK",n:"Slowakije",h:"Bratislava",f:"🇸🇰",lvl:2,card:"🏔️🕳️🏰🐺",hint:"Tussen Tsjechië, Polen en Hongarije.",
+  fact:"Slowakije heeft meer dan 6000 grotten — een gatenkaas onder de grond.",w:["bublina","Slowaaks","zeepbel"]},
+ {id:"SI",n:"Slovenië",h:"Ljubljana",f:"🇸🇮",lvl:2,card:"🐉🕳️🏔️🐻",hint:"Klein landje tussen Italië, Oostenrijk en Kroatië.",
+  fact:"In de Postojna-grot leven 'babydraakjes': blinde roze salamanders die 100 jaar oud worden.",w:["prdec","Sloveens","scheet"]},
+ {id:"BA",n:"Bosnië en Herzegovina",h:"Sarajevo",f:"🇧🇦",lvl:2,card:"⛰️🌲🌉☕",hint:"Bergland tussen Kroatië en Servië.",
+  fact:"In Bosnië ligt Perućica, een van de allerlaatste oerbossen van Europa.",w:["guza","Bosnisch","billen"]},
+ {id:"RS",n:"Servië",h:"Belgrado",f:"🇷🇸",lvl:2,card:"🍓🎺🏰🚣",hint:"Op de Balkan; de hoofdstad ligt aan de Donau.",
+  fact:"Servië is een van de grootste frambozenlanden ter wereld — miljoenen kilo's per jaar!",w:["prdež","Servisch","scheet"]},
+ {id:"ME",n:"Montenegro",h:"Podgorica",f:"🇲🇪",lvl:2,card:"⛰️🏖️🦅⛵",hint:"Klein bergland aan zee, onder Bosnië.",
+  fact:"Montenegro betekent 'zwarte berg': 's ochtends skiën en 's middags zwemmen in zee kan er allebei.",w:["njuška","Montenegrijns","snuitje"]},
+ {id:"XK",n:"Kosovo",h:"Pristina",f:"🇽🇰",lvl:2,card:"🏔️🦅🎉👶",hint:"Jong landje tussen Servië en Albanië.",
+  fact:"Kosovo is het jongste land van Europa (2008) — de helft van de mensen is jonger dan 30.",w:["flutur","Albanees","vlinder"]},
+ {id:"AL",n:"Albanië",h:"Tirana",f:"🇦🇱",lvl:2,card:"🦅🏖️⛰️🍯",hint:"Aan zee, tegenover de hak van Italië.",
+  fact:"In Albanië staan meer dan 170.000 kleine bunkers verspreid — als betonnen paddenstoelen.",w:["pordhë","Albanees","scheet"]},
+ {id:"MK",n:"Noord-Macedonië",h:"Skopje",f:"🇲🇰",lvl:2,card:"🏞️🐟🌉🦁",hint:"Boven Griekenland, zonder zee.",
+  fact:"Het Ohridmeer is misschien wel het oudste meer van Europa: 1 tot 3 miljoen jaar oud.",w:["polžav","Macedonisch","slak"]},
+ {id:"BG",n:"Bulgarije",h:"Sofia",f:"🇧🇬",lvl:2,card:"🌹🏔️🥛💃",hint:"Onder Roemenië, aan de Zwarte Zee.",
+  fact:"Bulgarije is wereldkampioen rozenolie — die zit in bijna alle parfums.",w:["prǎdnja","Bulgaars","scheet"]},
+ {id:"RO",n:"Roemenië",h:"Boekarest",f:"🇷🇴",lvl:2,card:"🧛🏰⛰️🐻",hint:"Groot land aan de Zwarte Zee, boven Bulgarije.",
+  fact:"In Roemenië staat het 'Dracula-kasteel' Bran, hoog op een rots in Transsylvanië.",w:["pârț","Roemeens","scheet (spreek uit: purts!)"]},
+ {id:"MD",n:"Moldavië",h:"Chisinau",f:"🇲🇩",lvl:2,card:"🍇🐑🌻🏰",hint:"Klein landje tussen Roemenië en Oekraïne.",
+  fact:"In Moldavië ligt de grootste wijnkelder ter wereld: 200 km aan gangen — je rijdt er met de auto doorheen!",w:["bâzdâganie","Moldavisch","raar wezen, gek ding"]},
+ {id:"UA",n:"Oekraïne",h:"Kyiv (Kiev)",f:"🇺🇦",lvl:2,card:"🌻🌾💙💛",hint:"Heel groot land ten oosten van Polen.",
+  fact:"Oekraïne is het grootste land dat hélemaal in Europa ligt — vol zonnebloemvelden.",w:["pukaty","Oekraïens","scheetjes laten"]},
+ {id:"BY",n:"Belarus (Wit-Rusland)",h:"Minsk",f:"🇧🇾",lvl:2,card:"🦬🌲🥔🏰",hint:"Tussen Polen en Rusland in.",
+  fact:"In het oerbos van Belarus leven nog wilde wisenten: Europese bizons.",w:["puk","Belarussisch","scheetgeluidje: puk!"]},
+ {id:"RU",n:"Rusland",h:"Moskou",f:"🇷🇺",lvl:2,card:"🏰❄️🐻🚀",hint:"Mega-groot land, helemaal rechts op de kaart.",
+  fact:"Rusland is het grootste land ter wereld: het heeft wel 11 tijdzones.",w:["bjaka","Russisch","iets vies — bah!"]},
+ {id:"MT",n:"Malta",h:"Valletta",f:"🇲🇹",lvl:2,card:"🏝️🛕🚌🐠",hint:"Mini-eilandje onder Sicilië (Italië).",
+  fact:"Op Malta staan tempels die ouder zijn dan de piramides van Egypte.",w:["bużżieqa","Maltees","ballon"]},
+ {id:"CY",n:"Cyprus",h:"Nicosia",f:"🇨🇾",lvl:2,card:"🐱🏖️🧀☀️",hint:"Eiland helemaal rechtsonder in de zee.",
+  fact:"Op Cyprus lopen misschien wel meer katten rond dan mensen.",w:["papoútsia","Grieks (Cyprus)","schoenen"]},
+ {id:"TR",n:"Turkije",h:"Ankara",f:"🇹🇷",lvl:2,card:"🎈🕌🫖🌉",hint:"Groot land rechtsonder; deels in Europa, deels in Azië.",
+  fact:"Istanbul ligt in twee werelddelen tegelijk: Europa én Azië.",w:["osuruk","Turks","scheet"]},
+ {id:"AD",n:"Andorra",h:"Andorra la Vella",f:"🇦🇩",lvl:3,card:"⛷️🏔️🛍️☀️",hint:"Mini-landje in de bergen tussen Frankrijk en Spanje.",
+  fact:"De hoofdstad van Andorra ligt het hoogst van alle hoofdsteden van Europa: ruim 1000 meter.",w:["pet","Catalaans","scheet — echt, zo schrijf je dat daar!"]},
+ {id:"MC",n:"Monaco",h:"Monaco",f:"🇲🇨",lvl:3,card:"🏎️🛥️🎰🌴",hint:"Mini-staatje aan de Franse kust, bij Italië.",
+  fact:"Monaco is zó klein dat het in een groot stadspark past — toch rijdt de Formule 1 er dwars doorheen.",w:["zut","Frans","verdorie!"]},
+ {id:"LI",n:"Liechtenstein",h:"Vaduz",f:"🇱🇮",lvl:3,card:"🏔️🏰🦷⛷️",hint:"Mini-landje tussen Zwitserland en Oostenrijk.",
+  fact:"Liechtenstein is wereldkampioen… kunstgebitten maken! De grootste producent van valse tanden.",w:["Käsknöpfle","Duits (Liechtenstein)","kaasknoedeltjes"]},
+ {id:"SM",n:"San Marino",h:"San Marino",f:"🇸🇲",lvl:3,card:"🏰⛰️🏍️📮",hint:"Mini-landje midden in Italië, boven op een berg.",
+  fact:"San Marino is de oudste republiek ter wereld — al sinds het jaar 301!",w:["puzza","Italiaans","stank"]},
+ {id:"VA",n:"Vaticaanstad",h:"Vaticaanstad",f:"🇻🇦",lvl:3,card:"⛪🎨🔑👑",hint:"Het allerkleinste landje, middenin de stad Rome.",
+  fact:"Het kleinste land ter wereld: je loopt er in 20 minuten helemaal omheen.",w:["crepitus","Latijn","scheet — zelfs in het Latijn!"]}
+];
+
+const PEP_GOED=["Superknap, {n}! 🎉","Wauw {n}, jij kent Europa steeds beter! 🌍","Geweldig gedaan! 🌟","Boem! Goed zo, {n}! 💥","Jij wordt een echte topograaf, {n}! 🗺️","Kampioen! 🏆","Yes! Weer eentje goed! ✨","Knap hoor, {n}! 🚀"];
+const PEP_FOUT=["Bijna, {n}! De volgende keer weet je 'm!","Niet erg — zó leer je het juist! 💪","Oei, nét niet! Onthoud 'm voor de volgende keer 😉","Goed geprobeerd, {n}! Op naar de volgende!"];
+const PEP_TUSSEN=["Je doet het super, {n}! 🙌","Hou vol, ontdekkingsreiziger! 🧭","De diamanten wachten op je! 💎","Wat een reis, {n}! ✈️"];
+const LEVELS=[[0,"🎒 Toerist"],[3,"🥾 Backpacker"],[6,"🧭 Padvinder"],[10,"🚌 Reisleider"],[15,"⛵ Ontdekkingsreiziger"],[20,"🧑‍✈️ Kapitein"],[30,"🗺️ Topograaf"],[40,"👑 Europakampioen"],[50,"🏆 Legende van Europa"]];
+
+/* ================= STATE & OPSLAG ================= */
+const DBKEY="europa-expeditie-v1";
+let db=load();
+function load(){try{const d=JSON.parse(localStorage.getItem(DBKEY));if(d&&d.players)return d;}catch(e){}return {players:{},last:"",settings:{oefen:"mix",stijl:"mix",aantal:"10",niveau:"1",mini:false,flits:false},muted:false};}
+function save(){try{localStorage.setItem(DBKEY,JSON.stringify(db));}catch(e){}}
+function speler(){const k=st.naam.toLowerCase();if(!db.players[k])db.players[k]={naam:st.naam,diamonds:0,points:0,best:0,rounds:0,goedTotaal:0,pass:{}};return db.players[k];}
+
+const st={naam:"",vragen:[],qi:0,q:null,answered:false,hints:0,streak:0,verken:false,
+  ronde:{goed:0,punt:0,best:0,diam:0,stempels:[]},goldIdx:-1,timerId:null,timerEind:0};
+
+/* ================= HULPJES ================= */
+const $=s=>document.querySelector(s);
+const rnd=a=>a[Math.floor(Math.random()*a.length)];
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function pep(list){return rnd(list).replaceAll("{n}",speler().naam);}
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;");}
+
+/* ================= KAART ================= */
+const SVGNS="http://www.w3.org/2000/svg";
+const map=$("#map");
+const paden={};
+let vb={x:0,y:0,w:1050,h:920};
+const VBFULL={x:0,y:0,w:1050,h:920};
+
+function bouwKaart(){
+  const mk=t=>document.createElementNS(SVGNS,t);
+  // echte graticule (lengte-/breedtegraden, geprojecteerd)
+  if(GRATICULE){const g=mk("path");g.setAttribute("d",GRATICULE);g.setAttribute("class","graticule");map.appendChild(g);}
+  // omliggende landen (niet speelbaar, voor context)
+  if(CONTEXT){const g=mk("path");g.setAttribute("d",CONTEXT);g.setAttribute("class","context");g.setAttribute("fill-rule","evenodd");map.appendChild(g);}
+  // zeenamen
+  const gZee=mk("g");
+  for(const[t,x,y]of ZEELABELS){const e=mk("text");e.textContent=t;e.setAttribute("x",x);e.setAttribute("y",y);e.setAttribute("class","zeetekst");e.setAttribute("text-anchor","middle");gZee.appendChild(e);}
+  map.appendChild(gZee);
+  // speelbare landen met echte grenzen (Natural Earth)
+  const gLand=mk("g");gLand.id="gLand";
+  const gDots=mk("g");gDots.id="gDots";
+  LANDEN.forEach((c,i)=>{
+    const geo=GEO[c.id];
+    if(!geo)return;
+    const kleur=`hsl(${Math.round((i*137.508+14)%360)} 62% 60%)`;
+    c.kleur=kleur;
+    let el;
+    if(geo.d){
+      el=mk("path");
+      el.setAttribute("d",geo.d);
+      el.setAttribute("fill",kleur);
+      el.setAttribute("fill-rule","evenodd");
+      c.bb=geo.bb;c.cx=geo.cx;c.cy=geo.cy;
+      gLand.appendChild(el);
+    }else{
+      el=mk("circle");
+      el.setAttribute("cx",geo.dot[0]);el.setAttribute("cy",geo.dot[1]);el.setAttribute("r",7);
+      el.setAttribute("fill",kleur);
+      c.bb=[geo.dot[0]-10,geo.dot[1]-10,geo.dot[0]+10,geo.dot[1]+10];
+      c.cx=geo.dot[0];c.cy=geo.dot[1];
+      gDots.appendChild(el);
+    }
+    el.setAttribute("class","land");
+    el.dataset.id=c.id;
+    paden[c.id]=el;
+    el.addEventListener("click",ev=>{ev.stopPropagation();klikLand(c);});
+    if(geo.halo){ // extra klik-cirkel voor piepkleine landen
+      const h=mk("circle");
+      h.setAttribute("cx",c.cx);h.setAttribute("cy",c.cy);h.setAttribute("r",11);
+      h.setAttribute("fill","transparent");h.style.cursor="pointer";
+      h.addEventListener("click",ev=>{ev.stopPropagation();klikLand(c);});
+      gDots.appendChild(h);
+    }
+  });
+  map.appendChild(gLand);
+  map.appendChild(gDots);
+  setVB(VBFULL);
+}
+function setVB(v){vb={...v};map.setAttribute("viewBox",`${v.x} ${v.y} ${v.w} ${v.h}`);}
+let animId=null;
+function animVB(doel,dur=450){
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches){setVB(doel);return;}
+  cancelAnimationFrame(animId);
+  const van={...vb},t0=performance.now();
+  const stap=t=>{
+    let k=Math.min(1,(t-t0)/dur);k=1-Math.pow(1-k,3);
+    setVB({x:van.x+(doel.x-van.x)*k,y:van.y+(doel.y-van.y)*k,w:van.w+(doel.w-van.w)*k,h:van.h+(doel.h-van.h)*k});
+    if(k<1)animId=requestAnimationFrame(stap);
+  };
+  animId=requestAnimationFrame(stap);
+}
+function zoomNaarBB(bb,laag=false){
+  // laag=true: houd het doelgebied in de bovenste helft, zodat de feedbackstrook onderin niets belangrijks bedekt
+  const pad=110;
+  let w=bb[2]-bb[0]+pad*2,h=bb[3]-bb[1]+pad*2;
+  const ratio=1050/920;
+  if(w/h>ratio){h=w/ratio;}else{w=h*ratio;}
+  if(laag){w*=1.5;h*=1.5;}
+  if(w>1050){w=1050;h=920;}
+  const cx=(bb[0]+bb[2])/2,cy=(bb[1]+bb[3])/2;
+  animVB({x:cx-w/2,y:laag?cy-h*0.33:cy-h/2,w,h});
+}
+function zoomNaarLand(c){zoomNaarBB(c.bb);}
+// zoom & pan
+function zoomOp(f,px,py){
+  const nw=Math.min(1400,Math.max(120,vb.w*f));
+  const nh=nw*(920/1050);
+  const kx=(px-vb.x)/vb.w,ky=(py-vb.y)/vb.h;
+  setVB({x:px-kx*nw,y:py-ky*nh,w:nw,h:nh});
+}
+function svgPunt(ev){
+  const r=map.getBoundingClientRect();
+  return[vb.x+(ev.clientX-r.left)/r.width*vb.w, vb.y+(ev.clientY-r.top)/r.height*vb.h];
+}
+map.addEventListener("wheel",ev=>{ev.preventDefault();const[px,py]=svgPunt(ev);zoomOp(ev.deltaY>0?1.15:0.87,px,py);},{passive:false});
+const ptrs=new Map();let panStart=null,pinchStart=null,dragDist=0;
+map.addEventListener("pointerdown",ev=>{
+  ptrs.set(ev.pointerId,[ev.clientX,ev.clientY]);
+  if(ptrs.size===1){panStart={x:ev.clientX,y:ev.clientY,vb:{...vb}};dragDist=0;}
+  if(ptrs.size===2){const a=[...ptrs.values()];pinchStart={d:Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1]),vb:{...vb}};panStart=null;}
+});
+map.addEventListener("pointermove",ev=>{
+  if(!ptrs.has(ev.pointerId))return;
+  ptrs.set(ev.pointerId,[ev.clientX,ev.clientY]);
+  const r=map.getBoundingClientRect();
+  if(ptrs.size===1&&panStart){
+    dragDist=Math.hypot(ev.clientX-panStart.x,ev.clientY-panStart.y);
+    const dx=(ev.clientX-panStart.x)/r.width*panStart.vb.w, dy=(ev.clientY-panStart.y)/r.height*panStart.vb.h;
+    setVB({x:panStart.vb.x-dx,y:panStart.vb.y-dy,w:panStart.vb.w,h:panStart.vb.h});
+  }else if(ptrs.size===2&&pinchStart){
+    const a=[...ptrs.values()];const d=Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1]);
+    const f=pinchStart.d/Math.max(20,d);
+    const nw=Math.min(1400,Math.max(120,pinchStart.vb.w*f));const nh=nw*(920/1050);
+    const cx=pinchStart.vb.x+pinchStart.vb.w/2, cy=pinchStart.vb.y+pinchStart.vb.h/2;
+    setVB({x:cx-nw/2,y:cy-nh/2,w:nw,h:nh});
+  }
+});
+["pointerup","pointercancel","pointerleave"].forEach(t=>map.addEventListener(t,ev=>{ptrs.delete(ev.pointerId);panStart=null;if(ptrs.size<2)pinchStart=null;}));
+$("#z-in").onclick=()=>zoomOp(0.75,vb.x+vb.w/2,vb.y+vb.h/2);
+$("#z-uit").onclick=()=>zoomOp(1.35,vb.x+vb.w/2,vb.y+vb.h/2);
+$("#z-reset").onclick=()=>animVB(VBFULL);
+
+let spotEl=null;
+function toonSpot(c){
+  wisSpot();
+  spotEl=document.createElementNS(SVGNS,"circle");
+  const r=Math.max(28,Math.max(c.bb[2]-c.bb[0],c.bb[3]-c.bb[1])*0.8);
+  spotEl.setAttribute("cx",c.cx);spotEl.setAttribute("cy",c.cy);spotEl.setAttribute("r",r);
+  spotEl.setAttribute("class","spot");
+  map.appendChild(spotEl);
+}
+function wisSpot(){if(spotEl){spotEl.remove();spotEl=null;}}
+function kaartReset(){
+  wisSpot();
+  for(const id in paden)paden[id].classList.remove("dim","target","goed","fout");
+  map.classList.remove("klikbaar");
+}
+
+/* ================= GELUID ================= */
+let actx=null;
+function toon(freq,dur=.15,type="sine",vol=.18,when=0){
+  if(db.muted)return;
+  try{
+    actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    if(actx.state==="suspended")actx.resume(); // iOS/iPadOS start audio pas na een tik
+    const o=actx.createOscillator(),g=actx.createGain();
+    o.type=type;o.frequency.value=freq;
+    g.gain.setValueAtTime(vol,actx.currentTime+when);
+    g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+when+dur);
+    o.connect(g);g.connect(actx.destination);
+    o.start(actx.currentTime+when);o.stop(actx.currentTime+when+dur+.05);
+  }catch(e){}
+}
+const sndGoed=()=>{toon(660,.12);toon(880,.2,"sine",.18,.1);};
+const sndFout=()=>{toon(180,.3,"sawtooth",.1);};
+const sndGem=()=>{toon(880,.12,"triangle",.2);toon(1174,.12,"triangle",.2,.09);toon(1568,.25,"triangle",.2,.18);};
+const sndKlik=()=>{toon(440,.05,"sine",.06);};
+const sndFanfare=()=>{[523,659,784,1046].forEach((f,i)=>toon(f,.22,"triangle",.2,i*.13));};
+
+/* ================= CONFETTI ================= */
+const cv=$("#confetti"),cx2=cv.getContext("2d");let parts=[];let confRAF=null;
+function resizeCv(){cv.width=innerWidth;cv.height=innerHeight;}
+addEventListener("resize",resizeCv);resizeCv();
+function knal(x,y,n=60){
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+  const kleuren=["#F7C948","#3FE0BE","#FF6B7A","#6BA6FF","#C792EA","#4ADE80"];
+  for(let i=0;i<n;i++){
+    const a=Math.random()*Math.PI*2,v=3+Math.random()*7;
+    parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-3,g:.18,life:60+Math.random()*40,tot:performance.now()+1500+Math.random()*700,k:rnd(kleuren),s:4+Math.random()*5,r:Math.random()*Math.PI});
+  }
+  if(!confRAF)confLoop();
+}
+function confLoop(){
+  confRAF=requestAnimationFrame(confLoop);
+  cx2.clearRect(0,0,cv.width,cv.height);
+  parts=parts.filter(p=>p.life>0&&performance.now()<p.tot);
+  if(!parts.length){cancelAnimationFrame(confRAF);confRAF=null;return;}
+  for(const p of parts){
+    p.x+=p.vx;p.y+=p.vy;p.vy+=p.g;p.life--;p.r+=.1;
+    cx2.save();cx2.translate(p.x,p.y);cx2.rotate(p.r);cx2.globalAlpha=Math.min(1,p.life/30);
+    cx2.fillStyle=p.k;cx2.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6);cx2.restore();
+  }
+}
+
+/* ================= SCHERMEN ================= */
+function toonScherm(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  $(id).classList.add("active");
+  window.scrollTo(0,0);
+}
+function toast(txt,ms=2200){
+  const t=$("#toast");t.textContent=txt;t.classList.add("show");
+  clearTimeout(t._tm);t._tm=setTimeout(()=>t.classList.remove("show"),ms);
+}
+
+/* ================= INSTELLINGEN-UI ================= */
+document.querySelectorAll(".seg").forEach(seg=>{
+  seg.querySelectorAll("button").forEach(b=>{
+    b.addEventListener("click",()=>{
+      seg.querySelectorAll("button").forEach(x=>x.classList.remove("sel"));
+      b.classList.add("sel");
+      db.settings[seg.dataset.set]=b.dataset.v;save();sndKlik();
+    });
+  });
+});
+function segSync(){
+  document.querySelectorAll(".seg").forEach(seg=>{
+    seg.querySelectorAll("button").forEach(b=>b.classList.toggle("sel",b.dataset.v===String(db.settings[seg.dataset.set])));
+  });
+  $("#t-mini").classList.toggle("on",db.settings.mini);
+  $("#t-flits").classList.toggle("on",db.settings.flits);
+}
+$("#t-mini").onclick=()=>{db.settings.mini=!db.settings.mini;save();segSync();sndKlik();};
+$("#t-flits").onclick=()=>{db.settings.flits=!db.settings.flits;save();segSync();sndKlik();};
+
+const naamIn=$("#naam");
+naamIn.addEventListener("input",()=>{st.naam=naamIn.value.trim();$("#b-start").disabled=!st.naam;});
+function chipsSync(){
+  const c=$("#chips");c.innerHTML="";
+  Object.values(db.players).sort((a,b)=>b.diamonds-a.diamonds).forEach(p=>{
+    const b=document.createElement("button");b.className="pchip";b.textContent=`${p.naam} · 💎${p.diamonds}`;
+    b.onclick=()=>{naamIn.value=p.naam;st.naam=p.naam;$("#b-start").disabled=false;sndKlik();};
+    c.appendChild(b);
+  });
+}
+
+/* ================= VRAGEN MAKEN ================= */
+function actievePool(){
+  const nv=Number(db.settings.niveau);
+  return LANDEN.filter(c=>c.lvl<=(nv===1?1:2)||(db.settings.mini&&c.lvl===3));
+}
+function gewogenTrek(pool,n){
+  const p=speler();
+  const items=pool.map(c=>({c,w:3/(1+Math.min(p.pass[c.id]||0,3))}));
+  const uit=[];
+  while(uit.length<n&&items.length){
+    let tot=items.reduce((s,i)=>s+i.w,0),r=Math.random()*tot,ix=0;
+    for(let i=0;i<items.length;i++){r-=items[i].w;if(r<=0){ix=i;break;}}
+    uit.push(items[ix].c);items.splice(ix,1);
+  }
+  return uit;
+}
+function afleiders(c,pool,veld){
+  const rest=pool.filter(x=>x.id!==c.id&&x[veld]!==c[veld]);
+  rest.sort((a,b)=>((a.cx-c.cx)**2+(a.cy-c.cy)**2)-((b.cx-c.cx)**2+(b.cy-c.cy)**2));
+  return shuffle(rest.slice(0,6)).slice(0,3);
+}
+function maakVragen(){
+  const s=db.settings,pool=actievePool();
+  const n=Math.min(Number(s.aantal),pool.length);
+  const landen=gewogenTrek(pool,n);
+  const kaartMag=s.stijl==="kaart"||s.stijl==="mix";
+  const mcMag=s.stijl==="mc"||s.stijl==="mix";
+  return landen.map(c=>{
+    let types=[];
+    if(s.oefen==="landen"||s.oefen==="mix"){
+      if(kaartMag)types.push("klikLand");
+      if(mcMag)types.push("mcLand");
+    }
+    if(s.oefen==="hoofdsteden"||s.oefen==="mix"){
+      if(kaartMag)types.push("klikHoofdstad");
+      if(mcMag)types.push("mcHoofdstad","mcLandVan");
+    }
+    const type=rnd(types);
+    const q={c,type};
+    if(type==="mcLand"||type==="mcLandVan"){
+      q.opties=shuffle([c,...afleiders(c,pool,"n")].map(x=>({t:x.n,ok:x.id===c.id})));
+    }else if(type==="mcHoofdstad"){
+      q.opties=shuffle([c,...afleiders(c,pool,"h")].map(x=>({t:x.h,ok:x.id===c.id})));
+    }
+    return q;
+  });
+}
+
+/* ================= RONDE ================= */
+function startRonde(){
+  if(!st.naam)return;
+  db.last=st.naam;save();
+  const p=speler();
+  st.vragen=maakVragen();
+  if(!st.vragen.length){toast("Geen vragen mogelijk met deze instellingen 🤔");return;}
+  st.qi=0;st.streak=0;st.verken=false;
+  st.ronde={goed:0,punt:0,best:0,diam:0,stempels:[]};
+  st.goldIdx=Math.floor(Math.random()*st.vragen.length);
+  $("#hud-naam").textContent=p.naam;
+  $("#hud-ava").textContent=p.naam[0].toUpperCase();
+  hudSync();
+  toonScherm("#s-game");
+  toonVraag();
+}
+function hudSync(){
+  const p=speler();
+  $("#hud-diamant").textContent=`💎 ${p.diamonds}`;
+  $("#hud-streak").textContent=`🔥 ${st.streak}`;
+  [...$("#hud-slots").children].forEach((el,i)=>el.classList.toggle("fill",i<p.points));
+  $("#b-mute").textContent=db.muted?"🔇":"🔊";
+}
+function stopTimer(){if(st.timerId){clearInterval(st.timerId);st.timerId=null;}$("#q-timer").style.display="none";}
+function startTimer(){
+  const DUUR=15000;st.timerEind=Date.now()+DUUR;
+  $("#q-timer").style.display="block";$("#q-timerfill").style.width="100%";
+  st.timerId=setInterval(()=>{
+    const rest=st.timerEind-Date.now();
+    $("#q-timerfill").style.width=Math.max(0,rest/DUUR*100)+"%";
+    if(rest<=0){stopTimer();if(!st.answered)beantwoord(false,null,true);}
+  },100);
+}
+
+function toonVraag(){
+  const q=st.vragen[st.qi];st.q=q;st.answered=false;st.hints=0;
+  kaartReset();stopTimer();
+  $("#hud-vraag").textContent=`Vraag ${st.qi+1}/${st.vragen.length}`;
+  $("#q-gold").style.display=st.qi===st.goldIdx?"block":"none";
+  $("#q-hint").style.display="none";$("#q-hint").innerHTML="";
+  $("#b-hint").disabled=false;$("#b-hint").textContent="💡 Hint (nog 2)";
+  $("#q-choices").innerHTML="";
+  $("#q-klik").style.display="none";
+  $("#q-voet").textContent=`💎 nog ${5-speler().points} punt${5-speler().points===1?"":"en"} tot je volgende diamant`;
+  const c=q.c;
+  if(q.type==="klikLand"){
+    $("#q-label").textContent="Zoek op de kaart";
+    $("#q-text").innerHTML=`Waar ligt <b>${c.n}</b>? <span class="flag">${c.f}</span>`;
+    $("#q-klik").style.display="block";
+    map.classList.add("klikbaar");
+    animVB(VBFULL);
+  }else if(q.type==="klikHoofdstad"){
+    $("#q-label").textContent="Zoek op de kaart";
+    $("#q-text").innerHTML=`Klik op het land met de hoofdstad <b>${c.h}</b>`;
+    $("#q-klik").style.display="block";
+    map.classList.add("klikbaar");
+    animVB(VBFULL);
+  }else if(q.type==="mcLand"){
+    $("#q-label").textContent="Welk land licht op?";
+    $("#q-text").innerHTML=`Dit land licht op ✨ — welk land is het?`;
+    lichtOp(c);maakKeuzes(q);
+  }else if(q.type==="mcHoofdstad"){
+    $("#q-label").textContent="Hoofdsteden";
+    $("#q-text").innerHTML=`Wat is de hoofdstad van <b>${c.n}</b>? <span class="flag">${c.f}</span>`;
+    lichtOp(c);maakKeuzes(q);
+  }else if(q.type==="mcLandVan"){
+    $("#q-label").textContent="Hoofdsteden";
+    $("#q-text").innerHTML=`<b>${c.h}</b> is de hoofdstad van…?`;
+    maakKeuzes(q);animVB(VBFULL);
+  }
+  if(db.settings.flits)startTimer();
+  if(st.qi>0&&st.qi%4===0&&st.ronde.goed/st.qi>=.5)toast(pep(PEP_TUSSEN));
+}
+function lichtOp(c){
+  LANDEN.forEach(x=>{if(x.id!==c.id)paden[x.id].classList.add("dim");});
+  paden[c.id].classList.add("target");
+  zoomNaarLand(c);
+}
+function maakKeuzes(q){
+  const box=$("#q-choices");
+  q.opties.forEach((o,i)=>{
+    const b=document.createElement("button");b.className="choice";
+    b.innerHTML=`<span class="key">${i+1}</span><span>${esc(o.t)}</span>`;
+    b.onclick=()=>{if(st.answered)return;beantwoord(o.ok,b);};
+    box.appendChild(b);
+  });
+}
+function klikLand(c){
+  if(dragDist>8)return; // dit was slepen/pannen, geen antwoord
+  if(st.verken){verkenInfo(c);return;}
+  if(!st.q||st.answered)return;
+  if(st.q.type!=="klikLand"&&st.q.type!=="klikHoofdstad")return;
+  beantwoord(c.id===st.q.c.id,null,false,c);
+}
+
+function beantwoord(goed,knop,timeout=false,geklikt=null){
+  if(st.answered)return;st.answered=true;stopTimer();wisSpot();
+  const q=st.q,c=q.c,p=speler();
+  const goud=st.qi===st.goldIdx;
+  map.classList.remove("klikbaar");
+  // kaart-feedback
+  paden[c.id].classList.remove("target","dim");
+  paden[c.id].classList.add("goed");
+  let zb=c.bb;
+  if(!goed&&geklikt&&geklikt.id!==c.id){
+    paden[geklikt.id].classList.add("fout");
+    zb=[Math.min(c.bb[0],geklikt.bb[0]),Math.min(c.bb[1],geklikt.bb[1]),Math.max(c.bb[2],geklikt.bb[2]),Math.max(c.bb[3],geklikt.bb[3])];
+  }
+  zoomNaarBB(zb,true);
+  // keuzes kleuren
+  if(knop)knop.classList.add(goed?"good":"bad");
+  document.querySelectorAll("#q-choices .choice").forEach(b=>{
+    b.disabled=true;
+    if(b.textContent.slice(1)===(q.type==="mcHoofdstad"?c.h:c.n))b.classList.add("good");
+  });
+  const belon=[];
+  if(goed){
+    st.ronde.goed++;st.streak++;
+    if(st.streak>st.ronde.best)st.ronde.best=st.streak;
+    if(st.streak>p.best)p.best=st.streak;
+    let pts=goud?2:1;
+    belon.push(goud?"🏆 Gouden vraag: +2 punten":"⭐ +1 punt");
+    if(st.streak>0&&st.streak%3===0){pts+=1;belon.push("🔥 3 op een rij: bonuspunt!");}
+    st.ronde.punt+=pts;p.points+=pts;p.goedTotaal++;
+    const eerder=p.pass[c.id]||0;
+    p.pass[c.id]=eerder+1;
+    if(eerder===0)st.ronde.stempels.push(c);
+    while(p.points>=5){p.points-=5;p.diamonds++;st.ronde.diam++;belon.push("💎 DIAMANT verdiend!");setTimeout(sndGem,500);}
+    sndGoed();
+    const r=$("#map").getBoundingClientRect();
+    knal(r.left+r.width/2,r.top+r.height/2,50);
+  }else{
+    st.streak=0;sndFout();
+  }
+  save();hudSync();
+  toonFeedback(goed,belon,timeout,geklikt);
+}
+
+function toonFeedback(goed,belon,timeout,geklikt){
+  const q=st.q,c=q.c;
+  $("#f-emoji").textContent=goed?rnd(["🎉","🌟","🚀","🥳","💪","🧭"]):(timeout?"⏰":"😅");
+  $("#f-titel").textContent=goed?pep(PEP_GOED):(timeout?"De tijd is om!":pep(PEP_FOUT));
+  let sub=`${c.f} <b>${c.n}</b> — hoofdstad: <b>${c.h}</b>`;
+  if(!goed&&geklikt)sub=`Je klikte op ${geklikt.f} ${geklikt.n}.<br>${sub}`;
+  if(!goed&&!geklikt)sub=`Het juiste antwoord: ${sub}`;
+  $("#f-land").innerHTML=sub;
+  $("#f-pc").textContent=c.card;
+  $("#f-feit").innerHTML=`<b>Wist je dat?</b> ${esc(c.fact)}`;
+  $("#f-woord").innerHTML=goed?`😜 <b>Grappig woordje:</b> "${esc(c.w[0])}" (${esc(c.w[1])}) betekent: <b>${esc(c.w[2])}</b>`:"";
+  $("#f-woord").style.display=goed?"block":"none";
+  const bel=$("#f-belon");bel.innerHTML="";
+  belon.forEach(t=>{const s=document.createElement("span");if(t.includes("💎"))s.className="diamant";s.textContent=t;bel.appendChild(s);});
+  $("#b-next").textContent=st.qi+1>=st.vragen.length?"Bekijk je resultaat 🏁":"Volgende ▶";
+  $("#fb").classList.add("open");
+  $("#b-next").focus();
+}
+$("#b-next").onclick=()=>{
+  $("#fb").classList.remove("open");
+  st.qi++;
+  if(st.qi>=st.vragen.length)eindRonde();else toonVraag();
+};
+
+function eindRonde(){
+  const p=speler();
+  p.rounds++;save();
+  kaartReset();stopTimer();
+  const pct=st.ronde.goed/st.vragen.length;
+  $("#r-titel").textContent=pct===1?`PERFECT, ${p.naam}! Alles goed! 🤩`:pct>=.7?`Super gedaan, ${p.naam}! 🎉`:pct>=.4?`Lekker bezig, ${p.naam}! 💪`:`Goed geprobeerd, ${p.naam} — oefening baart kunst! 🌱`;
+  $("#r-gems").textContent=st.ronde.diam>0?"💎".repeat(st.ronde.diam):"";
+  $("#r-goed").textContent=`${st.ronde.goed}/${st.vragen.length}`;
+  $("#r-punt").textContent=st.ronde.punt;
+  $("#r-streak").textContent=st.ronde.best;
+  $("#r-totdiam").textContent=p.diamonds;
+  // level
+  let lvl=LEVELS[0],next=null;
+  for(const l of LEVELS){if(p.diamonds>=l[0])lvl=l;else{next=l;break;}}
+  $("#r-level").textContent=lvl[1];
+  if(next){
+    const vorig=lvl[0];
+    $("#r-levelfill").style.width=Math.round((p.diamonds-vorig)/(next[0]-vorig)*100)+"%";
+    $("#r-levelnext").textContent=`Nog ${next[0]-p.diamonds} 💎 tot ${next[1]}`;
+  }else{$("#r-levelfill").style.width="100%";$("#r-levelnext").textContent="Hoger kan niet — jij bent de max! 🏆";}
+  const stamps=$("#r-stamps");stamps.innerHTML="";
+  if(st.ronde.stempels.length){
+    const t=document.createElement("div");t.style.cssText="font-size:14px;color:var(--muted);width:100%";
+    t.textContent="Nieuwe stempels in je paspoort:";stamps.appendChild(t);
+    st.ronde.stempels.forEach(c=>{const s=document.createElement("span");s.textContent=c.f;s.title=c.n;stamps.appendChild(s);});
+  }
+  toonScherm("#s-result");
+  if(pct>=.7){sndFanfare();setTimeout(()=>knal(innerWidth/2,innerHeight*.3,140),300);}
+}
+
+/* ================= VERKENMODUS ================= */
+function startVerken(){
+  st.verken=true;st.q=null;
+  if(!st.naam){st.naam=db.last||"Ontdekker";}
+  $("#hud-naam").textContent="Verkennen";
+  $("#hud-ava").textContent="🔍";
+  $("#hud-vraag").textContent="Klik op een land";
+  toonScherm("#s-game");
+  kaartReset();map.classList.add("klikbaar");
+  animVB(VBFULL);
+  $("#q-label").textContent="Verkenmodus";
+  $("#q-text").textContent="Klik op een land en leer het kennen! 🔍";
+  $("#q-choices").innerHTML="";$("#q-klik").style.display="none";
+  $("#q-gold").style.display="none";$("#q-hint").style.display="none";
+  $("#b-hint").disabled=true;$("#b-hint").textContent="💡 Hint (alleen tijdens een ronde)";
+  $("#q-voet").textContent="Klaar met verkennen? Klik op 🏠";
+  hudSyncVeilig();
+}
+function hudSyncVeilig(){
+  const k=(st.naam||"").toLowerCase();
+  const p=db.players[k];
+  $("#hud-diamant").textContent=`💎 ${p?p.diamonds:0}`;
+  $("#hud-streak").textContent=`🔥 0`;
+  [...$("#hud-slots").children].forEach((el,i)=>el.classList.toggle("fill",p&&i<p.points));
+}
+function verkenInfo(c){
+  kaartReset();map.classList.add("klikbaar");
+  LANDEN.forEach(x=>{if(x.id!==c.id)paden[x.id].classList.add("dim");});
+  paden[c.id].classList.add("target");
+  zoomNaarLand(c);
+  sndKlik();
+  $("#q-label").textContent="Verkenmodus";
+  $("#q-text").innerHTML=`${c.f} <b>${esc(c.n)}</b>`;
+  $("#q-hint").style.display="block";
+  $("#q-hint").innerHTML=`<span class="pc">${c.card}</span>
+    <b>Hoofdstad:</b> ${esc(c.h)}<br><br>
+    <b>Wist je dat?</b> ${esc(c.fact)}<br><br>
+    😜 "${esc(c.w[0])}" (${esc(c.w[1])}) = ${esc(c.w[2])}`;
+}
+
+/* ================= HINTS ================= */
+$("#b-hint").onclick=()=>{
+  if(st.verken||!st.q||st.answered)return;
+  const q=st.q,c=q.c;
+  st.hints++;sndKlik();
+  if(st.hints===1){
+    $("#q-hint").style.display="block";
+    $("#q-hint").innerHTML=`<span class="pc">${c.card}</span>📍 ${esc(c.hint)}`;
+    $("#b-hint").textContent="💡 Nog een hint (nog 1)";
+  }else{
+    if(q.type==="klikLand"||q.type==="klikHoofdstad"){
+      toonSpot(c);
+      $("#q-hint").innerHTML+=`<br><br>🎯 Kijk in de gouden cirkel!`;
+    }else{
+      const fouten=[...document.querySelectorAll("#q-choices .choice")].filter((b,i)=>!q.opties[i].ok&&!b.classList.contains("gone"));
+      shuffle(fouten).slice(0,2).forEach(b=>{b.classList.add("gone");b.disabled=true;});
+      $("#q-hint").innerHTML+=`<br><br>✂️ Twee foute antwoorden weggestreept!`;
+    }
+    $("#b-hint").disabled=true;$("#b-hint").textContent="💡 Hints op";
+  }
+};
+
+/* ================= PASPOORT ================= */
+function toonPaspoort(){
+  const naam=st.naam||db.last;
+  const k=(naam||"").toLowerCase();
+  const p=db.players[k];
+  $("#pass-sub").textContent=p?`Paspoort van ${p.naam} — ${p.diamonds} 💎 · ${p.goedTotaal||0} vragen goed. 3× goed = gouden stempel!`:"Speel eerst een ronde om stempels te verzamelen!";
+  const g=$("#pass-grid");g.innerHTML="";
+  LANDEN.forEach(c=>{
+    const n=p?(p.pass[c.id]||0):0;
+    const d=document.createElement("div");
+    d.className="stamp"+(n===0?" leeg":"")+(n>=3?" goud":"");
+    d.innerHTML=`<span class="f">${c.f}</span>${esc(c.n)}${n>0?`<br>✔ ${n}×`:""}`;
+    g.appendChild(d);
+  });
+  $("#m-pass").classList.add("open");
+}
+$("#b-passdicht").onclick=()=>$("#m-pass").classList.remove("open");
+
+/* ================= KNOPPEN & TOETSEN ================= */
+$("#b-start").onclick=()=>{sndKlik();startRonde();};
+$("#b-verken").onclick=()=>{sndKlik();startVerken();};
+$("#b-pass").onclick=()=>{sndKlik();toonPaspoort();};
+$("#b-pass2").onclick=()=>{sndKlik();toonPaspoort();};
+$("#b-home").onclick=()=>{stopTimer();kaartReset();st.verken=false;st.q=null;chipsSync();segSync();toonScherm("#s-start");};
+$("#b-nogeens").onclick=()=>{sndKlik();startRonde();};
+$("#b-anders").onclick=()=>{chipsSync();segSync();toonScherm("#s-start");};
+$("#b-mute").onclick=()=>{db.muted=!db.muted;save();hudSync();};
+addEventListener("keydown",ev=>{
+  if($("#fb").classList.contains("open")){if(ev.key==="Enter"){ev.preventDefault();$("#b-next").click();}return;}
+  if($("#s-game").classList.contains("active")&&st.q&&!st.answered){
+    const i=Number(ev.key)-1;
+    const knoppen=document.querySelectorAll("#q-choices .choice");
+    if(i>=0&&i<knoppen.length&&!knoppen[i].disabled)knoppen[i].click();
+    if(ev.key==="h"||ev.key==="H")$("#b-hint").click();
+  }
+});
+
+/* ================= INIT ================= */
+bouwKaart();
+segSync();chipsSync();
+if(db.last){naamIn.value=db.last;st.naam=db.last;$("#b-start").disabled=false;}
+// offline spelen (GitHub Pages); faalt stil waar geen sw.js bestaat (bijv. artifact)
+if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostname==="localhost")){
+  try{navigator.serviceWorker.register("./sw.js").catch(()=>{});}catch(e){}
+}
+</script>
