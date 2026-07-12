@@ -13,7 +13,7 @@
     --bg:#F2F6FC; --panel:#FFFFFF; --panel2:#E9F0FA; --sea:#D9E8F5; --ink:#182142; --muted:#5B6788;
     --accent:#B07C14; --accent-fill:#F5B83D; --teal:#0E9F87; --good:#1FA45D; --bad:#D9435A;
     --map-line:#FFFFFF; --chip:#E4ECF8; --shadow:0 6px 24px rgba(24,33,66,.12);
-    --land-context:#C7D3E4; --pagina:#F6EED8; --inkt:#4A3B2A;
+    --land-context:#C7D3E4; --pagina:var(--panel); --inkt:var(--ink);
     --gold-grad:linear-gradient(135deg,#F7C948,#E8940A);
   }
   @media (prefers-color-scheme: dark){
@@ -21,20 +21,20 @@
       --bg:#0B1026; --panel:#151C3A; --panel2:#1C2448; --sea:#0D1430; --ink:#EAF0FF; --muted:#93A0C4;
       --accent:#FFC94D; --accent-fill:#FFC94D; --teal:#3FE0BE; --good:#4ADE80; --bad:#FF6B7A;
       --map-line:#0B1026; --chip:#222B55; --shadow:0 8px 28px rgba(0,0,0,.45);
-      --land-context:#1B2245; --pagina:#282217; --inkt:#E7DCC2;
+      --land-context:#1B2245; --pagina:var(--panel); --inkt:var(--ink);
     }
   }
   :root[data-theme="light"]{
     --bg:#F2F6FC; --panel:#FFFFFF; --panel2:#E9F0FA; --sea:#D9E8F5; --ink:#182142; --muted:#5B6788;
     --accent:#B07C14; --accent-fill:#F5B83D; --teal:#0E9F87; --good:#1FA45D; --bad:#D9435A;
     --map-line:#FFFFFF; --chip:#E4ECF8; --shadow:0 6px 24px rgba(24,33,66,.12);
-    --land-context:#C7D3E4; --pagina:#F6EED8; --inkt:#4A3B2A;
+    --land-context:#C7D3E4; --pagina:var(--panel); --inkt:var(--ink);
   }
   :root[data-theme="dark"]{
     --bg:#0B1026; --panel:#151C3A; --panel2:#1C2448; --sea:#0D1430; --ink:#EAF0FF; --muted:#93A0C4;
     --accent:#FFC94D; --accent-fill:#FFC94D; --teal:#3FE0BE; --good:#4ADE80; --bad:#FF6B7A;
     --map-line:#0B1026; --chip:#222B55; --shadow:0 8px 28px rgba(0,0,0,.45);
-    --land-context:#1B2245; --pagina:#282217; --inkt:#E7DCC2;
+    --land-context:#1B2245; --pagina:var(--panel); --inkt:var(--ink);
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
@@ -317,17 +317,17 @@
   #s-pass{align-items:center; gap:0;
     padding:calc(18px + env(safe-area-inset-top,0px)) 12px calc(96px + env(safe-area-inset-bottom,0px))}
   .boekje{width:min(680px,100%); border-radius:18px; overflow:hidden; box-shadow:var(--shadow)}
-  .boekkaft{background:linear-gradient(140deg,#7A1F2B,#450D16); color:#F3D07E; padding:14px 20px 12px; text-align:center;
-    letter-spacing:3px; font-weight:bold; font-size:20px}
-  .boekkaft small{display:block; letter-spacing:4px; font-size:10px; opacity:.85; font-weight:normal}
-  .boektabs{display:flex; background:#5C121D; padding:6px 6px 0; gap:4px}
-  .boektab{flex:1; border:none; background:none; color:#E8BE72; padding:9px 4px; font-size:13px; font-weight:bold; cursor:pointer; opacity:.6; border-radius:10px 10px 0 0}
-  .boektab.actief{opacity:1; background:var(--pagina); color:#8A2433}
+  .boekkaft{background:linear-gradient(140deg,var(--panel2),var(--bg)); color:var(--accent); padding:14px 20px 12px; text-align:center;
+    letter-spacing:3px; font-weight:bold; font-size:20px; border-bottom:3px double var(--accent-fill)}
+  .boekkaft small{display:block; letter-spacing:4px; font-size:10px; opacity:.85; font-weight:normal; color:var(--muted)}
+  .boektabs{display:flex; background:var(--panel2); padding:6px 6px 0; gap:4px}
+  .boektab{flex:1; border:none; background:none; color:var(--muted); padding:9px 4px; font-size:13px; font-weight:bold; cursor:pointer; opacity:.75; border-radius:10px 10px 0 0}
+  .boektab.actief{opacity:1; background:var(--pagina); color:var(--accent)}
   .boekpagina{background:var(--pagina); color:var(--inkt); padding:16px; min-height:320px}
   .boekpagina .sub{color:var(--inkt); opacity:.75; font-size:13px; margin-bottom:12px}
   .lbwissel{display:flex; gap:6px; margin-bottom:10px}
-  .lbwissel button{flex:1; border:2px solid transparent; background:rgba(0,0,0,.07); color:var(--inkt); border-radius:10px; padding:8px 4px; font-size:13px; font-weight:bold; cursor:pointer}
-  .lbwissel button.sel{border-color:#B3402F}
+  .lbwissel button{flex:1; border:2px solid transparent; background:var(--panel2); color:var(--inkt); border-radius:10px; padding:8px 4px; font-size:13px; font-weight:bold; cursor:pointer}
+  .lbwissel button.sel{border-color:var(--teal)}
   .lbrij{display:flex; align-items:center; gap:9px; padding:5px 6px; border-bottom:1px dashed color-mix(in srgb, var(--inkt) 30%, transparent); font-size:14px}
   .lbrij .plek{width:32px; text-align:center; font-size:16px; flex:none}
   .lbrij .telling{margin-left:auto; font-weight:bold; font-variant-numeric:tabular-nums}
@@ -337,8 +337,8 @@
   .pk-goud{fill:#F1B62B; animation:pkgoud 2s ease-in-out infinite}
   @keyframes pkgoud{0%,100%{filter:drop-shadow(0 0 2px rgba(247,201,72,.6))}50%{filter:drop-shadow(0 0 9px rgba(247,201,72,1)) brightness(1.15)}}
   .pklegenda{display:flex; gap:16px; font-size:12px; margin-top:10px; justify-content:center; flex-wrap:wrap}
-  .stempel10{position:absolute; top:-9px; right:-9px; width:36px; height:36px; border-radius:50%; border:2.5px solid #B3402F;
-    color:#B3402F; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:bold; letter-spacing:0;
+  .stempel10{position:absolute; top:-9px; right:-9px; width:36px; height:36px; border-radius:50%; border:2.5px solid var(--bad);
+    color:var(--bad); display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:bold; letter-spacing:0;
     transform:rotate(14deg); background:var(--pagina); box-shadow:0 1px 4px rgba(0,0,0,.25); line-height:1.1; text-align:center}
 
   /* ---------- Vlagvragen & goudstaaf ---------- */
@@ -489,7 +489,6 @@
       <div class="zoomui">
         <button id="z-in" aria-label="Inzoomen">＋</button>
         <button id="z-uit" aria-label="Uitzoomen">－</button>
-        <button id="z-reset" aria-label="Hele kaart">🗺️</button>
       </div>
     </div>
     <div class="dock">
@@ -645,7 +644,7 @@ const VBSTART={"x":170.4,"y":154.5,"w":725.2,"h":635.5};
 </script>
 <script>
 "use strict";
-const VERSIE="14"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="15"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -927,7 +926,6 @@ map.addEventListener("pointermove",ev=>{
 ["pointerup","pointercancel","pointerleave"].forEach(t=>map.addEventListener(t,ev=>{ptrs.delete(ev.pointerId);panStart=null;if(ptrs.size<2)pinchStart=null;}));
 $("#z-in").onclick=()=>zoomOp(0.75,vb.x+vb.w/2,vb.y+vb.h/2);
 $("#z-uit").onclick=()=>zoomOp(1.35,vb.x+vb.w/2,vb.y+vb.h/2);
-$("#z-reset").onclick=()=>animVB(VBFULL);
 
 let spotEl=null;
 function toonSpot(c){
