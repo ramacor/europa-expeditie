@@ -38,3 +38,9 @@ Kaartgrenzen: [Natural Earth](https://www.naturalearthdata.com/) 50m (publiek do
 ## Privacy
 
 Spelersnamen en voortgang staan alléén in localStorage op het apparaat zelf. Er is geen server, geen account en er wordt niets verstuurd.
+
+## Credits
+
+- Kaartgrenzen: [Natural Earth](https://www.naturalearthdata.com/) (publiek domein)
+- Foto's: Wikimedia Commons via Wikipedia (vrije licenties, bronlink bij elke foto in het spel)
+- Scheetgeluid: ["Human fart.wav"](https://commons.wikimedia.org/wiki/File:Human_fart.wav), Wikimedia Commons, CC BY-SA 4.0
