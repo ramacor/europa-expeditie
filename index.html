@@ -49,7 +49,7 @@
 
   /* ---------- Startscherm ---------- */
   #s-start{position:relative; align-items:center; justify-content:flex-start; gap:14px;
-    padding:calc(22px + env(safe-area-inset-top,0px)) 16px calc(48px + env(safe-area-inset-bottom,0px))}
+    padding:calc(22px + env(safe-area-inset-top,0px)) 16px calc(104px + env(safe-area-inset-bottom,0px))} /* ruimte voor de menubalk */
   .hero{text-align:center; margin-top:10px}
   .hero h1{
     font-size:clamp(30px,6vw,52px); margin:0; letter-spacing:.5px; text-wrap:balance;
@@ -469,10 +469,6 @@
     <div class="lvlnamen"><span>Level 1</span><span id="lvl-volgende" style="text-align:center"></span><span>Level 10</span></div>
     <div class="expstats" id="expstats"></div>
   </div>
-  <div class="subrow">
-    <button class="subbtn" id="b-verken">🔍 Verken de kaart</button>
-    <button class="subbtn" id="b-pass">📔 Mijn paspoort</button>
-  </div>
 </div>
 
 <!-- ============ SPELSCHERM ============ -->
@@ -649,7 +645,7 @@ const VBSTART={"x":170.4,"y":154.5,"w":725.2,"h":635.5};
 </script>
 <script>
 "use strict";
-const VERSIE="13"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="14"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -1691,8 +1687,6 @@ function kleurPassKaart(p){
 /* ================= KNOPPEN & TOETSEN ================= */
 $("#b-start").onclick=()=>{sndKlik();startRonde();};
 $("#b-moeilijk").onclick=()=>{sndKlik();startRonde(true);};
-$("#b-verken").onclick=()=>{sndKlik();startVerken();};
-$("#b-pass").onclick=()=>{sndKlik();toonPaspoort();};
 $("#b-pass2").onclick=()=>{sndKlik();toonPaspoort();};
 function naarHome(){ // ronde ALTIJD volledig afbreken (ook bliksemronde, feedback en grote foto)
   stopTimer();stopSpeeltijd();kaartReset();annuleerFoto();
