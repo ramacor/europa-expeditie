@@ -677,7 +677,7 @@ const KAARTEN={"EU":{"geo":{"IS":{"d":"M306.8 230.5L301.8 233.3L303.8 235.9L301.
 </script>
 <script>
 "use strict";
-const VERSIE="21"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="22"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -1028,8 +1028,8 @@ map.addEventListener("pointermove",ev=>{
   }
 });
 ["pointerup","pointercancel","pointerleave"].forEach(t=>map.addEventListener(t,ev=>{ptrs.delete(ev.pointerId);panStart=null;if(ptrs.size<2)pinchStart=null;}));
-$("#z-in").onclick=()=>zoomOp(0.75,vb.x+vb.w/2,vb.y+vb.h/2);
-$("#z-uit").onclick=()=>zoomOp(1.35,vb.x+vb.w/2,vb.y+vb.h/2);
+$("#z-in").onclick=()=>{ if(verkenGlobe)verkenGlobe.zoomBy(1.3); else zoomOp(0.75,vb.x+vb.w/2,vb.y+vb.h/2); };
+$("#z-uit").onclick=()=>{ if(verkenGlobe)verkenGlobe.zoomBy(1/1.3); else zoomOp(1.35,vb.x+vb.w/2,vb.y+vb.h/2); };
 
 let spotEl=null;
 function toonSpot(c){
@@ -1666,17 +1666,23 @@ function maakGlobe(canvas, opts){
   opts=opts||{};
   const ctx=canvas.getContext("2d");
   const rm=matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let rot={l:-70,p:22}, W=1,H=1,cx=0,cy=0,R=1, dpr=1;
+  let rot={l:-70,p:22}, W=1,H=1,cx=0,cy=0,R=1, dpr=1, zoom=1, baseR=1;
   let dragging=false,last=null,moved=0,raf=null,levend=true,auto=!rm&&opts.mode==="verken";
-  let hi=opts.startId||null; // opgelicht land
+  let hi=null; // opgelicht land (alleen na een klik)
+  function middelpunt(id){ // lon/lat-midden van een land
+    const ringen=GLOBE.landen[id]; if(ringen){let sx=0,sy=0,n=0;ringen.flat().forEach(([lo,la])=>{sx+=lo;sy+=la;n++;});return [sx/n,sy/n];}
+    if(GLOBE.dots[id])return GLOBE.dots[id]; return null;
+  }
+  if(opts.startId){const m=middelpunt(opts.startId); if(m){rot.l=-m[0];rot.p=Math.max(-70,Math.min(70,m[1]));}}
 
   function meet(){
     const b=canvas.getBoundingClientRect();
     dpr=Math.min(2,window.devicePixelRatio||1);
     W=Math.max(2,b.width); H=Math.max(2,b.height);
     canvas.width=Math.round(W*dpr); canvas.height=Math.round(H*dpr);
-    cx=W/2; cy=H/2; R=Math.min(W,H)*0.46;
+    cx=W/2; cy=H/2; baseR=Math.min(W,H)*0.46; R=baseR*zoom;
   }
+  function setZoom(z){zoom=Math.max(1,Math.min(5,z)); R=baseR*zoom;}
   function zicht(lon,lat){const l=(lon+rot.l)*DG,f=lat*DG,f0=rot.p*DG;return Math.sin(f0)*Math.sin(f)+Math.cos(f0)*Math.cos(f)*Math.cos(l);}
   function pr(lon,lat){const l=(lon+rot.l)*DG,f=lat*DG,f0=rot.p*DG;
     return [cx+R*Math.cos(f)*Math.sin(l), cy-R*(Math.cos(f0)*Math.sin(f)-Math.sin(f0)*Math.cos(f)*Math.cos(l))];}
@@ -1739,15 +1745,22 @@ function maakGlobe(canvas, opts){
   }
   function strokeLijn(pts){ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i][0],pts[i][1]);ctx.stroke();}
 
-  function lus(){ if(!levend)return; if(auto&&!dragging&&!hi){rot.l-=0.18;} render(); raf=requestAnimationFrame(lus); }
-  // interactie
+  function lus(){ if(!levend)return; if(auto&&!dragging&&!hi&&zoom<1.05){rot.l-=0.18;} render(); raf=requestAnimationFrame(lus); }
+  // interactie: slepen = draaien, twee vingers of scrollen = zoomen
   function pos(e){const b=canvas.getBoundingClientRect();return [e.clientX-b.left,e.clientY-b.top];}
-  canvas.addEventListener("pointerdown",e=>{dragging=true;moved=0;last=pos(e);auto=false;canvas.setPointerCapture(e.pointerId);canvas.style.cursor="grabbing";});
-  canvas.addEventListener("pointermove",e=>{if(!dragging)return;const p=pos(e);const dx=p[0]-last[0],dy=p[1]-last[1];moved+=Math.abs(dx)+Math.abs(dy);
-    rot.l+=dx*0.4; rot.p=Math.max(-85,Math.min(85,rot.p+dy*0.4)); last=p; render();});
-  function eind(e){if(!dragging)return;dragging=false;canvas.style.cursor="grab";
-    if(moved<6&&opts.onClick){const id=raak(pos(e));if(id)opts.onClick(id);}}
-  canvas.addEventListener("pointerup",eind);canvas.addEventListener("pointercancel",()=>dragging=false);
+  const ptrs=new Map(); let pinch0=null,zoom0=1;
+  canvas.addEventListener("pointerdown",e=>{ptrs.set(e.pointerId,pos(e));auto=false;canvas.setPointerCapture(e.pointerId);
+    if(ptrs.size===1){dragging=true;moved=0;last=pos(e);canvas.style.cursor="grabbing";}
+    else if(ptrs.size===2){dragging=false;const a=[...ptrs.values()];pinch0=Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1]);zoom0=zoom;}});
+  canvas.addEventListener("pointermove",e=>{if(!ptrs.has(e.pointerId))return;ptrs.set(e.pointerId,pos(e));
+    if(ptrs.size===2&&pinch0){const a=[...ptrs.values()];const d=Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1]);setZoom(zoom0*d/Math.max(20,pinch0));render();return;}
+    if(dragging){const p=pos(e);const dx=p[0]-last[0],dy=p[1]-last[1];moved+=Math.abs(dx)+Math.abs(dy);
+      rot.l+=dx*0.4/zoom; rot.p=Math.max(-85,Math.min(85,rot.p+dy*0.4/zoom)); last=p; render();}});
+  function eind(e){ptrs.delete(e.pointerId);if(ptrs.size<2)pinch0=null;
+    if(dragging&&ptrs.size===0){dragging=false;canvas.style.cursor="grab";
+      if(moved<6&&opts.onClick){const id=raak(pos(e));if(id)opts.onClick(id);}}}
+  canvas.addEventListener("pointerup",eind);canvas.addEventListener("pointercancel",e=>{ptrs.delete(e.pointerId);dragging=false;pinch0=null;});
+  canvas.addEventListener("wheel",e=>{e.preventDefault();setZoom(zoom*(e.deltaY<0?1.15:0.87));render();},{passive:false});
   function invert(px,py){const x=(px-cx)/R,y=-(py-cy)/R,rho=Math.hypot(x,y);if(rho>1)return null;
     const c=Math.asin(Math.min(1,rho)),f0=rot.p*DG;
     const lat=Math.asin(rho===0?Math.sin(f0):(Math.cos(c)*Math.sin(f0)+y*Math.sin(c)*Math.cos(f0)/rho));
@@ -1768,6 +1781,7 @@ function maakGlobe(canvas, opts){
       if(!g)return; let sx=0,sy=0,n=0; (GLOBE.landen[id]?GLOBE.landen[id].flat():[GLOBE.dots[id]]).forEach(([lo,la])=>{sx+=lo;sy+=la;n++;});
       const tl=-sx/n, tp=Math.max(-70,Math.min(70,sy/n)); animRot(tl,tp);},
     highlight(id){hi=id;render();},
+    zoomBy(f){setZoom(zoom*f);render();},
     stop(){levend=false;cancelAnimationFrame(raf);}
   };
   let animId2=null;
@@ -1798,7 +1812,7 @@ function startVerken(){
   $("#s-game").classList.add("metmenu");
   toonScherm("#s-game");
   // 3D-globe i.p.v. de platte kaart
-  $("#map").style.display="none"; const zu=document.querySelector(".zoomui"); if(zu)zu.style.display="none";
+  $("#map").style.display="none"; const zu=document.querySelector(".zoomui"); if(zu)zu.style.display=""; // +/- knoppen zoomen de globe
   const cv=$("#g-verken"); cv.style.display="block";
   $("#verken-pop").classList.remove("open");
   if(verkenGlobe)verkenGlobe.stop();
