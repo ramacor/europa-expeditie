@@ -29,11 +29,12 @@ GitHub Pages werkt de site binnen ± een minuut bij. De beginscherm-app op de iP
 ## Kaartdata vernieuwen
 
 ```
-curl -sL -o ne50m.geojson "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_admin_0_countries.geojson"
-node build-kaart.mjs   # schrijft de nieuwe kaartdata in index.html
+curl -sL -o ne10m.geojson "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_admin_0_countries.geojson"
+node build-kaart.mjs   # platte kaarten per continent
+node build-globe.mjs   # 3D-globe-geometrie
 ```
 
-Kaartgrenzen: [Natural Earth](https://www.naturalearthdata.com/) 50m (publiek domein), Lambert azimuthal equal-area (52°N 10°E), vereenvoudigd met Douglas-Peucker.
+Kaartgrenzen: [Natural Earth](https://www.naturalearthdata.com/) 1:10m — hoogste resolutie (publiek domein), Lambert azimuthal equal-area (52°N 10°E), vereenvoudigd met Douglas-Peucker.
 
 ## Privacy
 
