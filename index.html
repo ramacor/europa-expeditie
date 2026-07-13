@@ -597,7 +597,8 @@
       <div id="pass-leader" style="display:none">
         <div class="sub">Welke landen ken jij het best? Jouw toplijst:</div>
         <div class="lbwissel">
-          <button class="sel" data-lb="l">🗺️ Landen</button>
+          <button class="sel" data-lb="t">🏅 Totaal</button>
+          <button data-lb="l">🗺️ Landen</button>
           <button data-lb="h">🏛️ Hoofdsteden</button>
           <button data-lb="v">🚩 Vlaggen</button>
         </div>
@@ -648,7 +649,7 @@ const VBSTART={"x":170.4,"y":154.5,"w":725.2,"h":635.5};
 </script>
 <script>
 "use strict";
-const VERSIE="16"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="17"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -756,7 +757,7 @@ const LVL_NAMEN=["🎒 Toerist","🚌 Dagjesmens","🥾 Backpacker","🧭 Padvin
 const LVL_DREMPELS=[0,5,12,20,28,36,43];
 function levelInfo(p){
   const alle=LANDEN.filter(c=>GEO[c.id]);
-  const tel=min=>alle.filter(c=>(p.pass[c.id]||0)>=min).length;
+  const tel=min=>alle.filter(c=>totGoed(p,c.id)>=min).length;
   const m1=tel(1),m5=tel(5),m10=tel(10),tot=alle.length;
   let nr,volgende;
   if(m10>=tot){nr=10;volgende="Hoger kan niet — Legende van Europa! 🏆";}
@@ -789,6 +790,8 @@ function speler(){
 }
 function logVan(p,id){p.log=p.log||{};return p.log[id]=p.log[id]||{lg:0,lf:0,hg:0,hf:0,vg:0,vf:0};}
 function catVan(type){return (type==="klikLand"||type==="mcLand")?"l":(type==="klikVlag"||type==="mcVlag")?"v":"h";}
+// één bron van waarheid: hoe vaak dit land in totaal goed is geraden (som van alle categorieën)
+function totGoed(p,id){const l=p&&p.log&&p.log[id];return l?(l.lg+l.hg+l.vg):0;}
 function stopSpeeltijd(){ // tel de verstreken rondetijd bij de speler op
   if(st.rondeStart&&st.naam){const p=speler();p.speeltijd=(p.speeltijd||0)+Date.now()-st.rondeStart;save();}
   st.rondeStart=null;
@@ -1136,7 +1139,9 @@ document.querySelectorAll(".seg").forEach(seg=>{
     b.addEventListener("click",()=>{
       seg.querySelectorAll("button").forEach(x=>x.classList.remove("sel"));
       b.classList.add("sel");
-      db.settings[seg.dataset.set]=b.dataset.v;save();sndKlik();
+      db.settings[seg.dataset.set]=b.dataset.v;
+      if(seg.dataset.set==="niveau")db.settings.mini=(b.dataset.v==="2"); // expert → ook ministaatjes, ontdekker → niet
+      save();segSync();sndKlik();
     });
   });
 });
@@ -1147,7 +1152,7 @@ function segSync(){
   $("#t-mini").classList.toggle("on",db.settings.mini);
   $("#t-flits").classList.toggle("on",db.settings.flits);
 }
-$("#t-mini").onclick=()=>{db.settings.mini=!db.settings.mini;save();segSync();sndKlik();};
+$("#t-mini").onclick=()=>{db.settings.mini=!db.settings.mini;if(db.settings.mini)db.settings.niveau="2";save();segSync();sndKlik();}; // mini aan → expertmodus
 $("#t-flits").onclick=()=>{db.settings.flits=!db.settings.flits;save();segSync();sndKlik();};
 
 const naamIn=$("#naam");
@@ -1178,7 +1183,7 @@ function actievePool(){
 }
 function gewogenTrek(pool,n){
   const p=speler();
-  const items=pool.map(c=>({c,w:3/(1+Math.min(p.pass[c.id]||0,3))}));
+  const items=pool.map(c=>({c,w:3/(1+Math.min(totGoed(p,c.id),3))}));
   const uit=[];
   while(uit.length<n&&items.length){
     let tot=items.reduce((s,i)=>s+i.w,0),r=Math.random()*tot,ix=0;
@@ -1571,7 +1576,7 @@ function verkenInfo(c){
   $("#q-text").innerHTML=`<span style="font-size:34px; vertical-align:-4px">${c.f}</span> <b>${esc(c.n)}</b>`;
   const fotos=fotosVan(c),feiten=feitenVan(c),w=woordenVan(c)[0];
   const naam=st.naam||db.last;const p=db.players[(naam||"").toLowerCase()];
-  const score=p?(p.pass[c.id]||0):0;
+  const score=p?totGoed(p,c.id):0;
   $("#q-hint").style.display="block";
   $("#q-hint").innerHTML=`<span class="pc">${c.card}</span>
     <b>Hoofdstad:</b> ${esc(c.h)}<br>
@@ -1633,7 +1638,7 @@ function toonPaspoort(){
   $("#pass-sub").textContent=p?`${p.diamonds} 💎 · ${p.goedTotaal||0} vragen goed. 3× = gouden tegel, 10× = paspoortstempel!`:"Speel eerst een ronde om stempels te verzamelen!";
   const g=$("#pass-grid");g.innerHTML="";
   LANDEN.forEach(c=>{
-    const n=p?(p.pass[c.id]||0):0;
+    const n=p?totGoed(p,c.id):0;
     const d=document.createElement("div");
     d.className="stamp"+(n===0?" leeg":"")+(n>=3?" goud":"");
     d.innerHTML=`<span class="f">${c.f}</span>${esc(c.n)}${n>0?`<br>✔ ${n}×`:""}${n>=10?'<span class="stempel10">★ 10×</span>':""}`;
@@ -1654,7 +1659,7 @@ document.querySelectorAll(".boektab").forEach(b=>{
   };
 });
 // toplijst (per categorie): medailles voor de top 3, duimpjes voor 4 t/m 10
-let lbCat="l";
+let lbCat="t";
 document.querySelectorAll(".lbwissel button").forEach(b=>{
   b.onclick=()=>{
     sndKlik();lbCat=b.dataset.lb;
@@ -1662,10 +1667,13 @@ document.querySelectorAll(".lbwissel button").forEach(b=>{
     toonToplijst(passSpeler());
   };
 });
+function toplijstTelling(p,id){ // "t"=totaal (matcht de kaart), anders per categorie
+  if(lbCat==="t")return totGoed(p,id);
+  return (p&&p.log&&p.log[id]&&p.log[id][lbCat+"g"])||0;
+}
 function toonToplijst(p){
-  const key=lbCat+"g";
   const rijen=LANDEN.filter(c=>GEO[c.id])
-    .map(c=>({c,n:(p&&p.log&&p.log[c.id]&&p.log[c.id][key])||0}))
+    .map(c=>({c,n:toplijstTelling(p,c.id)}))
     .sort((a,b)=>b.n-a.n||a.c.n.localeCompare(b.c.n));
   $("#lb-lijst").innerHTML=rijen.map((r,i)=>{
     const plek=r.n===0?"·":i===0?"🥇":i===1?"🥈":i===2?"🥉":i<10?"👍":String(i+1);
@@ -1690,7 +1698,7 @@ function kleurPassKaart(p){
     $("#pk-houder").appendChild(svg);
   }
   $("#pk-houder").querySelectorAll("[data-id]").forEach(el=>{
-    const n=p?(p.pass[el.dataset.id]||0):0;
+    const n=p?totGoed(p,el.dataset.id):0;
     el.setAttribute("class","pk-land"+(n>=10?" pk-goud":n>=5?" pk-zilver":""));
   });
 }
