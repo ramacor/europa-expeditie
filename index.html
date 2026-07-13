@@ -677,7 +677,7 @@ const KAARTEN={"EU":{"geo":{"IS":{"d":"M303.7 231L303.4 232.5L301.4 233.3L301.7 
 </script>
 <script>
 "use strict";
-const VERSIE="25"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="26"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -1679,14 +1679,6 @@ const GLOBE_ZEEEN=[ // [naam, lon, lat] — zeenamen op de globe
  ["Kaspische Zee",50.6,41.8],["Rode Zee",38,20.5],["Arabische Zee",63.5,14],["Golf van Bengalen",89,13],
  ["Zuid-Chinese Zee",114,13],["Japanse Zee",134.5,40.5],["Zuidelijke Oceaan",70,-58]
 ];
-let GLOBE_GROF=null; // grove versie voor tijdens het draaien (fijn bij stilstand)
-function globeGrof(){
-  if(GLOBE_GROF)return GLOBE_GROF;
-  const dun=ring=>{if(ring.length<=12)return ring;const uit=[];for(let i=0;i<ring.length;i+=2)uit.push(ring[i]);return uit;};
-  const landen={};for(const id in GLOBE.landen)landen[id]=GLOBE.landen[id].map(dun);
-  GLOBE_GROF={landen,rest:GLOBE.rest.map(dun)};
-  return GLOBE_GROF;
-}
 function maakGlobe(canvas, opts){
   opts=opts||{};
   const ctx=canvas.getContext("2d");
@@ -1791,8 +1783,8 @@ function maakGlobe(canvas, opts){
   }
   function strokeLijn(pts){ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i][0],pts[i][1]);ctx.stroke();}
 
-  let stilTimer=null;
-  function renderSnel(){ render(globeGrof()); clearTimeout(stilTimer); stilTimer=setTimeout(()=>render(),150); } // fijn zodra je stilhoudt
+  let volRaf=null;
+  function renderSnel(){ if(volRaf)return; volRaf=requestAnimationFrame(()=>{volRaf=null;render();}); } // altijd vol detail, max 1× per frame (nooit grofmazig tijdens draaien/pinchen)
   function lus(){ if(!levend)return; if(auto&&!dragging&&!hi&&zoom<1.05){rot.l-=0.18;render();} raf=requestAnimationFrame(lus); } // rustig draaien mag in vol detail
   // interactie: slepen = draaien, twee vingers of scrollen = zoomen
   function pos(e){const b=canvas.getBoundingClientRect();return [e.clientX-b.left,e.clientY-b.top];}
@@ -1837,7 +1829,7 @@ function maakGlobe(canvas, opts){
     // kortste weg voor lengtegraad
     let dl=((tl-rot.l+540)%360)-180; const van={...rot},t0=performance.now();
     const stap=t=>{let k=Math.min(1,(t-t0)/500);k=1-Math.pow(1-k,3);rot.l=van.l+dl*k;rot.p=van.p+(tp-van.p)*k;
-      if(k<1){render(globeGrof());animId2=requestAnimationFrame(stap);}else render();};
+      render(); if(k<1)animId2=requestAnimationFrame(stap);};
     animId2=requestAnimationFrame(stap);}
   return ctrl;
 }
