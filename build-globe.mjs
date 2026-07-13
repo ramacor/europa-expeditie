@@ -1,7 +1,7 @@
 // Genereert ruwe lon/lat-geometrie voor de 3D-globe: speelbare landen (EU+AS) apart,
 // de rest van de wereld als neutrale landmassa. Injecteert GLOBE in index/europa-expeditie.html.
 import { readFileSync, writeFileSync } from "node:fs";
-const SRC="ne50m.geojson";
+const SRC="ne10m.geojson"; // hoogste resolutie (1:10m)
 const HTML="index.html";
 
 const EU=["IS","IE","GB","PT","ES","FR","NL","BE","LU","DE","DK","NO","SE","FI","PL","CZ","AT","CH","IT","GR","HU","HR","SI","SK","EE","LV","LT","BA","RS","ME","XK","AL","MK","BG","RO","MD","UA","BY","RU","TR","CY","MT","AD","MC","LI","SM","VA"];
@@ -29,7 +29,8 @@ function simplify(ring,tol){
   const idx=new Set();for(let k=a;k<=b;k++)if(keep.has(k))idx.add(k);for(const k of keep2)if(k>0&&k<wrap.length-1)idx.add((b+k)%ring.length);
   return [...idx].sort((p,q)=>p-q).map(k=>ring[k]);
 }
-const round=ring=>ring.map(([lo,la])=>[r1(lo),r1(la)]);
+const r2=n=>Math.round(n*100)/100;
+const round=ring=>ring.map(([lo,la])=>[r2(lo),r2(la)]);
 
 const gj=JSON.parse(readFileSync(SRC,"utf8"));
 const landen={}, rest=[];
@@ -43,8 +44,8 @@ for(const f of gj.features){
     let ring=poly[0];
     if(!ring||ring.length<4)continue;
     const A=area(ring);
-    if(A < (speel?0.02:0.6))continue;           // te kleine stukjes weglaten
-    const simp=simplify(ring, speel?0.35:1.1);
+    if(A < (speel?0.0008:0.15))continue;           // te kleine stukjes weglaten
+    const simp=simplify(ring, speel?0.06:0.30);
     if(simp.length<3)continue;
     if(speel){(landen[code] ||= []).push(round(simp));}
     else rest.push(round(simp));
@@ -52,7 +53,7 @@ for(const f of gj.features){
 }
 // stippen voor mini-landen zonder (bewaarde) polygoon
 const dots={};
-for(const code in DOTS){ if(!landen[code]) dots[code]=DOTS[code]; }
+for(const code in DOTS){ dots[code]=DOTS[code]; } // stip blijft altijd zichtbaar als marker
 
 const GLOBE={cont:CONT, landen, dots, rest};
 const tel=Object.keys(landen).length;

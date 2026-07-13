@@ -29,7 +29,7 @@ GitHub Pages werkt de site binnen ± een minuut bij. De beginscherm-app op de iP
 ## Kaartdata vernieuwen
 
 ```
-curl -sL -o ne50m.geojson "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
+curl -sL -o ne50m.geojson "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_admin_0_countries.geojson"
 node build-kaart.mjs   # schrijft de nieuwe kaartdata in index.html
 ```
 

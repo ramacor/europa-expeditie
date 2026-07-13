@@ -2,11 +2,11 @@
 // Elk continent krijgt zijn eigen Lambert azimuthal equal-area-projectie, passend in 1050×920.
 import { readFileSync, writeFileSync } from "node:fs";
 
-const SRC = "ne50m.geojson";
+const SRC = "ne10m.geojson";   // hoogste Natural Earth-resolutie (1:10m): nauwkeurige grenzen en kustlijnen
 const HTML = "index.html";
 const VB = { w:1050, h:920, marge:8 };
-const TOL_PLAY = 1.1, TOL_CTX = 2.2;
-const MIN_RING_PLAY = 20, MIN_RING_CTX = 60;
+const TOL_PLAY = 0.55, TOL_CTX = 1.5;
+const MIN_RING_PLAY = 5, MIN_RING_CTX = 40;
 const D = Math.PI/180;
 const r1 = n=>Math.round(n*10)/10;
 
@@ -81,7 +81,7 @@ function bouwContinent(cfg){
     return [ k*Math.cos(phi)*Math.sin(lam-LAM0),
             -(k*(Math.cos(PHI1)*Math.sin(phi)-Math.sin(PHI1)*Math.cos(phi)*Math.cos(lam-LAM0))) ];
   };
-  const wanted=new Set([...PLAY,...CTX]);
+  const wanted=new Set([...PLAY,...CTX,...Object.keys(DOTS)]);
   const perCode={};
   for(const f of gj.features){
     const p=f.properties;
@@ -106,8 +106,18 @@ function bouwContinent(cfg){
   const projFit=ll=>fit(proj(ll));
 
   const GEO={};
+  function dotLand(code){ // ministaatje: klik-stip + (waar zichtbaar) de échte vorm eronder
+    const g={dot:projFit(DOTS[code]).map(r1)};
+    const ringen=(geproj[code]||[]).map(r=>r.map(fit));
+    if(ringen.length){
+      ringen.sort((a,b)=>area(b)-area(a));
+      const kept=ringen.filter((r,i)=>i===0||area(r)>=2).map(r=>simplify(r,TOL_PLAY*0.5)).filter(r=>r.length>=3);
+      if(kept.length&&area(kept[0])>=0.8)g.d=pad(kept);
+    }
+    return g;
+  }
   for(const code of PLAY){
-    if(DOTS[code]){ GEO[code]={dot:projFit(DOTS[code]).map(r1)}; continue; }
+    if(DOTS[code]){ GEO[code]=dotLand(code); continue; }
     const ringen=(geproj[code]||[]).map(r=>r.map(fit));
     if(!ringen.length){ console.error("  GEEN GEOMETRIE:",code); continue; }
     ringen.sort((a,b)=>area(b)-area(a));
@@ -119,7 +129,7 @@ function bouwContinent(cfg){
     GEO[code]={d:pad(kept),bb,cx,cy};
     if(diag<26)GEO[code].halo=1;
   }
-  for(const code in DOTS){ if(!GEO[code]) GEO[code]={dot:projFit(DOTS[code]).map(r1)}; }
+  for(const code in DOTS){ if(!GEO[code]) GEO[code]=dotLand(code); }
 
   let ctxD="";
   for(const code of CTX){
