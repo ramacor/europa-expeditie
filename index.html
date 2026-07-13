@@ -677,7 +677,7 @@ const KAARTEN={"EU":{"geo":{"IS":{"d":"M303.7 231L303.4 232.5L301.4 233.3L301.7 
 </script>
 <script>
 "use strict";
-const VERSIE="26"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="27"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -1745,17 +1745,34 @@ function maakGlobe(canvas, opts){
     tekenRingen(data.rest, css("--land-context")||"#33406a", "rgba(0,0,0,0.25)", 0.5);
     // speelbare landen: gekleurd (of via kleurFn)
     const lijn=css("--map-line")||"#0B1026";
+    ctx.lineJoin="round";
     for(const id in data.landen){
       const c=LAND_VAN[id];if(!c)continue;
       const fill=opts.kleurFn?opts.kleurFn(c):c.kleur;
-      tekenRingen(data.landen[id], fill, lijn, id===hi?2.2:0.7);
-      if(id===hi){tekenRingen(data.landen[id], null, "#FFC94D", 3);}
+      tekenRingen(data.landen[id], fill, lijn, 0.7);
     }
     // stippen (mini-landen)
     for(const id in GLOBE.dots){const d=GLOBE.dots[id];if(zicht(d[0],d[1])<0)continue;const c=LAND_VAN[id];
-      const [x,y]=pr(d[0],d[1]);ctx.beginPath();ctx.arc(x,y,id===hi?6:4,0,7);
+      const [x,y]=pr(d[0],d[1]);ctx.beginPath();ctx.arc(x,y,4,0,7);
       ctx.fillStyle=opts.kleurFn?opts.kleurFn(c):(c?c.kleur:"#fff");ctx.fill();
-      ctx.strokeStyle=id===hi?"#FFC94D":lijn;ctx.lineWidth=id===hi?2.5:1;ctx.stroke();}
+      ctx.strokeStyle=lijn;ctx.lineWidth=1;ctx.stroke();}
+    // geselecteerd land: rest dof maken, het land helder bovenop met een duidelijke rand
+    if(hi){
+      ctx.fillStyle="rgba(6,10,26,0.5)";ctx.beginPath();ctx.arc(cx,cy,R,0,7);ctx.fill(); // dof waas over de bol
+      const c=LAND_VAN[hi];
+      const eigenKleur=opts.kleurFn?opts.kleurFn(c):(c?c.kleur:"#fff");
+      const ringen=data.landen[hi];
+      if(ringen){
+        tekenRingen(ringen, eigenKleur, null, 0);            // volle kleur terug
+        tekenRingen(ringen, null, "rgba(0,0,0,0.6)", 5.5);   // donkere halo eronder → altijd zichtbaar
+        tekenRingen(ringen, null, "#FFD24A", 2.6);           // heldere gouden rand precies op de grens
+      }
+      const d=GLOBE.dots[hi];
+      if(d&&zicht(d[0],d[1])>=0){const [x,y]=pr(d[0],d[1]);
+        ctx.beginPath();ctx.arc(x,y,6,0,7);ctx.fillStyle=eigenKleur;ctx.fill();
+        ctx.lineWidth=4;ctx.strokeStyle="rgba(0,0,0,0.6)";ctx.stroke();
+        ctx.lineWidth=2;ctx.strokeStyle="#FFD24A";ctx.stroke();}
+    }
     // zeenamen
     ctx.font="italic 13px ui-rounded, 'Arial Rounded MT Bold', 'Trebuchet MS', sans-serif";
     ctx.textAlign="center";ctx.fillStyle="rgba(255,255,255,0.38)";
