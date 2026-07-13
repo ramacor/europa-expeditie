@@ -677,7 +677,7 @@ const KAARTEN={"EU":{"geo":{"IS":{"d":"M306.8 230.5L301.8 233.3L303.8 235.9L301.
 </script>
 <script>
 "use strict";
-const VERSIE="22"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="23"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -1430,7 +1430,7 @@ function toonVraag(){
   voortgangSync();
   $("#q-gold").style.display=st.qi===st.goldIdx?"block":"none";
   $("#q-hint").style.display="none";$("#q-hint").innerHTML="";
-  $("#b-hint").disabled=false;$("#b-hint").textContent="💡 Hint (nog 2)";
+  $("#b-hint").style.display="";$("#b-hint").disabled=false;$("#b-hint").textContent="💡 Hint (nog 2)";
   $("#q-choices").innerHTML="";
   $("#q-klik").style.display="none";
   $("#q-voet").textContent=`🪙 nog ${5-speler().points} muntje${5-speler().points===1?"":"s"} tot je volgende 💎`;
@@ -1823,8 +1823,8 @@ function startVerken(){
   $("#q-text").textContent="Draai de globe 🌍 en tik op een land om het te leren kennen!";
   $("#q-choices").innerHTML="";$("#q-klik").style.display="none";
   $("#q-gold").style.display="none";$("#q-hint").style.display="none";
-  $("#b-hint").disabled=true;$("#b-hint").textContent="💡 Hint (alleen tijdens een ronde)";
-  $("#q-voet").textContent="Klaar met verkennen? Klik op 🏠";
+  $("#b-hint").style.display="none"; // geen hint-knop in verkenmodus
+  $("#q-voet").textContent="";       // geen 'klaar met verkennen'-regel → meer ruimte voor de globe
   hudSyncVeilig();
 }
 function hudSyncVeilig(){
