@@ -176,6 +176,18 @@
   #map{width:100%; height:100%; display:block; touch-action:none; cursor:default}
   .zoomui{position:absolute; right:10px; bottom:10px; display:flex; flex-direction:column; gap:6px}
   .zoomui button{width:38px; height:38px; border:none; border-radius:10px; background:var(--panel); box-shadow:var(--shadow); font-size:18px; cursor:pointer}
+  /* verken-info als overlay OVER de globe (drukt de globe niet plat) */
+  #verken-pop{position:absolute; left:10px; right:10px; bottom:10px; z-index:6; display:none;
+    background:var(--panel); border:1px solid var(--chip); border-radius:16px; box-shadow:var(--shadow);
+    max-height:62%; overflow-y:auto; padding:12px 15px}
+  #verken-pop.open{display:block; animation:cardin .25s ease-out}
+  .vp-kop{display:flex; align-items:center; gap:10px; position:sticky; top:0; background:var(--panel); padding-bottom:6px}
+  .vp-kop b{font-size:19px; text-wrap:balance}
+  .vp-vlag{font-size:30px; line-height:1}
+  .vp-sluit{margin-left:auto; flex:none; border:none; background:var(--panel2); color:var(--ink); border-radius:10px; padding:8px 13px; font-size:14px; font-weight:bold; cursor:pointer}
+  .vp-body{font-size:14px; line-height:1.5}
+  .vp-body .pc{font-size:24px; letter-spacing:2px; display:block; margin-bottom:4px}
+  .vp-body img{width:100%; border-radius:10px; margin-top:9px; display:block}
   .dock{
     width:340px; flex:none; background:var(--panel); border-radius:18px; box-shadow:var(--shadow);
     padding:16px; display:flex; flex-direction:column; gap:12px; overflow-y:auto;
@@ -498,6 +510,10 @@
     <div class="mapwrap">
       <svg id="map" viewBox="0 0 1050 920" role="img" aria-label="Kaart van Europa"></svg>
       <canvas id="g-verken" style="display:none;position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab"></canvas>
+      <div id="verken-pop">
+        <div class="vp-kop"><span class="vp-vlag" id="vp-vlag"></span><b id="vp-naam"></b><button class="vp-sluit" id="vp-sluit">✕ Inklappen</button></div>
+        <div class="vp-body" id="vp-body"></div>
+      </div>
       <div class="zoomui">
         <button id="z-in" aria-label="Inzoomen">＋</button>
         <button id="z-uit" aria-label="Uitzoomen">－</button>
@@ -661,7 +677,7 @@ const KAARTEN={"EU":{"geo":{"IS":{"d":"M306.8 230.5L301.8 233.3L303.8 235.9L301.
 </script>
 <script>
 "use strict";
-const VERSIE="20"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="21"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -1768,6 +1784,7 @@ let verkenGlobe=null, kaartGlobe=null, kaartSpeler=null;
 function toonPlatteKaart(){ // globe weg, platte kaart terug (voor rondes / thuis)
   $("#map").style.display=""; const zu=document.querySelector(".zoomui"); if(zu)zu.style.display="";
   const cv=$("#g-verken"); if(cv)cv.style.display="none";
+  $("#verken-pop").classList.remove("open");
   if(verkenGlobe){verkenGlobe.stop();verkenGlobe=null;}
 }
 function startVerken(){
@@ -1783,6 +1800,7 @@ function startVerken(){
   // 3D-globe i.p.v. de platte kaart
   $("#map").style.display="none"; const zu=document.querySelector(".zoomui"); if(zu)zu.style.display="none";
   const cv=$("#g-verken"); cv.style.display="block";
+  $("#verken-pop").classList.remove("open");
   if(verkenGlobe)verkenGlobe.stop();
   verkenGlobe=maakGlobe(cv,{mode:"verken", startId:contSel()[0]==="AS"?"CN":"DE",
     onClick:id=>{const c=LANDEN.find(x=>x.id===id); if(c)verkenInfo(c);}});
@@ -1802,19 +1820,11 @@ function hudSyncVeilig(){
   $("#hud-streak").textContent=`🔥 0`;
   $("#hud-munt").textContent=`🪙 ${p?p.points:0}/5`;
 }
-function verkenInfo(c){
-  if(verkenGlobe){ verkenGlobe.highlight(c.id); verkenGlobe.focus(c.id); }
-  else { kaartReset();map.classList.add("klikbaar");
-    LANDEN.forEach(x=>{if(x.id!==c.id&&paden[x.id])paden[x.id].classList.add("dim");});
-    paden[c.id].classList.add("target"); zoomNaarLand(c); }
-  sndKlik();
-  $("#q-label").textContent="Verkenmodus";
-  $("#q-text").innerHTML=`<span style="font-size:34px; vertical-align:-4px">${c.f}</span> <b>${esc(c.n)}</b>`;
+function verkenInfoHtml(c){
   const fotos=fotosVan(c),feiten=feitenVan(c),w=woordenVan(c)[0];
   const naam=st.naam||db.last;const p=db.players[(naam||"").toLowerCase()];
   const score=p?totGoed(p,c.id):0;
-  $("#q-hint").style.display="block";
-  $("#q-hint").innerHTML=`<span class="pc">${c.card}</span>
+  return `<span class="pc">${c.card}</span>
     <b>Hoofdstad:</b> ${esc(c.h)}<br>
     <b>Ligging:</b> ${esc(c.hint)}<br><br>
     <b>Wist je dat?</b> ${esc(feiten[0])}`
@@ -1824,6 +1834,25 @@ function verkenInfo(c){
     +(score?`<br><br>📔 Jij hebt ${esc(c.n)} al <b>${score}×</b> goed geraden!`:"")
     +(fotos.length?`<img class="verkenfoto" src="${fotos[0].src}" alt="${esc(fotos[0].t)}" onerror="this.remove()">`:"");
 }
+function verkenInfo(c){
+  sndKlik();
+  if(verkenGlobe){ // overlay over de globe (drukt de globe niet plat)
+    verkenGlobe.highlight(c.id); verkenGlobe.focus(c.id);
+    $("#vp-vlag").textContent=c.f; $("#vp-naam").textContent=c.n;
+    $("#vp-body").innerHTML=verkenInfoHtml(c);
+    $("#verken-pop").classList.add("open"); $("#verken-pop").scrollTop=0;
+    return;
+  }
+  // (platte-kaart fallback)
+  kaartReset();map.classList.add("klikbaar");
+  LANDEN.forEach(x=>{if(x.id!==c.id&&paden[x.id])paden[x.id].classList.add("dim");});
+  paden[c.id].classList.add("target"); zoomNaarLand(c);
+  $("#q-label").textContent="Verkenmodus";
+  $("#q-text").innerHTML=`<span style="font-size:34px; vertical-align:-4px">${c.f}</span> <b>${esc(c.n)}</b>`;
+  $("#q-hint").style.display="block";
+  $("#q-hint").innerHTML=verkenInfoHtml(c);
+}
+$("#vp-sluit").onclick=()=>{ $("#verken-pop").classList.remove("open"); if(verkenGlobe)verkenGlobe.highlight(null); sndKlik(); };
 
 /* ================= HINTS ================= */
 $("#b-hint").onclick=()=>{
@@ -1874,8 +1903,11 @@ function toonPaspoort(){
   passCont=contSel()[0]||"EU"; // begin bij het gekozen werelddeel
   document.querySelectorAll("#pass-cont button").forEach(b=>b.classList.toggle("sel",b.dataset.pc===passCont));
   $("#pass-houder").textContent=p?`— ${p.naam.toUpperCase()} —`:"";
-  passRender();
+  // altijd op de Stempels-tab openen (globe pas bij klik op Kaart)
+  document.querySelectorAll(".boektab").forEach(x=>x.classList.toggle("actief",x.dataset.tab==="stempels"));
+  $("#pass-stempels").style.display="block";$("#pass-kaart").style.display="none";$("#pass-leader").style.display="none";
   toonScherm("#s-pass");menuSync("paspoort");
+  passRender();
 }
 function passRender(){
   const p=passSpeler();
@@ -1908,6 +1940,10 @@ document.querySelectorAll(".boektab").forEach(b=>{
     $("#pass-stempels").style.display=b.dataset.tab==="stempels"?"block":"none";
     $("#pass-kaart").style.display=b.dataset.tab==="kaart"?"block":"none";
     $("#pass-leader").style.display=b.dataset.tab==="leader"?"block":"none";
+    if(b.dataset.tab==="kaart"){ // globe pas bouwen/meten als de tab zichtbaar is
+      kleurPassKaart(passSpeler());
+      requestAnimationFrame(()=>{if(kaartGlobe)kaartGlobe.meet();});
+    }
   };
 });
 // toplijst per categorie: medailles voor de top 3, duimpjes voor 4 t/m 10
@@ -1932,16 +1968,16 @@ function toonToplijst(p){
     return `<div class="lbrij"><span class="plek">${plek}</span><span>${r.c.f} ${esc(r.c.n)}</span><span class="telling">${r.n}×</span></div>`;
   }).join("");
 }
-// veroverde kaart per werelddeel: zilver bij 5×, goud (met glans) bij 10×
 // veroverde wereld: 3D-globe, goud bij 10× en zilver bij 5× goed
 function kleurPassKaart(p){
   kaartSpeler=p;
+  if($("#pass-kaart").style.display==="none")return; // globe pas bouwen als de Kaart-tab open is (anders 0×0)
   if(!kaartGlobe){
     $("#pk-houder").innerHTML='<canvas id="g-kaart" style="width:100%;height:min(58vh,440px);display:block;touch-action:none;cursor:grab"></canvas>';
     kaartGlobe=maakGlobe($("#g-kaart"),{mode:"kaart", startId:passCont==="AS"?"CN":"DE",
       kleurFn:c=>{const n=kaartSpeler?totGoed(kaartSpeler,c.id):0; return n>=10?"#F1B62B":n>=5?"#CBD3DF":"rgba(120,132,168,0.28)";}});
-    requestAnimationFrame(()=>kaartGlobe.meet());
-  }else{ kaartGlobe.render(); }
+    requestAnimationFrame(()=>{if(kaartGlobe)kaartGlobe.meet();});
+  }else{ kaartGlobe.meet(); }
 }
 function stopKaartGlobe(){ if(kaartGlobe){kaartGlobe.stop();kaartGlobe=null;} }
 
