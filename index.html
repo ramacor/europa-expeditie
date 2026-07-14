@@ -323,8 +323,8 @@
   .metmenu{padding-bottom:calc(86px + env(safe-area-inset-bottom,0px)) !important}
 
   /* ---------- Themaknop ---------- */
-  #b-thema{position:absolute; top:calc(12px + env(safe-area-inset-top,0px)); right:12px; z-index:5;
-    border:none; background:var(--panel); box-shadow:var(--shadow); border-radius:999px; padding:9px 15px; font-size:14px; font-weight:bold; cursor:pointer}
+  .topknoppen{position:absolute; top:calc(12px + env(safe-area-inset-top,0px)); right:12px; z-index:5; display:flex; gap:8px}
+  .topknoppen button{border:none; background:var(--panel); box-shadow:var(--shadow); border-radius:999px; padding:9px 15px; font-size:14px; font-weight:bold; cursor:pointer}
 
   /* ---------- Expeditie-voortgang (levels) ---------- */
   .lvlbalk{display:flex; gap:4px; margin:10px 0 5px}
@@ -428,7 +428,10 @@
 
 <!-- ============ STARTSCHERM ============ -->
 <div class="screen active" id="s-start">
-  <button id="b-thema" title="Wissel tussen licht en donker">🌙 Donker</button>
+  <div class="topknoppen">
+    <button id="b-muziek" title="Muziek aan/uit">🎵 Muziek</button>
+    <button id="b-thema" title="Wissel tussen licht en donker">🌙 Donker</button>
+  </div>
   <div class="hero">
     <span class="globe">🌍</span>
     <h1>Finn's Expeditie</h1>
@@ -509,6 +512,7 @@
     <span class="stat" id="hud-munt" title="Muntjes verdiend">🪙 0</span>
     <span class="stat" id="hud-diamant" title="Diamanten (1 per 5 goede vragen)">💎 0</span>
     <span class="stat" id="hud-streak">🔥 0</span>
+    <button class="iconbtn" id="b-muziek-hud" title="Muziek aan/uit" aria-label="Achtergrondmuziek aan of uit">🎵</button>
     <button class="iconbtn" id="b-stem" title="Stemmetjes aan/uit" aria-label="Aanmoedigingsstem aan of uit">🗣️</button>
     <button class="iconbtn" id="b-mute" title="Geluid aan/uit" aria-label="Geluid aan of uit">🔊</button>
   </div>
@@ -683,7 +687,7 @@ const KAARTEN={"EU":{"geo":{"IS":{"d":"M303.7 231L303.4 232.5L301.4 233.3L301.7 
 </script>
 <script>
 "use strict";
-const VERSIE="30"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="31"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -865,6 +869,7 @@ function load(){
   if(!d||!d.players)d={players:{},last:"",settings:{oefen:"mix",stijl:"mix",aantal:"10",niveau:"1",mini:false,flits:false},muted:false};
   if(!d.settings.continents)d.settings.continents=["EU"]; // continent-keuze (default Europa)
   if(d.stem===undefined)d.stem=true; // gesproken aanmoedigingen: standaard aan
+  if(d.muziek===undefined)d.muziek=true; // achtergrondmuziek: standaard aan
   return d;
 }
 function save(){try{localStorage.setItem(DBKEY,JSON.stringify(db));}catch(e){}}
@@ -1188,6 +1193,37 @@ function speelStem(){
     const p=stemAudio.play(); if(p&&p.catch)p.catch(()=>{}); }catch(e){} },420);
   return STEM_TEKST[i];
 }
+
+/* ============ ACHTERGRONDMUZIEK ============
+   Menu-muziek op start/verkennen/paspoort, spelmuziek tijdens een ronde. Beide in een loop.
+   iOS blokkeert autoplay tot de eerste tik → daarom start de muziek pas na een gebruikersgebaar. */
+const MUZIEK_MENU="./muziek/menu.mp3", MUZIEK_SPEL="./muziek/spel.mp3";
+let mMenu=null, mSpel=null, muziekOntgrendeld=false, muziekDoel="menu";
+function muziekAan(){ return db.muziek!==false; } // eigen knop; los van geluidseffecten/stem
+function muziekInit(){
+  if(mMenu)return;
+  mMenu=new Audio(MUZIEK_MENU); mMenu.loop=true; mMenu.volume=0.45;
+  mSpel=new Audio(MUZIEK_SPEL); mSpel.loop=true; mSpel.volume=0.28;
+}
+function muziekPas(){ // zorg dat de juiste track speelt (of alles stil bij uit / nog niet ontgrendeld)
+  muziekInit();
+  const doel  = muziekDoel==="spel" ? mSpel : mMenu;
+  const ander = muziekDoel==="spel" ? mMenu : mSpel;
+  try{ if(!ander.paused){ander.pause();ander.currentTime=0;} }catch(e){}
+  if(muziekAan() && muziekOntgrendeld){
+    try{ const p=doel.play(); if(p&&p.catch)p.catch(()=>{}); }catch(e){} // stil falen (bv. artifact-preview)
+  } else { try{ doel.pause(); }catch(e){} }
+}
+function muziekNaar(welke){ muziekDoel=welke; muziekPas(); } // "menu" | "spel"
+function muziekOntgrendel(){ if(muziekOntgrendeld)return; muziekOntgrendeld=true; muziekPas(); } // eerste tik
+addEventListener("pointerdown", muziekOntgrendel, {once:true});
+addEventListener("keydown", muziekOntgrendel, {once:true});
+function muziekKnopSync(){
+  const aan=muziekAan();
+  const b=$("#b-muziek"); if(b)b.textContent=aan?"🎵 Muziek":"🔇 Muziek";
+  const h=$("#b-muziek-hud"); if(h)h.textContent=aan?"🎵":"🙉";
+}
+function wisselMuziek(){ db.muziek=(db.muziek===false); save(); muziekPas(); muziekKnopSync(); sndKlik(); }
 
 /* ================= GROTE EFFECTEN: munten, vlammen, diamant ================= */
 function vliegMunt(x,y,vertraging=0){
@@ -2151,6 +2187,7 @@ $("#b-home").onclick=naarHome;
 function menuSync(actief){
   $("#menubalk").classList.toggle("weg",!actief);
   ["expeditie","verkennen","paspoort"].forEach(k=>$("#m-"+k).classList.toggle("actief",k===actief));
+  muziekNaar(actief===null?"spel":"menu"); // ronde (menu verborgen) → spelmuziek, anders menu-muziek
 }
 $("#m-expeditie").onclick=()=>{sndKlik();naarHome();};
 $("#m-verkennen").onclick=()=>{sndKlik();startVerken();};
@@ -2166,6 +2203,8 @@ $("#b-thema").onclick=()=>{
   const donker=db.thema?db.thema==="donker":matchMedia("(prefers-color-scheme: dark)").matches;
   db.thema=donker?"licht":"donker";save();themaSync();sndKlik();
 };
+$("#b-muziek").onclick=wisselMuziek;
+$("#b-muziek-hud").onclick=wisselMuziek;
 // expeditie-voortgang op het beginscherm
 function expeditieSync(){
   const k=(st.naam||db.last||"").toLowerCase();
@@ -2207,9 +2246,9 @@ bouwKaart();
 (function(){const bol=$("#herobol");if(!bol||matchMedia("(prefers-reduced-motion: reduce)").matches)return;
   const bollen=["🌍","🌎","🌏"];let i=0;const start=$("#s-start");
   setInterval(()=>{if(start&&start.classList.contains("active")){i=(i+1)%bollen.length;bol.textContent=bollen[i];}},280);})();
-segSync();chipsSync();themaSync();
+segSync();chipsSync();themaSync();muziekKnopSync();
 if(db.last){naamIn.value=db.last;st.naam=db.last;}
-knoppenSync();menuSync("expeditie");
+knoppenSync();menuSync("expeditie"); // zet ook muziekDoel op "menu" (start pas bij de eerste tik)
 toonWelkom();
 // offline spelen (GitHub Pages); faalt stil waar geen sw.js bestaat (bijv. artifact)
 if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostname==="localhost")){
