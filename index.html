@@ -683,7 +683,7 @@ const KAARTEN={"EU":{"geo":{"IS":{"d":"M303.7 231L303.4 232.5L301.4 233.3L301.7 
 </script>
 <script>
 "use strict";
-const VERSIE="29"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="30"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -1156,19 +1156,37 @@ function sndVlam(){ // whoosh van oplaaiende vlammen: ruis door een stijgend fil
    Speelt een willekeurige (niet dezelfde als vorige) bij een goed antwoord. */
 const STEM_AANTAL=30;
 const STEM_URLS=Array.from({length:STEM_AANTAL},(_,i)=>`./stem/z${String(i+1).padStart(2,"0")}.mp3`);
-let stemAudio=null, stemVorige=-1;
+// tekst per clip (z01..z30) — moet exact overeenkomen met wat je hoort, want dit vult ook de pop-up
+const STEM_TEKST=[
+ "Boem! Recht in de roos!","Jij bent een topografie-tijger!","Zo goed, mijn mond valt open!",
+ "Hoppa, weer eentje binnen!","Jij weet meer dan mijn juf!","Kabeng! Helemaal goed!",
+ "Een wandelende wereldkaart, jij!","Die zat als een bus!","Straks moet ik aan jou vragen waar het ligt!",
+ "Doe je dit soms met je ogen dicht?","Niet te stoppen, expeditieheld!","Geef je hersenen een high-five!",
+ "Slimmer dan een navigatiesysteem!","Jij en die kaart: dikke vrienden!","Bam! Voltreffer!",
+ "Wereldkampioen in de dop!","Jij strooit maar met landen!","Kei-goed, aardrijkskunde-baas!",
+ "Woehoe, topper met een hoofdletter T!","Superknap, kleine ontdekkingsreiziger!","Pang! Vol in de roos!",
+ "Jij bent een aardrijkskunde-raket!","Zo knap, ik moet even zitten!","Yes! Jij hebt een kompas in je hoofd!",
+ "Landen eet jij als ontbijt!","Kadabra! Goed getoverd!","Kaartlezer-kanjer, dat ben jij!",
+ "Volgende halte: nog knapper!","Wauw, jij ruikt landen op afstand!","Bingo! Recht op de knikker!"
+];
+let stemAudio=null, stemBag=[], stemLaatste=-1;
 function stemAan(){ return db.stem!==false && !db.muted; } // standaard aan, volgt ook de globale mute
+// shuffle-bag: alle 30 komen aan bod vóór er één herhaalt (en nooit twee dezelfde vlak na elkaar)
+function volgendeStemIdx(){
+  if(!stemBag.length){
+    stemBag=Array.from({length:STEM_AANTAL},(_,i)=>i);
+    for(let i=stemBag.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[stemBag[i],stemBag[j]]=[stemBag[j],stemBag[i]];}
+    if(STEM_AANTAL>1 && stemBag[stemBag.length-1]===stemLaatste) // volgende (=laatste in bag) niet dezelfde als vorige ronde
+      [stemBag[stemBag.length-1],stemBag[0]]=[stemBag[0],stemBag[stemBag.length-1]];
+  }
+  const i=stemBag.pop(); stemLaatste=i; return i;
+}
+// kies de volgende clip, plan het afspelen ná het muntgerinkel, en geef de gesproken tekst terug (voor de pop-up)
 function speelStem(){
-  if(!stemAan())return;
-  if(stemAudio && !stemAudio.paused && !stemAudio.ended)return; // niet over elkaar heen
-  let i; do{ i=Math.floor(Math.random()*STEM_AANTAL); }while(STEM_AANTAL>1 && i===stemVorige);
-  stemVorige=i;
-  try{
-    stemAudio=stemAudio||new Audio();
-    stemAudio.src=STEM_URLS[i];
-    const p=stemAudio.play();
-    if(p&&p.catch)p.catch(()=>{}); // stil falen (bv. in de artifact-preview zonder bestanden)
-  }catch(e){}
+  const i=volgendeStemIdx();
+  if(stemAan())setTimeout(()=>{ try{ stemAudio=stemAudio||new Audio(); stemAudio.src=STEM_URLS[i];
+    const p=stemAudio.play(); if(p&&p.catch)p.catch(()=>{}); }catch(e){} },420);
+  return STEM_TEKST[i];
 }
 
 /* ================= GROTE EFFECTEN: munten, vlammen, diamant ================= */
@@ -1420,6 +1438,7 @@ function startRonde(moeilijk=false){
   if(!st.vragen.length){toast("Geen vragen mogelijk met deze instellingen 🤔");return;}
   menuSync(null);$("#s-game").classList.remove("metmenu");toonPlatteKaart();
   st.qi=0;st.streak=0;st.verken=false;st.rondeStart=Date.now();
+  st.stemNaGoed=true; // eerste goede antwoord van de ronde krijgt altijd een gesproken aanmoediging
   st.ronde={goed:0,punt:0,best:0,diam:0,stempels:[],uitslagen:[]};
   st.goldIdx=Math.floor(Math.random()*st.vragen.length);
   $("#hud-naam").textContent=p.naam;
@@ -1581,6 +1600,7 @@ function beantwoord(goed,knop,timeout=false,geklikt=null){
   });
   logVan(p,c.id)[catVan(q.type)+(goed?"g":"f")]++; // logging per land én categorie, vanaf de allereerste vraag
   const belon=[];
+  let stemTekst=null; // gesproken zin (indien afgespeeld) → pop-up-tekst moet hiermee overeenkomen
   if(goed){
     st.ronde.goed++;st.streak++;
     if(st.streak>st.ronde.best)st.ronde.best=st.streak;
@@ -1599,7 +1619,10 @@ function beantwoord(goed,knop,timeout=false,geklikt=null){
     if(diamant)setTimeout(toonDiamant,1000); // ná de muntjes: grote 3D-diamant-viering
     st.ronde.uitslagen[st.qi]={goed:true,diamant};
     sndGoed();
-    setTimeout(speelStem,420); // vrolijke gesproken aanmoediging ná het muntgerinkel
+    // gedoseerde gesproken aanmoediging: 1e goede vraag van de ronde altijd, daarna om-en-om (1 ertussen zonder),
+    // en ná een fout speelt het eerstvolgende goede antwoord altijd. Tekst = precies wat je hoort.
+    if(st.stemNaGoed){ stemTekst=speelStem(); st.stemNaGoed=false; }
+    else { st.stemNaGoed=true; }
     // muntjes vliegen vanaf het goede land naar de teller
     const lr=paden[c.id].getBoundingClientRect();
     for(let i=0;i<pts;i++)vliegMunt(lr.left+lr.width/2,lr.top+lr.height/2,i*180);
@@ -1609,9 +1632,10 @@ function beantwoord(goed,knop,timeout=false,geklikt=null){
     st.streak=0;sndFout();
     st.ronde.uitslagen[st.qi]={goed:false,diamant:false};
     p.fouten=p.fouten||{};p.fouten[c.id]=(p.fouten[c.id]||0)+1; // voor de moeilijke ronde
+    st.stemNaGoed=true; // ná een fout speelt het eerstvolgende goede antwoord altijd een aanmoediging
   }
   save();hudSync();voortgangSync();
-  toonFeedback(goed,belon,timeout,geklikt);
+  toonFeedback(goed,belon,timeout,geklikt,stemTekst);
 }
 
 // roterende beloningen: elke goede beurt iets nieuws — feitje+woordje, afgewisseld met een foto
@@ -1657,10 +1681,11 @@ function annuleerFoto(){
   $("#fotogroot").classList.remove("open");
 }
 $("#fotogroot").addEventListener("click",ev=>{if(ev.target.tagName!=="A")annuleerFoto();});
-function toonFeedback(goed,belon,timeout,geklikt){
+function toonFeedback(goed,belon,timeout,geklikt,stemTekst){
   const q=st.q,c=q.c;
   $("#f-emoji").textContent=goed?rnd(["🎉","🌟","🚀","🥳","💪","🧭"]):(timeout?"⏰":"😅");
-  $("#f-titel").textContent=goed?pep(PEP_GOED):(timeout?"De tijd is om!":pep(PEP_FOUT));
+  // als er een aanmoediging klinkt, toon exact díe zin; anders een gewone pep-tekst
+  $("#f-titel").textContent=goed?(stemTekst||pep(PEP_GOED)):(timeout?"De tijd is om!":pep(PEP_FOUT));
   let sub=`${c.f} <b>${c.n}</b> — hoofdstad: <b>${c.h}</b>`;
   if(!goed&&geklikt)sub=`Je klikte op ${geklikt.f} ${geklikt.n}.<br>${sub}`;
   if(!goed&&!geklikt)sub=`Het juiste antwoord: ${sub}`;
@@ -2165,7 +2190,7 @@ $("#b-nogeens").onclick=()=>{sndKlik();startRonde();};
 $("#b-anders").onclick=()=>{chipsSync();segSync();expeditieSync();toonScherm("#s-start");menuSync("expeditie");};
 $("#s-result").addEventListener("click",ev=>{if(ev.target===ev.currentTarget)$("#b-anders").click();}); // naast het overzicht klikken = home
 $("#b-mute").onclick=()=>{db.muted=!db.muted;save();hudSync();};
-$("#b-stem").onclick=()=>{db.stem=!db.stem;save();hudSync();if(db.stem&&!db.muted){stemVorige=-1;speelStem();}}; // aanmoedigingsstem aan/uit; bij aanzetten meteen een voorproefje
+$("#b-stem").onclick=()=>{db.stem=!db.stem;save();hudSync();if(db.stem&&!db.muted)speelStem();}; // aanmoedigingsstem aan/uit; bij aanzetten meteen een voorproefje
 addEventListener("keydown",ev=>{
   if($("#fb").classList.contains("open")){if(ev.key==="Enter"){ev.preventDefault();$("#b-next").click();}return;}
   if($("#s-game").classList.contains("active")&&st.q&&!st.answered){
