@@ -1,7 +1,8 @@
 // Europa Expeditie — offline spelen. Netwerk eerst (altijd de nieuwste versie),
 // cache als terugval zonder internet. Verhoog het versienummer bij een update.
-const CACHE = "europa-expeditie-v28";
-const BASIS = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-512.png"];
+const CACHE = "europa-expeditie-v29";
+const STEM = Array.from({ length: 30 }, (_, i) => `./stem/z${String(i + 1).padStart(2, "0")}.mp3`);
+const BASIS = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-512.png", ...STEM];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(BASIS)).then(() => self.skipWaiting()));

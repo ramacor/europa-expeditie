@@ -509,6 +509,7 @@
     <span class="stat" id="hud-munt" title="Muntjes verdiend">🪙 0</span>
     <span class="stat" id="hud-diamant" title="Diamanten (1 per 5 goede vragen)">💎 0</span>
     <span class="stat" id="hud-streak">🔥 0</span>
+    <button class="iconbtn" id="b-stem" title="Stemmetjes aan/uit" aria-label="Aanmoedigingsstem aan of uit">🗣️</button>
     <button class="iconbtn" id="b-mute" title="Geluid aan/uit" aria-label="Geluid aan of uit">🔊</button>
   </div>
   <div class="arena">
@@ -682,7 +683,7 @@ const KAARTEN={"EU":{"geo":{"IS":{"d":"M303.7 231L303.4 232.5L301.4 233.3L301.7 
 </script>
 <script>
 "use strict";
-const VERSIE="28"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="29"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -863,6 +864,7 @@ function load(){
   let d;try{d=JSON.parse(localStorage.getItem(DBKEY));}catch(e){}
   if(!d||!d.players)d={players:{},last:"",settings:{oefen:"mix",stijl:"mix",aantal:"10",niveau:"1",mini:false,flits:false},muted:false};
   if(!d.settings.continents)d.settings.continents=["EU"]; // continent-keuze (default Europa)
+  if(d.stem===undefined)d.stem=true; // gesproken aanmoedigingen: standaard aan
   return d;
 }
 function save(){try{localStorage.setItem(DBKEY,JSON.stringify(db));}catch(e){}}
@@ -1149,6 +1151,26 @@ function sndVlam(){ // whoosh van oplaaiende vlammen: ruis door een stijgend fil
   }catch(e){}
 }
 
+/* ============ GESPROKEN AANMOEDIGINGEN (Chris, ingesproken via ElevenLabs) ============
+   30 korte clips in ./stem/z01..z30.mp3, offline gecachet door de service worker.
+   Speelt een willekeurige (niet dezelfde als vorige) bij een goed antwoord. */
+const STEM_AANTAL=30;
+const STEM_URLS=Array.from({length:STEM_AANTAL},(_,i)=>`./stem/z${String(i+1).padStart(2,"0")}.mp3`);
+let stemAudio=null, stemVorige=-1;
+function stemAan(){ return db.stem!==false && !db.muted; } // standaard aan, volgt ook de globale mute
+function speelStem(){
+  if(!stemAan())return;
+  if(stemAudio && !stemAudio.paused && !stemAudio.ended)return; // niet over elkaar heen
+  let i; do{ i=Math.floor(Math.random()*STEM_AANTAL); }while(STEM_AANTAL>1 && i===stemVorige);
+  stemVorige=i;
+  try{
+    stemAudio=stemAudio||new Audio();
+    stemAudio.src=STEM_URLS[i];
+    const p=stemAudio.play();
+    if(p&&p.catch)p.catch(()=>{}); // stil falen (bv. in de artifact-preview zonder bestanden)
+  }catch(e){}
+}
+
 /* ================= GROTE EFFECTEN: munten, vlammen, diamant ================= */
 function vliegMunt(x,y,vertraging=0){
   if(matchMedia("(prefers-reduced-motion: reduce)").matches){setTimeout(sndMunt,vertraging);return;}
@@ -1425,6 +1447,7 @@ function hudSync(){
   $("#hud-streak").textContent=`🔥 ${st.streak}`;
   $("#hud-munt").textContent=`🪙 ${p.points}`;
   $("#b-mute").textContent=db.muted?"🔇":"🔊";
+  $("#b-stem").textContent=db.stem===false?"🙊":"🗣️";
 }
 // brede voortgangsbalk: per vraag een muntje (goed), diamant (diamant erbij) of 😞 (fout)
 function voortgangSync(){
@@ -1576,6 +1599,7 @@ function beantwoord(goed,knop,timeout=false,geklikt=null){
     if(diamant)setTimeout(toonDiamant,1000); // ná de muntjes: grote 3D-diamant-viering
     st.ronde.uitslagen[st.qi]={goed:true,diamant};
     sndGoed();
+    setTimeout(speelStem,420); // vrolijke gesproken aanmoediging ná het muntgerinkel
     // muntjes vliegen vanaf het goede land naar de teller
     const lr=paden[c.id].getBoundingClientRect();
     for(let i=0;i<pts;i++)vliegMunt(lr.left+lr.width/2,lr.top+lr.height/2,i*180);
@@ -2141,6 +2165,7 @@ $("#b-nogeens").onclick=()=>{sndKlik();startRonde();};
 $("#b-anders").onclick=()=>{chipsSync();segSync();expeditieSync();toonScherm("#s-start");menuSync("expeditie");};
 $("#s-result").addEventListener("click",ev=>{if(ev.target===ev.currentTarget)$("#b-anders").click();}); // naast het overzicht klikken = home
 $("#b-mute").onclick=()=>{db.muted=!db.muted;save();hudSync();};
+$("#b-stem").onclick=()=>{db.stem=!db.stem;save();hudSync();if(db.stem&&!db.muted){stemVorige=-1;speelStem();}}; // aanmoedigingsstem aan/uit; bij aanzetten meteen een voorproefje
 addEventListener("keydown",ev=>{
   if($("#fb").classList.contains("open")){if(ev.key==="Enter"){ev.preventDefault();$("#b-next").click();}return;}
   if($("#s-game").classList.contains("active")&&st.q&&!st.answered){
