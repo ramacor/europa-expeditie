@@ -1,6 +1,6 @@
 // Europa Expeditie — offline spelen. Netwerk eerst (altijd de nieuwste versie),
 // cache als terugval zonder internet. Verhoog het app-versienummer (CACHE) bij een update.
-const CACHE = "europa-expeditie-v35";   // app-schil (klein) — wordt bij elke update opnieuw geladen
+const CACHE = "europa-expeditie-v36";   // app-schil (klein) — wordt bij elke update opnieuw geladen
 const MEDIA = "europa-media-v2";        // geluid + muziek — blijft staan bij app-updates
 const APP = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-512.png"];
 const STEM = Array.from({ length: 30 }, (_, i) => `./stem/z${String(i + 1).padStart(2, "0")}.mp3`);

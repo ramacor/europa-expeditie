@@ -530,9 +530,7 @@
     <span class="stat" id="hud-munt" title="Muntjes verdiend">🪙 0</span>
     <span class="stat" id="hud-diamant" title="Diamanten (1 per 5 goede vragen)">💎 0</span>
     <span class="stat" id="hud-streak">🔥 0</span>
-    <button class="iconbtn" id="b-muziek-hud" title="Muziek aan/uit" aria-label="Achtergrondmuziek aan of uit">🎵</button>
-    <button class="iconbtn" id="b-stem" title="Stemmetjes aan/uit" aria-label="Aanmoedigingsstem aan of uit">🗣️</button>
-    <button class="iconbtn" id="b-mute" title="Geluid aan/uit" aria-label="Geluid aan of uit">🔊</button>
+    <button class="iconbtn" id="b-mute" title="Geluid &amp; muziek" aria-label="Geluid- en muziekinstellingen">🔊</button>
   </div>
   <div class="arena">
     <div class="mapwrap">
@@ -671,8 +669,11 @@
 </nav>
 <div id="muziekpop" role="dialog" aria-modal="true" aria-label="Muziek-instellingen">
   <div class="muziekcard">
-    <h3>🎵 Muziek</h3>
-    <p class="mp-hint">Regelt alleen de muziek — je geluidseffecten en de stemmetjes blijven zoals ze zijn.</p>
+    <h3>🔊 Geluid</h3>
+    <p class="mp-hint">Zet alles apart aan of uit.</p>
+    <div class="mp-rij"><span>Geluidseffecten</span><button class="mp-switch" id="mp-fx" aria-label="Geluidseffecten aan of uit"></button></div>
+    <div class="mp-rij"><span>Gesproken tekst</span><button class="mp-switch" id="mp-stem" aria-label="Gesproken aanmoedigingen aan of uit"></button></div>
+    <div class="mp-label">Muziek</div>
     <div class="mp-rij"><span>Muziek aan</span><button class="mp-switch" id="mp-aan" aria-label="Muziek aan of uit"></button></div>
     <div class="mp-rij"><span>Volume</span><input type="range" id="mp-vol" min="0" max="1" step="0.02"><span class="schuifval" id="mp-volval"></span></div>
     <div class="mp-label">Achtergrondmuziekje</div>
@@ -716,7 +717,7 @@ const KAARTEN={"EU":{"geo":{"IS":{"d":"M303.7 231L303.4 232.5L301.4 233.3L301.7 
 </script>
 <script>
 "use strict";
-const VERSIE="35"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="36"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -899,6 +900,7 @@ function load(){
   if(!d.settings.continents)d.settings.continents=["EU"]; // continent-keuze (default Europa)
   if(d.stem===undefined)d.stem=true; // gesproken aanmoedigingen: standaard aan
   if(d.muziek===undefined)d.muziek=true; // achtergrondmuziek: standaard aan
+  if(d.effecten===undefined)d.effecten=(d.muted===true?false:true); // geluidseffecten (voorheen de globale mute)
   if(d.muziekVol===undefined)d.muziekVol=0.45; // muziekvolume (los van geluidseffecten/stem)
   if(d.muziekKeuze===undefined)d.muziekKeuze="expeditie"; // gekozen achtergrondtrack (default = huidige)
   return d;
@@ -1118,7 +1120,7 @@ function kaartReset(){
 /* ================= GELUID ================= */
 let actx=null;
 function toon(freq,dur=.15,type="sine",vol=.18,when=0){
-  if(db.muted)return;
+  if(db.effecten===false)return;
   try{
     actx=actx||new (window.AudioContext||window.webkitAudioContext)();
     if(actx.state==="suspended")actx.resume(); // iOS/iPadOS start audio pas na een tik
@@ -1133,7 +1135,7 @@ function toon(freq,dur=.15,type="sine",vol=.18,when=0){
 const sndGoed=()=>{toon(660,.12);toon(880,.2,"sine",.18,.1);};
 let scheetAudio=null;
 function sndFout(){ // echte traditionele scheet 💨 (ingebakken geluidsbestand)
-  if(db.muted)return;
+  if(db.effecten===false)return;
   try{
     if(typeof SCHEET_DATA!=="undefined"&&SCHEET_DATA){
       scheetAudio=scheetAudio||new Audio(SCHEET_DATA);
@@ -1145,7 +1147,7 @@ function sndFout(){ // echte traditionele scheet 💨 (ingebakken geluidsbestand
   synthScheet();
 }
 function synthScheet(){ // terugval als het geluidsbestand niet kan spelen
-  if(db.muted)return;
+  if(db.effecten===false)return;
   try{
     actx=actx||new (window.AudioContext||window.webkitAudioContext)();
     if(actx.state==="suspended")actx.resume();
@@ -1171,7 +1173,7 @@ const sndFanfare=()=>{[523,659,784,1046].forEach((f,i)=>toon(f,.22,"triangle",.2
 const sndMunt=()=>{toon(1975,.06,"square",.05);toon(2637,.16,"triangle",.14,.05);}; // rinkel: ting!
 const sndDiamant=()=>{[784,1046,1318,1568,2093].forEach((f,i)=>toon(f,.32,"triangle",.16,i*.07));toon(3136,.7,"sine",.07,.4);};
 function sndVlam(){ // whoosh van oplaaiende vlammen: ruis door een stijgend filter
-  if(db.muted)return;
+  if(db.effecten===false)return;
   try{
     actx=actx||new (window.AudioContext||window.webkitAudioContext)();
     if(actx.state==="suspended")actx.resume();
@@ -1206,7 +1208,7 @@ const STEM_TEKST=[
  "Volgende halte: nog knapper!","Wauw, jij ruikt landen op afstand!","Bingo! Recht op de knikker!"
 ];
 let stemAudio=null, stemBag=[], stemLaatste=-1;
-function stemAan(){ return db.stem!==false && !db.muted; } // standaard aan, volgt ook de globale mute
+function stemAan(){ return db.stem!==false; } // eigen aan/uit in de geluid-popup
 // shuffle-bag: alle 30 komen aan bod vóór er één herhaalt (en nooit twee dezelfde vlak na elkaar)
 function volgendeStemIdx(){
   if(!stemBag.length){
@@ -1267,12 +1269,12 @@ addEventListener("pagehide", muziekStil);
 // verliest het venster/artifact de focus (bv. je klikt in de Claude Code-chat) → muziek stil; terug → verder
 addEventListener("blur", muziekStil);
 addEventListener("focus", muziekHervat);
-function muziekKnopSync(){
-  const aan=muziekAan();
-  const b=$("#b-muziek"); if(b)b.textContent=aan?"🎵 Muziek":"🔇 Muziek";
-  const h=$("#b-muziek-hud"); if(h)h.textContent=aan?"🎵":"🙉";
+function geluidKnopSync(){ // één geluid-knop op start (tekst) én in de HUD (icoon: 🔇 als álles uit)
+  const allesUit = db.effecten===false && db.stem===false && db.muziek===false;
+  const b=$("#b-muziek"); if(b)b.textContent="🔊 Geluid";
+  const h=$("#b-mute"); if(h)h.textContent=allesUit?"🔇":"🔊";
 }
-function wisselMuziek(){ db.muziek=(db.muziek===false); save(); muziekPas(); muziekKnopSync(); sndKlik(); }
+function wisselMuziek(){ db.muziek=(db.muziek===false); save(); muziekPas(); geluidKnopSync(); }
 function zetMuziekVol(v){ db.muziekVol=Math.max(0,Math.min(1,v)); save(); muziekVolPas(); } // live volume, alleen muziek
 function kiesTrack(key){ // wissel de achtergrond-/menutrack
   db.muziekKeuze=key; save(); muziekInit();
@@ -1556,8 +1558,7 @@ function hudSync(){
   $("#hud-diamant").textContent=`💎 ${p.diamonds}`;
   $("#hud-streak").textContent=`🔥 ${st.streak}`;
   $("#hud-munt").textContent=`🪙 ${p.points}`;
-  $("#b-mute").textContent=db.muted?"🔇":"🔊";
-  $("#b-stem").textContent=db.stem===false?"🙊":"🗣️";
+  geluidKnopSync();
 }
 // brede voortgangsbalk: per vraag een muntje (goed), diamant (diamant erbij) of 😞 (fout)
 function voortgangSync(){
@@ -2258,9 +2259,10 @@ $("#b-thema").onclick=()=>{
   const donker=db.thema?db.thema==="donker":matchMedia("(prefers-color-scheme: dark)").matches;
   db.thema=donker?"licht":"donker";save();themaSync();sndKlik();
 };
-$("#b-muziek-hud").onclick=wisselMuziek; // snelle aan/uit tijdens een ronde
-// muziek-instellingen (startscherm): aan/uit, volume, keuze achtergrondtrack
+// geluid-popup (start én HUD): geluidseffecten, gesproken tekst, muziek (aan/uit + volume + track)
 function muziekPopSync(){
+  $("#mp-fx").classList.toggle("aan",db.effecten!==false);
+  $("#mp-stem").classList.toggle("aan",stemAan());
   $("#mp-aan").classList.toggle("aan",muziekAan());
   const v=(db.muziekVol==null?0.45:db.muziekVol);
   $("#mp-vol").value=v; $("#mp-volval").textContent=Math.round(v*100)+"%";
@@ -2271,9 +2273,13 @@ function muziekPopSync(){
     cont.appendChild(l);
   });
 }
-$("#b-muziek").onclick=()=>{ sndKlik(); muziekPopSync(); $("#muziekpop").classList.add("open"); };
+function openGeluid(){ muziekPopSync(); $("#muziekpop").classList.add("open"); sndKlik(); }
+$("#b-muziek").onclick=openGeluid;  // startscherm
+$("#b-mute").onclick=openGeluid;    // game-HUD (was mute-knop, nu de geluid-knop)
 $("#mp-sluit").onclick=()=>{ sndKlik(); $("#muziekpop").classList.remove("open"); };
 $("#muziekpop").addEventListener("click",e=>{ if(e.target===e.currentTarget)$("#muziekpop").classList.remove("open"); });
+$("#mp-fx").onclick=()=>{ db.effecten=(db.effecten===false); save(); geluidKnopSync(); $("#mp-fx").classList.toggle("aan",db.effecten!==false); if(db.effecten!==false)sndKlik(); };
+$("#mp-stem").onclick=()=>{ db.stem=(db.stem===false); save(); geluidKnopSync(); $("#mp-stem").classList.toggle("aan",stemAan()); if(stemAan())speelStem(); };
 $("#mp-aan").onclick=()=>{ wisselMuziek(); $("#mp-aan").classList.toggle("aan",muziekAan()); };
 $("#mp-vol").oninput=()=>{ const v=parseFloat($("#mp-vol").value); zetMuziekVol(v); $("#mp-volval").textContent=Math.round(v*100)+"%"; };
 $("#mp-tracks").addEventListener("change",e=>{ if(e.target.name==="mptrack"){ kiesTrack(e.target.value);
@@ -2301,8 +2307,6 @@ function expeditieSync(){
 $("#b-nogeens").onclick=()=>{sndKlik();startRonde();};
 $("#b-anders").onclick=()=>{chipsSync();segSync();expeditieSync();toonScherm("#s-start");menuSync("expeditie");};
 $("#s-result").addEventListener("click",ev=>{if(ev.target===ev.currentTarget)$("#b-anders").click();}); // naast het overzicht klikken = home
-$("#b-mute").onclick=()=>{db.muted=!db.muted;save();hudSync();};
-$("#b-stem").onclick=()=>{db.stem=!db.stem;save();hudSync();if(db.stem&&!db.muted)speelStem();}; // aanmoedigingsstem aan/uit; bij aanzetten meteen een voorproefje
 addEventListener("keydown",ev=>{
   if($("#fb").classList.contains("open")){if(ev.key==="Enter"){ev.preventDefault();$("#b-next").click();}return;}
   if($("#s-game").classList.contains("active")&&st.q&&!st.answered){
@@ -2319,7 +2323,7 @@ bouwKaart();
 (function(){const bol=$("#herobol");if(!bol||matchMedia("(prefers-reduced-motion: reduce)").matches)return;
   const bollen=["🌍","🌎","🌏"];let i=0;const start=$("#s-start");
   setInterval(()=>{if(start&&start.classList.contains("active")){i=(i+1)%bollen.length;bol.textContent=bollen[i];}},280);})();
-segSync();chipsSync();themaSync();muziekKnopSync();
+segSync();chipsSync();themaSync();geluidKnopSync();
 if(db.last){naamIn.value=db.last;st.naam=db.last;}
 knoppenSync();menuSync("expeditie"); // zet ook muziekDoel op "menu" (start pas bij de eerste tik)
 toonWelkom();
