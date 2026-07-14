@@ -716,7 +716,7 @@ const KAARTEN={"EU":{"geo":{"IS":{"d":"M303.7 231L303.4 232.5L301.4 233.3L301.7 
 </script>
 <script>
 "use strict";
-const VERSIE="33"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="34"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -1230,11 +1230,11 @@ function speelStem(){
    iOS blokkeert autoplay tot de eerste tik → daarom start de muziek pas na een gebruikersgebaar. */
 // keuze aan achtergrondtracks (eerste = standaard); menu-/achtergrondmuziek. Spelmuziek staat vast.
 const MUZIEK_TRACKS=[
-  {key:"expeditie",  naam:"Finn's Expeditie",       src:"./muziek/menu.mp3"},
-  {key:"wereldreis", naam:"Finns Wereldreis",       src:"./muziek/wereldreis.mp3"},
-  {key:"avontuur",   naam:"Op Avontuur met Finn",   src:"./muziek/avontuur.mp3"},
-  {key:"avontuur2",  naam:"Op Avontuur met Finn 2", src:"./muziek/avontuur2.mp3"},
+  {key:"expeditie",  naam:"Finn's Expeditie",     src:"./muziek/menu.mp3"},
+  {key:"wereldreis", naam:"Finns Wereldreis",     src:"./muziek/wereldreis.mp3"},
+  {key:"avontuur2",  naam:"Op Avontuur met Finn", src:"./muziek/avontuur2.mp3"},
 ];
+if(!MUZIEK_TRACKS.some(t=>t.key===db.muziekKeuze))db.muziekKeuze="expeditie"; // verwijderde track → terug naar standaard
 const MUZIEK_SPEL="./muziek/spel.mp3";
 let mMenu=null, mSpel=null, muziekOntgrendeld=false, muziekDoel="menu";
 function muziekAan(){ return db.muziek!==false; } // eigen knop; los van geluidseffecten/stem
