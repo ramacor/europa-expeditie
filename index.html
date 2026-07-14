@@ -716,7 +716,7 @@ const KAARTEN={"EU":{"geo":{"IS":{"d":"M303.7 231L303.4 232.5L301.4 233.3L301.7 
 </script>
 <script>
 "use strict";
-const VERSIE="32"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="33"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -1259,6 +1259,14 @@ function muziekNaar(welke){ muziekDoel=welke; muziekPas(); } // "menu" | "spel"
 function muziekOntgrendel(){ if(muziekOntgrendeld)return; muziekOntgrendeld=true; muziekPas(); } // eerste tik
 addEventListener("pointerdown", muziekOntgrendel, {once:true});
 addEventListener("keydown", muziekOntgrendel, {once:true});
+// muziek stopt zodra de app/tab op de achtergrond komt (blijft anders vervelend doorloopen), en gaat verder bij terugkomst
+function muziekStil(){ [mMenu,mSpel].forEach(a=>{ try{ if(a)a.pause(); }catch(e){} }); }
+function muziekHervat(){ if(muziekOntgrendeld && !document.hidden)muziekPas(); }
+addEventListener("visibilitychange",()=>{ if(document.hidden)muziekStil(); else muziekHervat(); });
+addEventListener("pagehide", muziekStil);
+// verliest het venster/artifact de focus (bv. je klikt in de Claude Code-chat) → muziek stil; terug → verder
+addEventListener("blur", muziekStil);
+addEventListener("focus", muziekHervat);
 function muziekKnopSync(){
   const aan=muziekAan();
   const b=$("#b-muziek"); if(b)b.textContent=aan?"🎵 Muziek":"🔇 Muziek";
