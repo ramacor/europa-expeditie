@@ -1,27 +1,34 @@
 // Europa Expeditie — offline spelen. Netwerk eerst (altijd de nieuwste versie),
-// cache als terugval zonder internet. Verhoog het versienummer bij een update.
-const CACHE = "europa-expeditie-v31";
+// cache als terugval zonder internet. Verhoog het app-versienummer (CACHE) bij een update.
+const CACHE = "europa-expeditie-v32";   // app-schil (klein) — wordt bij elke update opnieuw geladen
+const MEDIA = "europa-media-v2";        // geluid + muziek — blijft staan bij app-updates (niet telkens opnieuw downloaden)
+const APP = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-512.png"];
 const STEM = Array.from({ length: 30 }, (_, i) => `./stem/z${String(i + 1).padStart(2, "0")}.mp3`);
-const MUZIEK = ["./muziek/menu.mp3", "./muziek/spel.mp3"];
-const BASIS = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-512.png", ...STEM, ...MUZIEK];
+const MUZIEK = ["./muziek/menu.mp3", "./muziek/spel.mp3", "./muziek/wereldreis.mp3", "./muziek/avontuur.mp3", "./muziek/avontuur2.mp3"];
+const MEDIA_FILES = [...STEM, ...MUZIEK];
+const isMedia = url => /\.(mp3|m4a|ogg|wav)$/i.test(new URL(url).pathname);
 
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(BASIS)).then(() => self.skipWaiting()));
+  e.waitUntil(Promise.all([
+    caches.open(CACHE).then(c => c.addAll(APP)),
+    caches.open(MEDIA).then(c => Promise.allSettled(MEDIA_FILES.map(u => c.add(u)))) // best-effort, blijft persistent
+  ]).then(() => self.skipWaiting()));
 });
 self.addEventListener("activate", e => {
   e.waitUntil(
     caches.keys()
-      .then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(ks => Promise.all(ks.filter(k => k !== CACHE && k !== MEDIA).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
+  const naarMedia = isMedia(e.request.url);
   e.respondWith(
     fetch(e.request)
       .then(res => {
         const kopie = res.clone();
-        caches.open(CACHE).then(c => c.put(e.request, kopie)).catch(() => {});
+        caches.open(naarMedia ? MEDIA : CACHE).then(c => c.put(e.request, kopie)).catch(() => {});
         return res;
       })
       .catch(() =>

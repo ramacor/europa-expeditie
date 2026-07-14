@@ -325,6 +325,24 @@
   /* ---------- Themaknop ---------- */
   .topknoppen{position:absolute; top:calc(12px + env(safe-area-inset-top,0px)); right:12px; z-index:5; display:flex; gap:8px}
   .topknoppen button{border:none; background:var(--panel); box-shadow:var(--shadow); border-radius:999px; padding:9px 15px; font-size:14px; font-weight:bold; cursor:pointer}
+  /* ---------- Muziek-instellingen ---------- */
+  #muziekpop{display:none; position:fixed; inset:0; background:rgba(8,12,30,.55); z-index:60; align-items:center; justify-content:center; padding:18px}
+  #muziekpop.open{display:flex}
+  .muziekcard{background:var(--panel); border-radius:20px; box-shadow:var(--shadow); width:min(420px,100%); padding:20px 22px; max-height:88vh; overflow-y:auto}
+  .muziekcard h3{margin:0 0 6px; font-size:21px}
+  .mp-rij{display:flex; align-items:center; justify-content:space-between; gap:14px; padding:10px 0}
+  .mp-rij input[type=range]{flex:1; accent-color:var(--teal); height:22px}
+  .mp-rij .schuifval{font-variant-numeric:tabular-nums; color:var(--muted); font-size:13px; min-width:38px; text-align:right}
+  .mp-hint{font-size:12.5px; color:var(--muted); margin:-2px 0 4px}
+  .mp-label{font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:14px 0 7px; font-weight:800}
+  .mp-tracks{display:flex; flex-direction:column; gap:7px; margin-bottom:16px}
+  .mp-track{display:flex; align-items:center; gap:11px; padding:12px 14px; border:1px solid var(--line); border-radius:13px; cursor:pointer; font-weight:600}
+  .mp-track.sel{border-color:var(--teal); background:var(--chip)}
+  .mp-track input{accent-color:var(--teal); width:18px; height:18px}
+  .mp-switch{width:46px; height:27px; border-radius:99px; border:none; background:var(--line); position:relative; cursor:pointer; flex:none; transition:background .15s}
+  .mp-switch.aan{background:var(--teal)}
+  .mp-switch::after{content:""; position:absolute; top:3px; left:3px; width:21px; height:21px; border-radius:50%; background:#fff; transition:left .15s}
+  .mp-switch.aan::after{left:22px}
 
   /* ---------- Expeditie-voortgang (levels) ---------- */
   .lvlbalk{display:flex; gap:4px; margin:10px 0 5px}
@@ -651,6 +669,17 @@
   <button class="menuknop" id="m-verkennen"><span class="mico">🔍</span>Verkennen</button>
   <button class="menuknop" id="m-paspoort"><span class="mico">📔</span>Paspoort</button>
 </nav>
+<div id="muziekpop" role="dialog" aria-modal="true" aria-label="Muziek-instellingen">
+  <div class="muziekcard">
+    <h3>🎵 Muziek</h3>
+    <p class="mp-hint">Regelt alleen de muziek — je geluidseffecten en de stemmetjes blijven zoals ze zijn.</p>
+    <div class="mp-rij"><span>Muziek aan</span><button class="mp-switch" id="mp-aan" aria-label="Muziek aan of uit"></button></div>
+    <div class="mp-rij"><span>Volume</span><input type="range" id="mp-vol" min="0" max="1" step="0.02"><span class="schuifval" id="mp-volval"></span></div>
+    <div class="mp-label">Achtergrondmuziekje</div>
+    <div id="mp-tracks" class="mp-tracks"></div>
+    <button class="bigbtn" id="mp-sluit">Klaar</button>
+  </div>
+</div>
 <div id="diamantpop" aria-hidden="true">
   <div class="diamant3d">💎</div>
   <div class="diamanttekst">DIAMANT VERDIEND!</div>
@@ -687,7 +716,7 @@ const KAARTEN={"EU":{"geo":{"IS":{"d":"M303.7 231L303.4 232.5L301.4 233.3L301.7 
 </script>
 <script>
 "use strict";
-const VERSIE="31"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="32"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -870,6 +899,8 @@ function load(){
   if(!d.settings.continents)d.settings.continents=["EU"]; // continent-keuze (default Europa)
   if(d.stem===undefined)d.stem=true; // gesproken aanmoedigingen: standaard aan
   if(d.muziek===undefined)d.muziek=true; // achtergrondmuziek: standaard aan
+  if(d.muziekVol===undefined)d.muziekVol=0.45; // muziekvolume (los van geluidseffecten/stem)
+  if(d.muziekKeuze===undefined)d.muziekKeuze="expeditie"; // gekozen achtergrondtrack (default = huidige)
   return d;
 }
 function save(){try{localStorage.setItem(DBKEY,JSON.stringify(db));}catch(e){}}
@@ -1197,13 +1228,23 @@ function speelStem(){
 /* ============ ACHTERGRONDMUZIEK ============
    Menu-muziek op start/verkennen/paspoort, spelmuziek tijdens een ronde. Beide in een loop.
    iOS blokkeert autoplay tot de eerste tik → daarom start de muziek pas na een gebruikersgebaar. */
-const MUZIEK_MENU="./muziek/menu.mp3", MUZIEK_SPEL="./muziek/spel.mp3";
+// keuze aan achtergrondtracks (eerste = standaard); menu-/achtergrondmuziek. Spelmuziek staat vast.
+const MUZIEK_TRACKS=[
+  {key:"expeditie",  naam:"Finn's Expeditie",       src:"./muziek/menu.mp3"},
+  {key:"wereldreis", naam:"Finns Wereldreis",       src:"./muziek/wereldreis.mp3"},
+  {key:"avontuur",   naam:"Op Avontuur met Finn",   src:"./muziek/avontuur.mp3"},
+  {key:"avontuur2",  naam:"Op Avontuur met Finn 2", src:"./muziek/avontuur2.mp3"},
+];
+const MUZIEK_SPEL="./muziek/spel.mp3";
 let mMenu=null, mSpel=null, muziekOntgrendeld=false, muziekDoel="menu";
 function muziekAan(){ return db.muziek!==false; } // eigen knop; los van geluidseffecten/stem
+function menuTrackSrc(){ const t=MUZIEK_TRACKS.find(x=>x.key===db.muziekKeuze)||MUZIEK_TRACKS[0]; return t.src; }
+function muziekVolPas(){ const v=(db.muziekVol==null?0.45:db.muziekVol); if(mMenu)mMenu.volume=v; if(mSpel)mSpel.volume=v*0.65; } // alleen muziek, niet effecten/stem
 function muziekInit(){
   if(mMenu)return;
-  mMenu=new Audio(MUZIEK_MENU); mMenu.loop=true; mMenu.volume=0.45;
-  mSpel=new Audio(MUZIEK_SPEL); mSpel.loop=true; mSpel.volume=0.28;
+  mMenu=new Audio(menuTrackSrc()); mMenu.loop=true;
+  mSpel=new Audio(MUZIEK_SPEL); mSpel.loop=true;
+  muziekVolPas();
 }
 function muziekPas(){ // zorg dat de juiste track speelt (of alles stil bij uit / nog niet ontgrendeld)
   muziekInit();
@@ -1224,6 +1265,12 @@ function muziekKnopSync(){
   const h=$("#b-muziek-hud"); if(h)h.textContent=aan?"🎵":"🙉";
 }
 function wisselMuziek(){ db.muziek=(db.muziek===false); save(); muziekPas(); muziekKnopSync(); sndKlik(); }
+function zetMuziekVol(v){ db.muziekVol=Math.max(0,Math.min(1,v)); save(); muziekVolPas(); } // live volume, alleen muziek
+function kiesTrack(key){ // wissel de achtergrond-/menutrack
+  db.muziekKeuze=key; save(); muziekInit();
+  mMenu.src=menuTrackSrc(); mMenu.load(); muziekVolPas();
+  muziekPas(); // speelt de nieuwe track meteen als het menu-muziek de beurt heeft
+}
 
 /* ================= GROTE EFFECTEN: munten, vlammen, diamant ================= */
 function vliegMunt(x,y,vertraging=0){
@@ -2203,8 +2250,26 @@ $("#b-thema").onclick=()=>{
   const donker=db.thema?db.thema==="donker":matchMedia("(prefers-color-scheme: dark)").matches;
   db.thema=donker?"licht":"donker";save();themaSync();sndKlik();
 };
-$("#b-muziek").onclick=wisselMuziek;
-$("#b-muziek-hud").onclick=wisselMuziek;
+$("#b-muziek-hud").onclick=wisselMuziek; // snelle aan/uit tijdens een ronde
+// muziek-instellingen (startscherm): aan/uit, volume, keuze achtergrondtrack
+function muziekPopSync(){
+  $("#mp-aan").classList.toggle("aan",muziekAan());
+  const v=(db.muziekVol==null?0.45:db.muziekVol);
+  $("#mp-vol").value=v; $("#mp-volval").textContent=Math.round(v*100)+"%";
+  const cont=$("#mp-tracks"); cont.innerHTML="";
+  MUZIEK_TRACKS.forEach(t=>{
+    const l=document.createElement("label"); l.className="mp-track"+(t.key===db.muziekKeuze?" sel":"");
+    l.innerHTML=`<input type="radio" name="mptrack" value="${t.key}"${t.key===db.muziekKeuze?" checked":""}><span>${esc(t.naam)}</span>`;
+    cont.appendChild(l);
+  });
+}
+$("#b-muziek").onclick=()=>{ sndKlik(); muziekPopSync(); $("#muziekpop").classList.add("open"); };
+$("#mp-sluit").onclick=()=>{ sndKlik(); $("#muziekpop").classList.remove("open"); };
+$("#muziekpop").addEventListener("click",e=>{ if(e.target===e.currentTarget)$("#muziekpop").classList.remove("open"); });
+$("#mp-aan").onclick=()=>{ wisselMuziek(); $("#mp-aan").classList.toggle("aan",muziekAan()); };
+$("#mp-vol").oninput=()=>{ const v=parseFloat($("#mp-vol").value); zetMuziekVol(v); $("#mp-volval").textContent=Math.round(v*100)+"%"; };
+$("#mp-tracks").addEventListener("change",e=>{ if(e.target.name==="mptrack"){ kiesTrack(e.target.value);
+  document.querySelectorAll(".mp-track").forEach(l=>l.classList.toggle("sel",l.querySelector("input").checked)); } });
 // expeditie-voortgang op het beginscherm
 function expeditieSync(){
   const k=(st.naam||db.last||"").toLowerCase();
