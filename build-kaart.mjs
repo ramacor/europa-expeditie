@@ -94,6 +94,7 @@ function simplify(ring, tol){
 const pad=d=>d.map(ring=>"M"+ring.map(p=>r1(p[0])+" "+r1(p[1])).join("L")+"Z").join("");
 
 const gj = JSON.parse(readFileSync(SRC,"utf8"));
+const MEREN = JSON.parse(readFileSync("meren.geojson","utf8")); // ne_10m_lakes: waterlaag óver de landen (IJsselmeer, Grote Meren, ...)
 
 /* ---------- per continent ---------- */
 function bouwContinent(cfg){
@@ -176,6 +177,21 @@ function bouwContinent(cfg){
     if(kept.length) FIJN[code]=pad(kept);
   }
 
+  // meren: als zee-kleurige laag óver de landen; grof + fijn niveau
+  let merenGrof="", merenFijn="";
+  for(const f of MEREN.features){
+    const polys=f.geometry.type==="Polygon"?[f.geometry.coordinates]:f.geometry.coordinates;
+    for(const poly of polys){
+      const ringRaw=wrap?poly[0].map(([lo,la])=>[norm(lo),la]):poly[0];
+      const geclipt=clipRing(ringRaw,WIN);
+      if(geclipt.length<3)continue;
+      const r=geclipt.map(proj).map(fit);
+      const A=area(r);
+      if(A>=3){ const k=simplify(r,0.55); if(k.length>=3)merenGrof+=pad([k]); }
+      if(A>=0.4){ const k=simplify(r,0.1); if(k.length>=3)merenFijn+=pad([k]); }
+    }
+  }
+
   let ctxD="";
   for(const code of CTX){
     const kept=(ringGrof[code]||[]).filter(r=>area(r)>=MIN_RING_CTX);
@@ -201,7 +217,7 @@ function bouwContinent(cfg){
 
   const tot=Object.values(GEO).reduce((a,g)=>a+(g.d?g.d.length:0),0);
   console.log(`  ${PLAY.length} landen, ${tot} tekens paden, ${ctxD.length} tekens context, start`,vbstart);
-  return {geo:GEO, grat, ctx:ctxD, zee, vbstart, fijn:FIJN};
+  return {geo:GEO, grat, ctx:ctxD, zee, vbstart, fijn:FIJN, meren:merenGrof, merenFijn};
 }
 
 /* ---------- Europa (ongewijzigde parameters) ---------- */
@@ -280,9 +296,9 @@ const OC = bouwContinent({
 
 /* ---------- datapacks schrijven (daarna: node maak-manifest.mjs) ---------- */
 for(const [naam,K] of [["europa",EU],["azie",AS],["afrika",AF],["noord-amerika",NAK],["zuid-amerika",SAK],["oceanie",OC]]){
-  const {fijn,...basis}=K;
+  const {fijn,merenFijn,...basis}=K;
   writeFileSync(`data/continents/${naam}.json`,JSON.stringify(basis));
-  writeFileSync(`data/continents/${naam}-fijn.json`,JSON.stringify(fijn));
+  writeFileSync(`data/continents/${naam}-fijn.json`,JSON.stringify({...fijn,_meren:merenFijn}));
   console.log(`  ${naam}: basis ${JSON.stringify(basis).length} B, fijn ${JSON.stringify(fijn).length} B`);
 }
 console.log("packs geschreven: data/continents/*.json (+ -fijn) — vergeet 'node maak-manifest.mjs' niet");

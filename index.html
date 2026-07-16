@@ -251,6 +251,7 @@
   .zeetekst{fill:var(--muted); opacity:.55; font-size:17px; font-style:italic; letter-spacing:2px; pointer-events:none}
   .graticule{stroke:var(--muted); stroke-width:.4; opacity:.14; fill:none}
   .context{fill:var(--land-context); stroke:var(--map-line); stroke-width:.7; vector-effect:non-scaling-stroke; pointer-events:none}
+  .meer{fill:var(--sea); stroke:none; pointer-events:none}
 
   /* ---------- Feedback: strook onderin, kaart blijft zichtbaar ---------- */
   #fb{
@@ -727,7 +728,7 @@ const DATA_KLAAR=(async()=>{
 </script>
 <script>
 "use strict";
-const VERSIE="43"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="44"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -1060,6 +1061,7 @@ function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;");}
 const SVGNS="http://www.w3.org/2000/svg";
 const map=$("#map");
 const paden={};
+let meerEl=null; // waterlaag (meren) — wisselt mee met het detailniveau
 let vb={x:0,y:0,w:1050,h:920};
 const VBMAX={x:0,y:0,w:1050,h:920}; // alles, incl. context-randen
 // actieve kaart wisselt tussen continenten; elk continent heeft eigen projectie in dezelfde 1050×920-ruimte
@@ -1137,6 +1139,13 @@ function bouwKaart(){
     }
   });
   map.appendChild(gLand);
+  // meren (IJsselmeer, Grote Meren, ...) als waterlaag óver de landen
+  const gMeer=mk("g");gMeer.id="gMeer";
+  meerEl=mk("path");
+  meerEl.setAttribute("d",(KAARTEN[actieveKaart]&&KAARTEN[actieveKaart].meren)||"");
+  meerEl.setAttribute("class","meer");meerEl.setAttribute("fill-rule","evenodd");
+  gMeer.appendChild(meerEl);
+  map.appendChild(gMeer);
   map.appendChild(gDots);
   lodFijn=false; // verse paden zijn grof; lodPas wisselt zo nodig terug naar fijn
   setVB(vulAspect(VBFULL));
@@ -1173,6 +1182,7 @@ function lodZet(fijn){
     const g=GEO[id]; if(!g||!g.d)continue;
     el.setAttribute("d", fijn&&F[id] ? F[id] : g.d);
   }
+  if(meerEl)meerEl.setAttribute("d", (fijn&&F._meren!==undefined) ? F._meren : ((KAARTEN[actieveKaart]&&KAARTEN[actieveKaart].meren)||""));
 }
 function lodPas(){
   if(!KAARTEN||!GEO)return;
@@ -2108,6 +2118,8 @@ function maakGlobe(canvas, opts){
         if(sh>0.03)tekenRingen(ringen, `rgba(255,255,255,${sh.toFixed(3)})`, null, 0);
       }
     }
+    // meren als waterlaag over de landen
+    if(GLOBE.meren){for(const ring of GLOBE.meren){if(ringOk(ring))tekenRingen([ring], zee, null, 0);}}
     // stippen (mini-landen)
     for(const id in GLOBE.dots){const d=GLOBE.dots[id];if(zicht(d[0],d[1])<0)continue;const c=LAND_VAN[id];
       const [x,y]=pr(d[0],d[1]);ctx.beginPath();ctx.arc(x,y,4,0,7);
@@ -2124,6 +2136,7 @@ function maakGlobe(canvas, opts){
         tekenRingen(ringen, null, "rgba(0,0,0,0.6)", 5.5);   // donkere halo eronder → altijd zichtbaar
         tekenRingen(ringen, null, "#FFD24A", 2.6);           // heldere gouden rand precies op de grens
       }
+      if(GLOBE.meren){for(const ring of GLOBE.meren){if(ringOk(ring))tekenRingen([ring], zee, null, 0);}}
       const d=GLOBE.dots[hi];
       if(d&&zicht(d[0],d[1])>=0){const [x,y]=pr(d[0],d[1]);
         ctx.beginPath();ctx.arc(x,y,6,0,7);ctx.fillStyle=eigenKleur;ctx.fill();

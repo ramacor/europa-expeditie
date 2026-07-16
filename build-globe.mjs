@@ -123,7 +123,20 @@ const STEDEN={
 for(const l of WERELD)if(KAP[l.id]&&!STEDEN[l.id])STEDEN[l.id]=KAP[l.id];
 const ontbreekt=WERELD.filter(l=>!STEDEN[l.id]).map(l=>l.id);
 if(ontbreekt.length)console.error("GEEN hoofdstad-coördinaat voor:",ontbreekt.join(","));
-const GLOBE={cont:CONT, landen, dots, rest, steden:STEDEN};
+// meren als waterlaag op de globe (grotere meren; fijn afgerond voor diep zoomen)
+const MEREN=JSON.parse(readFileSync("meren.geojson","utf8"));
+const meren=[];
+for(const f of MEREN.features){
+  const polys=f.geometry.type==="Polygon"?[f.geometry.coordinates]:f.geometry.coordinates;
+  for(const poly of polys){
+    const ring=poly[0]; if(!ring||ring.length<4)continue;
+    if(area(ring)<0.02)continue;
+    const s2=simplify(ring,0.01);
+    if(s2.length>=3)meren.push(round3(s2));
+  }
+}
+console.log(`meren: ${meren.length} ringen, ${meren.reduce((a,r)=>a+r.length,0)} punten`);
+const GLOBE={cont:CONT, landen, dots, rest, steden:STEDEN, meren};
 const tel=Object.keys(landen).length;
 const punten=Object.values(landen).flat().reduce((a,r)=>a+r.length,0)+rest.reduce((a,r)=>a+r.length,0);
 console.log(`speelbaar: ${tel} landen + ${Object.keys(dots).length} stippen, rest: ${rest.length} ringen, punten totaal: ${punten}`);

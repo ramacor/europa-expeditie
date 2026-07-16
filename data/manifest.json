@@ -10,52 +10,52 @@
    "bytes": 94234
   },
   "continents/afrika-fijn.json": {
-   "hash": "36177538bea5",
-   "bytes": 321068
+   "hash": "db58c09441ee",
+   "bytes": 370967
   },
   "continents/afrika.json": {
-   "hash": "c86301ddb71a",
-   "bytes": 129109
+   "hash": "c3efc4ca6264",
+   "bytes": 140228
   },
   "continents/azie-fijn.json": {
-   "hash": "86324ee29ace",
-   "bytes": 542253
+   "hash": "0b408aacef17",
+   "bytes": 634738
   },
   "continents/azie.json": {
-   "hash": "6662f958dc77",
-   "bytes": 145820
+   "hash": "eb8bca86c409",
+   "bytes": 161783
   },
   "continents/europa-fijn.json": {
-   "hash": "d99a9c9d2a76",
-   "bytes": 540620
+   "hash": "48bd98d7b135",
+   "bytes": 660231
   },
   "continents/europa.json": {
-   "hash": "55ba5eb725c3",
-   "bytes": 142033
+   "hash": "a2aefaf1c34f",
+   "bytes": 171474
   },
   "continents/noord-amerika-fijn.json": {
-   "hash": "500c1bec5fa5",
-   "bytes": 559593
+   "hash": "3b89f2ce91f1",
+   "bytes": 763150
   },
   "continents/noord-amerika.json": {
-   "hash": "9a9732068ea5",
-   "bytes": 126785
+   "hash": "7e5ec8334444",
+   "bytes": 163364
   },
   "continents/oceanie-fijn.json": {
-   "hash": "1b12326a5002",
-   "bytes": 147432
+   "hash": "d2feca78f65e",
+   "bytes": 162165
   },
   "continents/oceanie.json": {
-   "hash": "888c7c6adcf0",
-   "bytes": 60850
+   "hash": "2053fc1485a5",
+   "bytes": 64527
   },
   "continents/zuid-amerika-fijn.json": {
-   "hash": "75aebb5b4abd",
-   "bytes": 291470
+   "hash": "17b8574d3862",
+   "bytes": 332365
   },
   "continents/zuid-amerika.json": {
-   "hash": "262ed6312ba7",
-   "bytes": 83534
+   "hash": "a690f17a2066",
+   "bytes": 95511
   },
   "core/globe-fijn.json": {
    "hash": "a269fb08367b",
@@ -66,8 +66,8 @@
    "bytes": 5055323
   },
   "core/globe.json": {
-   "hash": "cc0a8281b0a3",
-   "bytes": 445754
+   "hash": "c98fb2ce1ec1",
+   "bytes": 1108273
   }
  }
 }
