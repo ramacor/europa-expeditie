@@ -101,7 +101,11 @@ const MEREN = JSON.parse(readFileSync("meren.geojson","utf8")); // ne_10m_lakes:
 
 /* ---------- per continent ---------- */
 function bouwContinent(cfg){
-  const {PLAY, CTX, DOTS, WIN, lam0, phi1, ankers, zeenamen, gratLon, gratLat, wrap} = cfg;
+  const {PLAY, DOTS, WIN, lam0, phi1, ankers, zeenamen, gratLon, gratLat, wrap} = cfg;
+  // ruim contextvenster: ±30% van het spelvenster extra aan elke kant — de wereld
+  // loopt grijs door rond het continent i.p.v. hard afgesneden te worden
+  const MX=(WIN.x1-WIN.x0)*0.30, MY=(WIN.y1-WIN.y0)*0.30;
+  const WINC={x0:WIN.x0-MX, x1:WIN.x1+MX, y0:Math.max(-85,WIN.y0-MY), y1:Math.min(85,WIN.y1+MY)};
   const norm = wrap ? (lon)=>lon<0?lon+360:lon : (lon)=>lon; // datumgrens-continent (Oceanië): west-lons +360
   const LAM0=lam0*D, PHI1=phi1*D;
   const proj=([lon,lat])=>{
@@ -110,7 +114,7 @@ function bouwContinent(cfg){
     return [ k*Math.cos(phi)*Math.sin(lam-LAM0),
             -(k*(Math.cos(PHI1)*Math.sin(phi)-Math.sin(PHI1)*Math.cos(phi)*Math.cos(lam-LAM0))) ];
   };
-  const wanted=new Set([...PLAY,...CTX,...Object.keys(DOTS)]);
+  const wanted=new Set([...PLAY,...Object.keys(DOTS)]);
   const perCode={};
   for(const f of gj.features){
     const p=f.properties;
@@ -196,15 +200,38 @@ function bouwContinent(cfg){
     }
   }
 
+  // context: álle landen in het ruime venster, grijs onder de kleurlaag. Speelbare landen
+  // die geheel binnen het spelvenster vallen slaan we over (hun kleurlaag dekt toch af);
+  // wie de rand raakt (Rusland op de EU-kaart) loopt zo wél grijs door buiten het venster.
+  const signedArea=r=>{let a=0;for(let i=0;i<r.length;i++){const q=r[i],b=r[(i+1)%r.length];a+=q[0]*b[1]-b[0]*q[1];}return a/2;};
+  const binnenWIN=ring=>ring.every(([lo,la])=>lo>=WIN.x0&&lo<=WIN.x1&&la>=WIN.y0&&la<=WIN.y1);
   let ctxD="";
-  for(const code of CTX){
-    const kept=(ringGrof[code]||[]).filter(r=>area(r)>=MIN_RING_CTX);
+  for(const f of gj.features){
+    const p=f.properties;
+    if(NE_UITSLUITEN.has(p.ADMIN))continue;
+    let code=p.ISO_A2&&p.ISO_A2!=="-99"?p.ISO_A2:(p.ISO_A2_EH&&p.ISO_A2_EH!=="-99"?p.ISO_A2_EH:null);
+    if(NAAM2CODE[p.ADMIN]) code=NAAM2CODE[p.ADMIN];
+    const speelbaar=code&&wanted.has(code);
+    const polys=f.geometry.type==="Polygon"?[f.geometry.coordinates]:f.geometry.coordinates;
+    const kept=[];
+    for(const poly of polys){
+      const ring=wrap?poly[0].map(([lo,la])=>[norm(lo),la]):poly[0];
+      if(speelbaar&&binnenWIN(ring))continue;
+      const c=clipRing(ring,WINC);
+      if(c.length<3)continue;
+      const r=c.map(proj).map(fit);
+      if(area(r)<MIN_RING_CTX)continue;
+      const k=simplify(r,0.55);
+      if(k.length<3)continue;
+      if(signedArea(k)<0)k.reverse(); // consistente draairichting → nonzero vult overlapjes dicht
+      kept.push(k);
+    }
     ctxD+=pad(kept);
   }
   // graticule
   let grat="";
-  for(const lon of gratLon){ const pts=[]; for(let lat=WIN.y0;lat<=WIN.y1+1e-9;lat+=0.5)pts.push(projFit([lon,lat])); grat+="M"+pts.map(p=>r1(p[0])+" "+r1(p[1])).join("L"); }
-  for(const lat of gratLat){ const pts=[]; for(let lon=WIN.x0;lon<=WIN.x1+1e-9;lon+=0.5)pts.push(projFit([lon,lat])); grat+="M"+pts.map(p=>r1(p[0])+" "+r1(p[1])).join("L"); }
+  for(const lon of gratLon){ const pts=[]; for(let lat=WINC.y0;lat<=WINC.y1+1e-9;lat+=0.5)pts.push(projFit([lon,lat])); grat+="M"+pts.map(p=>r1(p[0])+" "+r1(p[1])).join("L"); }
+  for(const lat of gratLat){ const pts=[]; for(let lon=WINC.x0;lon<=WINC.x1+1e-9;lon+=0.5)pts.push(projFit([lon,lat])); grat+="M"+pts.map(p=>r1(p[0])+" "+r1(p[1])).join("L"); }
   // startweergave
   let ax0=1e9,ay0=1e9,ax1=-1e9,ay1=-1e9;
   const ankerPunten = ankers ? ankers.map(projFit)
@@ -228,7 +255,6 @@ function bouwContinent(cfg){
 console.log("EUROPA:");
 const EU = bouwContinent({
   PLAY:["IS","IE","GB","PT","ES","FR","NL","BE","LU","DE","DK","NO","SE","FI","PL","CZ","AT","CH","IT","GR","HU","HR","SI","SK","EE","LV","LT","BA","RS","ME","XK","AL","MK","BG","RO","MD","UA","BY","RU","TR","CY","MT"],
-  CTX:["MA","DZ","TN","LY","EG","IL","PS","LB","SY","JO","IQ","SA","IR","GE","AM","AZ","KZ","TM"],
   DOTS:{ AD:[1.521,42.507], MC:[7.419,43.731], LI:[9.521,47.141], SM:[12.446,43.936], VA:[12.453,41.902], MT:[14.514,35.899] },
   WIN:{ x0:-26, y0:33, x1:52, y1:72.3 },
   lam0:10, phi1:52,
@@ -241,7 +267,6 @@ const EU = bouwContinent({
 console.log("AZIË:");
 const AS = bouwContinent({
   PLAY:["CN","JP","IN","ID","TH","VN","KR","SA","PK","PH","MY","IR","IQ","AF","MN","NP","BD","LK","KP","TW","MM","KH","LA","BT","KZ","UZ","TM","KG","TJ","IL","JO","LB","SY","YE","OM","AE","QA","KW","GE","AM","AZ","TL","SG","BH","MV","BN"],
-  CTX:["RU","TR","EG","SD","CY"],
   DOTS:{ SG:[103.82,1.29], BH:[50.58,26.22], MV:[73.51,4.17] },
   WIN:{ x0:31, y0:-12, x1:151, y1:56 },
   lam0:88, phi1:30,
@@ -253,7 +278,6 @@ const AS = bouwContinent({
 console.log("AFRIKA:");
 const AF = bouwContinent({
   PLAY:speelIds("AF"),
-  CTX:["ES","PT","IT","GR","MT","CY","TR","SY","LB","IL","PS","JO","SA","YE","OM","IQ","KW"],
   DOTS:dotsVan("AF"),
   WIN:{ x0:-27, y0:-38, x1:60, y1:38.5 },
   lam0:17, phi1:0,
@@ -265,7 +289,6 @@ const AF = bouwContinent({
 console.log("NOORD-AMERIKA:");
 const NAK = bouwContinent({
   PLAY:speelIds("NA"),
-  CTX:["GL","PR","CO","VE","RU"],
   DOTS:dotsVan("NA"),
   WIN:{ x0:-169, y0:6, x1:-50, y1:83.5 },
   lam0:-100, phi1:48,
@@ -277,7 +300,6 @@ const NAK = bouwContinent({
 console.log("ZUID-AMERIKA:");
 const SAK = bouwContinent({
   PLAY:speelIds("SA"),
-  CTX:["PA","CR","NI","FK"],
   DOTS:dotsVan("SA"),
   WIN:{ x0:-95, y0:-57, x1:-30, y1:14 },
   lam0:-60, phi1:-20,
@@ -289,7 +311,6 @@ const SAK = bouwContinent({
 console.log("OCEANIË:");
 const OC = bouwContinent({
   PLAY:speelIds("OC"),
-  CTX:["ID","TL","NC"],
   DOTS:dotsVan("OC"),
   wrap:true,
   WIN:{ x0:110, y0:-50, x1:212, y1:9 },

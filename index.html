@@ -738,7 +738,7 @@ const DATA_KLAAR=(async()=>{
 </script>
 <script>
 "use strict";
-const VERSIE="48"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="49"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -1105,7 +1105,7 @@ function bouwKaart(){
   // echte graticule (lengte-/breedtegraden, geprojecteerd)
   if(GRATICULE){const g=mk("path");g.setAttribute("d",GRATICULE);g.setAttribute("class","graticule");map.appendChild(g);}
   // omliggende landen (niet speelbaar, voor context)
-  if(CONTEXT){const g=mk("path");g.setAttribute("d",CONTEXT);g.setAttribute("class","context");g.setAttribute("fill-rule","evenodd");map.appendChild(g);}
+  if(CONTEXT){const g=mk("path");g.setAttribute("d",CONTEXT);g.setAttribute("class","context");g.setAttribute("fill-rule","nonzero");map.appendChild(g);}
   // zeenamen
   const gZee=mk("g");
   for(const[t,x,y]of ZEELABELS){const e=mk("text");e.textContent=t;e.setAttribute("x",x);e.setAttribute("y",y);e.setAttribute("class","zeetekst");e.setAttribute("text-anchor","middle");gZee.appendChild(e);}
@@ -2172,7 +2172,7 @@ function maakGlobe(canvas, opts){
     canvas.width=Math.round(W*dpr); canvas.height=Math.round(H*dpr);
     cx=W/2; cy=H/2; baseR=Math.min(W,H)*0.46; R=baseR*zoom;
   }
-  function setZoom(z){zoom=Math.max(1,Math.min(24,z)); R=baseR*zoom; if(zoom>=1.4)laadGlobeFijn(); if(zoom>=3.2)laadGlobeMax(); if(zoom>=4.5)laadGlobeLand();} // 24×: diep genoeg om landmodus-detail (NL) echt te zien
+  function setZoom(z){zoom=Math.max(1,Math.min(96,z)); R=baseR*zoom; if(zoom>=1.4)laadGlobeFijn(); if(zoom>=3.2)laadGlobeMax(); if(zoom>=4.5)laadGlobeLand();} // 96×: landmodus-detail (NL) schermvullend
   function zicht(lon,lat){const l=(lon+rot.l)*DG,f=lat*DG,f0=rot.p*DG;return Math.sin(f0)*Math.sin(f)+Math.cos(f0)*Math.cos(f)*Math.cos(l);}
   function pr(lon,lat){const l=(lon+rot.l)*DG,f=lat*DG,f0=rot.p*DG;
     return [cx+R*Math.cos(f)*Math.sin(l), cy-R*(Math.cos(f0)*Math.sin(f)-Math.sin(f0)*Math.cos(f)*Math.cos(l))];}
@@ -2237,10 +2237,14 @@ function maakGlobe(canvas, opts){
     const nu=performance.now();
     for(const id in landenB){
       const c=LAND_VAN[id];if(!c)continue;
-      const eigen=zoom>=5&&GLOBE_LAND&&GLOBE_LAND[id]; // landmodus-detail vervangt NE volledig
+      const eigen=zoom>=5&&GLOBE_LAND&&GLOBE_LAND[id]; // landmodus-detail bovenop NE
       const ringen=(eigen||landenB[id]).filter(ringOk);
       if(!ringen.length)continue;
       const fill=opts.kleurFn?opts.kleurFn(c):c.kleur;
+      if(eigen){ // NE-vorm als ondervulling: PDOK- en NE-grenzen wijken iets af, dit dicht de naden met de buurlanden
+        const basis=landenB[id].filter(ringOk);
+        if(basis.length)tekenRingen(basis, fill, null, 0);
+      }
       tekenRingen(ringen, fill, lijn, 0.7, eigen?"nonzero":null);
       if(opts.glans&&(fill==="#F1B62B"||fill==="#CBD3DF")){ // veroverde zilver/goud-landen glanzen (pulserende sheen)
         const sh=0.16+0.16*Math.sin(nu/430+(c.idx||0)*0.7);
@@ -2262,6 +2266,7 @@ function maakGlobe(canvas, opts){
       const eigenHi=zoom>=5&&GLOBE_LAND&&GLOBE_LAND[hi];
       const ringen=eigenHi||landenB[hi];
       if(ringen){
+        if(eigenHi&&landenB[hi])tekenRingen(landenB[hi], eigenKleur, null, 0); // NE-ondervulling (naden)
         tekenRingen(ringen, eigenKleur, null, 0, eigenHi?"nonzero":null); // volle kleur terug
         tekenRingen(ringen, null, "rgba(0,0,0,0.6)", 5.5);   // donkere halo eronder → altijd zichtbaar
         tekenRingen(ringen, null, "#FFD24A", 2.6);           // heldere gouden rand precies op de grens

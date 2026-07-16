@@ -13,7 +13,6 @@ const CFG = {
     bron: "nl_pdok.geojson", bronType: "pdok-gemeenten", // CBS wijkenbuurten (land-variant, kadaster-detail)
     lam0: 5.4, phi1: 52.15,
     WIN: { x0: 2.4, y0: 50.2, x1: 8.5, y1: 54.2 },   // venster voor context/meren (lon/lat)
-    ctx: ["DE", "BE", "GB", "FR"],
     zeenamen: [["Noordzee", 3.4, 53.0], ["Waddenzee", 5.15, 53.32], ["IJsselmeer", 5.32, 52.78]],
     gratLon: [4, 5, 6, 7], gratLat: [51, 52, 53],
     // naamcorrecties + uitsluitingen voor de GeoNames-stedenlijst
@@ -210,21 +209,28 @@ const GEO={}; GEO[LAND]={d:pad(landRingen),bb,cx,cy,fr:"nonzero"};
 /* ---------- 2) context (buurlanden, uit Natural Earth) ---------- */
 const NAAM2CODE={ "Northern Cyprus":"CY", "Taiwan":"TW", "Somaliland":"SO" };
 const ne=JSON.parse(readFileSync("ne10m.geojson","utf8"));
+// ruim contextvenster: de omringende wereld loopt grijs door (kinderen zien de ligging),
+// in plaats van hard afgesneden buurland-fragmenten
+const MX=(CFG.WIN.x1-CFG.WIN.x0)*1.2, MY=(CFG.WIN.y1-CFG.WIN.y0)*1.2;
+const WINC={x0:CFG.WIN.x0-MX, x1:CFG.WIN.x1+MX, y0:Math.max(-85,CFG.WIN.y0-MY), y1:Math.min(85,CFG.WIN.y1+MY)};
+const signedArea=r=>{let a=0;for(let i=0;i<r.length;i++){const q=r[i],b=r[(i+1)%r.length];a+=q[0]*b[1]-b[0]*q[1];}return a/2;};
 let ctxD="";
 for(const f of ne.features){
   const p=f.properties;
   let code=p.ISO_A2&&p.ISO_A2!=="-99"?p.ISO_A2:(p.ISO_A2_EH&&p.ISO_A2_EH!=="-99"?p.ISO_A2_EH:null);
   if(NAAM2CODE[p.ADMIN])code=NAAM2CODE[p.ADMIN];
-  if(!code||!CFG.ctx.includes(code))continue;
+  if(!code||code===LAND)continue; // het land zelf komt uit de kadaster-bron
   const polys=f.geometry.type==="Polygon"?[f.geometry.coordinates]:f.geometry.coordinates;
   const kept=[];
   for(const poly of polys){
-    const c=clipRing(poly[0],CFG.WIN);
+    const c=clipRing(poly[0],WINC);
     if(c.length<3)continue;
     const r=c.map(proj).map(fit);
     if(area(r)<20)continue;
     const k=simplify(r,0.5);
-    if(k.length>=3)kept.push(k);
+    if(k.length<3)continue;
+    if(signedArea(k)<0)k.reverse(); // consistente draairichting → nonzero vult overlapjes dicht
+    kept.push(k);
   }
   ctxD+=pad(kept);
 }
