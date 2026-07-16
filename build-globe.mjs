@@ -47,6 +47,8 @@ function simplify(ring,tol){
 }
 const r2=n=>Math.round(n*100)/100;
 const round=ring=>ring.map(([lo,la])=>[r2(lo),r2(la)]);
+const r3=n=>Math.round(n*1000)/1000;
+const round3=ring=>ring.map(([lo,la])=>[r3(lo),r3(la)]); // max-niveau: fijnere afronding, anders trapjes bij diep zoomen
 
 const gj=JSON.parse(readFileSync(SRC,"utf8"));
 // 1) ringen verzamelen (met area-voorfilter), NOG NIET vereenvoudigen
@@ -72,10 +74,11 @@ const topo=topology({
   landen:{type:"FeatureCollection",features:feats},
   rest:{type:"MultiPolygon",coordinates:restRingen.map(r=>[r])}
 },1e6);
-const W_GLOBE=0.014, W_GLOBE_FIJN=0.0015; // Visvalingam-drempels: grof voor overzicht, fijn voor ingezoomd
+const W_GLOBE=0.014, W_GLOBE_FIJN=0.0015, W_GLOBE_MAX=0.00008; // drempels: overzicht / ingezoomd / diep ingezoomd (vrijwel bronniveau)
 const pre=presimplify(topo);
 const simp=vwSimplify(pre,W_GLOBE);
 const simpF=vwSimplify(pre,W_GLOBE_FIJN);
+const simpM=vwSimplify(pre,W_GLOBE_MAX);
 // 3) uitpakken en afronden (identieke coördinaten ronden identiek af → aansluiting blijft exact)
 const landen={}, rest=[], landenFijn={};
 for(const f2 of feature(simp,simp.objects.landen).features){
@@ -86,6 +89,11 @@ for(const f2 of feature(simp,simp.objects.landen).features){
 for(const f2 of feature(simpF,simpF.objects.landen).features){
   const ringen=f2.geometry.coordinates.map(pg=>pg[0]).filter(r=>r&&r.length>=4);
   if(ringen.length)landenFijn[f2.id]=ringen.map(round);
+}
+const landenMax={};
+for(const f2 of feature(simpM,simpM.objects.landen).features){
+  const ringen=f2.geometry.coordinates.map(pg=>pg[0]).filter(r=>r&&r.length>=4);
+  if(ringen.length)landenMax[f2.id]=ringen.map(round3);
 }
 for(const pg of feature(simp,simp.objects.rest).geometry.coordinates){
   const r=pg[0]; if(r&&r.length>=4)rest.push(round(r));
@@ -123,6 +131,8 @@ console.log(`speelbaar: ${tel} landen + ${Object.keys(dots).length} stippen, res
 // datapacks schrijven (daarna: node maak-manifest.mjs)
 writeFileSync("data/core/globe.json",JSON.stringify(GLOBE));
 writeFileSync("data/core/globe-fijn.json",JSON.stringify(landenFijn));
+writeFileSync("data/core/globe-max.json",JSON.stringify(landenMax));
 const puntenF=Object.values(landenFijn).flat().reduce((a,r)=>a+r.length,0);
-console.log(`fijn: ${puntenF} punten → data/core/globe-fijn.json`);
+const puntenM=Object.values(landenMax).flat().reduce((a,r)=>a+r.length,0);
+console.log(`fijn: ${puntenF} punten | max: ${puntenM} punten`);
 console.log("packs geschreven: data/core/globe.json + globe-fijn.json — vergeet 'node maak-manifest.mjs' niet");
