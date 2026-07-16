@@ -125,17 +125,22 @@ const ontbreekt=WERELD.filter(l=>!STEDEN[l.id]).map(l=>l.id);
 if(ontbreekt.length)console.error("GEEN hoofdstad-coördinaat voor:",ontbreekt.join(","));
 // meren als waterlaag op de globe (grotere meren; fijn afgerond voor diep zoomen)
 const MEREN=JSON.parse(readFileSync("meren.geojson","utf8"));
-const meren=[];
+const meren=[]; // per meer: [buitenring, ...gaten] — gaten (bv. Flevoland) blijven land dankzij evenodd
 for(const f of MEREN.features){
   const polys=f.geometry.type==="Polygon"?[f.geometry.coordinates]:f.geometry.coordinates;
   for(const poly of polys){
     const ring=poly[0]; if(!ring||ring.length<4)continue;
     if(area(ring)<0.02)continue;
-    const s2=simplify(ring,0.01);
-    if(s2.length>=3)meren.push(round3(s2));
+    const s2=simplify(ring,0.01); if(s2.length<3)continue;
+    const pg=[round3(s2)];
+    for(const gat of poly.slice(1)){
+      if(!gat||gat.length<4||area(gat)<0.004)continue;
+      const g2=simplify(gat,0.01); if(g2.length>=3)pg.push(round3(g2));
+    }
+    meren.push(pg);
   }
 }
-console.log(`meren: ${meren.length} ringen, ${meren.reduce((a,r)=>a+r.length,0)} punten`);
+console.log(`meren: ${meren.length} meren, ${meren.flat().reduce((a,r)=>a+r.length,0)} punten, ${meren.filter(p=>p.length>1).length} met gaten`);
 const GLOBE={cont:CONT, landen, dots, rest, steden:STEDEN, meren};
 const tel=Object.keys(landen).length;
 const punten=Object.values(landen).flat().reduce((a,r)=>a+r.length,0)+rest.reduce((a,r)=>a+r.length,0);

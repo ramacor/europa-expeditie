@@ -728,7 +728,7 @@ const DATA_KLAAR=(async()=>{
 </script>
 <script>
 "use strict";
-const VERSIE="44"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="45"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -2119,7 +2119,7 @@ function maakGlobe(canvas, opts){
       }
     }
     // meren als waterlaag over de landen
-    if(GLOBE.meren){for(const ring of GLOBE.meren){if(ringOk(ring))tekenRingen([ring], zee, null, 0);}}
+    if(GLOBE.meren){for(const pg of GLOBE.meren){if(ringOk(pg[0]))tekenRingen(pg, zee, null, 0);}}
     // stippen (mini-landen)
     for(const id in GLOBE.dots){const d=GLOBE.dots[id];if(zicht(d[0],d[1])<0)continue;const c=LAND_VAN[id];
       const [x,y]=pr(d[0],d[1]);ctx.beginPath();ctx.arc(x,y,4,0,7);
@@ -2136,7 +2136,7 @@ function maakGlobe(canvas, opts){
         tekenRingen(ringen, null, "rgba(0,0,0,0.6)", 5.5);   // donkere halo eronder → altijd zichtbaar
         tekenRingen(ringen, null, "#FFD24A", 2.6);           // heldere gouden rand precies op de grens
       }
-      if(GLOBE.meren){for(const ring of GLOBE.meren){if(ringOk(ring))tekenRingen([ring], zee, null, 0);}}
+      if(GLOBE.meren){for(const pg of GLOBE.meren){if(ringOk(pg[0]))tekenRingen(pg, zee, null, 0);}}
       const d=GLOBE.dots[hi];
       if(d&&zicht(d[0],d[1])>=0){const [x,y]=pr(d[0],d[1]);
         ctx.beginPath();ctx.arc(x,y,6,0,7);ctx.fillStyle=eigenKleur;ctx.fill();

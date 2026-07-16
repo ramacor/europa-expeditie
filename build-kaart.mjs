@@ -182,13 +182,13 @@ function bouwContinent(cfg){
   for(const f of MEREN.features){
     const polys=f.geometry.type==="Polygon"?[f.geometry.coordinates]:f.geometry.coordinates;
     for(const poly of polys){
-      const ringRaw=wrap?poly[0].map(([lo,la])=>[norm(lo),la]):poly[0];
-      const geclipt=clipRing(ringRaw,WIN);
-      if(geclipt.length<3)continue;
-      const r=geclipt.map(proj).map(fit);
+      const doeRing=raw=>{const rr=wrap?raw.map(([lo,la])=>[norm(lo),la]):raw;const c=clipRing(rr,WIN);return c.length>=3?c.map(proj).map(fit):null;};
+      const r=doeRing(poly[0]); if(!r)continue;
       const A=area(r);
-      if(A>=3){ const k=simplify(r,0.55); if(k.length>=3)merenGrof+=pad([k]); }
-      if(A>=0.4){ const k=simplify(r,0.1); if(k.length>=3)merenFijn+=pad([k]); }
+      // gaten (eilanden/polders ín een meer, zoals Flevoland in het IJsselmeer) horen erbij: evenodd maakt ze weer land
+      const gaten=poly.slice(1).map(doeRing).filter(g=>g&&area(g)>=0.15);
+      if(A>=3){ const st=[simplify(r,0.55),...gaten.map(g=>simplify(g,0.55))].filter(k=>k.length>=3); merenGrof+=pad(st); }
+      if(A>=0.4){ const st=[simplify(r,0.1),...gaten.map(g=>simplify(g,0.1))].filter(k=>k.length>=3); merenFijn+=pad(st); }
     }
   }
 
