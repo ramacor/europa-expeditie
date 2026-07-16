@@ -150,7 +150,7 @@ function bouwContinent(cfg){
   function dotLand(code){ // ministaatje: klik-stip + (waar zichtbaar) de échte vorm eronder (fijne versie)
     const g={dot:projFit(DOTS[code]).map(r1)};
     const ringen=(ringFijn[code]||[]).slice().sort((a,b)=>area(b)-area(a));
-    const kept=ringen.filter((r,i)=>i===0||area(r)>=2);
+    const kept=ringen.filter((r,i)=>i===0||area(r)>=0.3);
     if(kept.length&&area(kept[0])>=0.8)g.d=pad(kept);
     return g;
   }
@@ -172,7 +172,7 @@ function bouwContinent(cfg){
   const FIJN={};
   for(const code of PLAY){
     const ringen=(ringFijn[code]||[]).slice().sort((a,b)=>area(b)-area(a));
-    const kept=ringen.filter((r,i)=>i===0||area(r)>=1.2);
+    const kept=ringen.filter((r,i)=>i===0||area(r)>=0.1); // ingezoomd wil je álle eilandjes zien (Waddeneilanden!)
     if(kept.length) FIJN[code]=pad(kept);
   }
 
