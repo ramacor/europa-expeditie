@@ -98,6 +98,14 @@
   .bigbtn:disabled{opacity:.45; cursor:not-allowed}
   .bigbtn:not(:disabled):hover{transform:translateY(-1px)}
   .moeilijkbtn{background:linear-gradient(135deg,#FF9A5C,#E5484D); color:#3F0D08; font-size:17px; padding:14px}
+  .stedenbtn{background:linear-gradient(135deg,#6BA6FF,#3FE0BE); color:#04203A; font-size:17px; padding:14px}
+  /* stedenronde: stad-stippen */
+  .stad{fill:#FFFFFF; stroke:rgba(0,0,0,.65); stroke-width:1.3; cursor:pointer; vector-effect:non-scaling-stroke}
+  .stad.dim{opacity:.22}
+  .stad.goed{fill:#4ADE80; animation:stadpuls 1s ease-in-out infinite}
+  .stad.fout{fill:#E5484D}
+  .stad.target{fill:var(--gold, #F7C948); animation:stadpuls 1s ease-in-out infinite}
+  @keyframes stadpuls{0%,100%{stroke-width:1.3}50%{stroke-width:4}}
   .wachtop{opacity:.55} /* nog geen naam: gedimd maar klikbaar, klik wijst naar het naamveld */
   .naamnodig{animation:wiebel .5s ease; border-color:var(--accent-fill) !important;
     box-shadow:0 0 0 4px color-mix(in srgb, var(--accent-fill) 45%, transparent)}
@@ -515,6 +523,7 @@
 
   <button class="bigbtn" id="b-start">🚀 Start de expeditie!</button>
   <button class="bigbtn moeilijkbtn" id="b-moeilijk">🎯 Moeilijke ronde — oefen je lastige landen</button>
+  <button class="bigbtn stedenbtn" id="b-steden">🏙️ Stedenronde — de 50 grootste steden van Nederland</button>
 
   <div class="card" id="expkader" style="display:none">
     <h2>🚩 Jouw expeditie</h2>
@@ -728,7 +737,7 @@ const DATA_KLAAR=(async()=>{
 </script>
 <script>
 "use strict";
-const VERSIE="45"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="46"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -1076,7 +1085,7 @@ function setKaart(cont){
   GEO=k.geo;GRATICULE=k.grat;CONTEXT=k.ctx;ZEELABELS=k.zee;VBFULL=k.vbstart||VBMAX;
   bouwKaart();
 }
-const CONT_NAAM={EU:"Europa",AS:"Azië",AF:"Afrika",NA:"Noord-Amerika",SA:"Zuid-Amerika",OC:"Oceanië"};
+const CONT_NAAM={EU:"Europa",AS:"Azië",AF:"Afrika",NA:"Noord-Amerika",SA:"Zuid-Amerika",OC:"Oceanië",NL:"Nederland"};
 const CONT_START={EU:"DE",AS:"CN",AF:"EG",NA:"US",SA:"BR",OC:"AU"}; // beginland per werelddeel (verkennen/paspoort-globe)
 
 function bouwKaart(){
@@ -1166,6 +1175,7 @@ let lodFijn=false;
 const CONT_PACK={EU:"europa",AS:"azie",AF:"afrika",NA:"noord-amerika",SA:"zuid-amerika",OC:"oceanie"};
 async function laadFijn(cont){
   if(FIJN[cont]||fijnLaadt[cont])return;
+  if(!CONT_PACK[cont]){FIJN[cont]={};return;} // landmodus-kaarten zijn al op vol detail
   fijnLaadt[cont]=true;
   try{
     if(typeof FIJN_INLINE!=="undefined"&&FIJN_INLINE[cont])FIJN[cont]=FIJN_INLINE[cont]; // artifact-variant
@@ -1186,6 +1196,8 @@ function lodZet(fijn){
 }
 function lodPas(){
   if(!KAARTEN||!GEO)return;
+  const gs=document.getElementById("gStad");
+  if(gs){const r=Math.max(1.6,0.0085*vb.w).toFixed(1);gs.querySelectorAll("circle").forEach(el=>el.setAttribute("r",r));}
   const vol=(VBFULL&&VBFULL.w)||1050;
   const wilFijn = vb.w < vol*(lodFijn?0.66:0.58); // hysterese: niet flapperen op de grens
   if(wilFijn&&!FIJN[actieveKaart]){laadFijn(actieveKaart);return;}
@@ -1273,6 +1285,7 @@ function wisSpot(){if(spotEl){spotEl.remove();spotEl=null;}}
 function kaartReset(){
   wisSpot();
   for(const id in paden)paden[id].classList.remove("dim","target","goed","fout");
+  document.querySelectorAll("#gStad circle").forEach(c=>c.classList.remove("dim","target","goed","fout"));
   map.classList.remove("klikbaar");
 }
 
@@ -1349,11 +1362,11 @@ function sndVlam(){ // whoosh van oplaaiende vlammen: ruis door een stijgend fil
 }
 
 /* ============ GESPROKEN AANMOEDIGINGEN (Chris, ingesproken via ElevenLabs) ============
-   30 korte clips in ./stem/z01..z30.mp3, offline gecachet door de service worker.
+   50 korte clips in ./stem/z01..z50.mp3, offline gecachet door de service worker.
    Speelt een willekeurige (niet dezelfde als vorige) bij een goed antwoord. */
-const STEM_AANTAL=30;
+const STEM_AANTAL=50;
 const STEM_URLS=Array.from({length:STEM_AANTAL},(_,i)=>`./stem/z${String(i+1).padStart(2,"0")}.mp3`);
-// tekst per clip (z01..z30) — moet exact overeenkomen met wat je hoort, want dit vult ook de pop-up
+// tekst per clip (z01..z50) — moet exact overeenkomen met wat je hoort, want dit vult ook de pop-up
 const STEM_TEKST=[
  "Boem! Recht in de roos!","Jij bent een topografie-tijger!","Zo goed, mijn mond valt open!",
  "Hoppa, weer eentje binnen!","Jij weet meer dan mijn juf!","Kabeng! Helemaal goed!",
@@ -1361,14 +1374,21 @@ const STEM_TEKST=[
  "Doe je dit soms met je ogen dicht?","Niet te stoppen, expeditieheld!","Geef je hersenen een high-five!",
  "Slimmer dan een navigatiesysteem!","Jij en die kaart: dikke vrienden!","Bam! Voltreffer!",
  "Wereldkampioen in de dop!","Jij strooit maar met landen!","Kei-goed, aardrijkskunde-baas!",
- "Woehoe, topper met een hoofdletter T!","Superknap, kleine ontdekkingsreiziger!","Pang! Vol in de roos!",
- "Jij bent een aardrijkskunde-raket!","Zo knap, ik moet even zitten!","Yes! Jij hebt een kompas in je hoofd!",
- "Landen eet jij als ontbijt!","Kadabra! Goed getoverd!","Kaartlezer-kanjer, dat ben jij!",
- "Volgende halte: nog knapper!","Wauw, jij ruikt landen op afstand!","Bingo! Recht op de knikker!"
+ "Woehoe, topper met een hoofdletter T!","Superknap, stoere ontdekkingsreiziger!","Tsjakka! Die pak je gewoon even!",
+ "Heb jij soms een wereldbol onder je kussen?","Ik val bijna van mijn stoel, zó goed!","Knal! Weer eentje erbij!",
+ "Jij weet meer dan opa en oma samen!","Zoef! Recht op het doel af!","Een echte hoofdsteden-held ben jij!",
+ "Mag ik straks jouw handtekening?","Zelfs piloten vragen jou de weg!","Appeltje-eitje voor jou, hè?",
+ "Jouw hersenen verdienen een medaille!","Grenzeloos goed, dit!","Slimmer dan een pratende encyclopedie!",
+ "Sst, niet verklappen hoe goed jij bent!","De wereldkaart heeft geen geheimen voor jou!","Wauw, ben jij stiekem een professor?",
+ "Die zat als gegoten!","Jij maakt van aardrijkskunde een feestje!","Hoera! Weer een land in je broekzak!",
+ "Sneller dan het internet, jij!","Flitsend goed gedaan!","Jij bent een speurneus eerste klas!",
+ "Alle landen willen met jou op de foto!","Zo knap dat de globe een extra rondje draait!","Kampioen! Waar blijft jouw beker?",
+ "Jouw geheugen is een superkracht!","Hupsakee, alwéér goed!","Van jou kan de meester nog wat leren!",
+ "Ping! Honderd punten erbij!","Jij verdient een standbeeld van stroopwafels!"
 ];
 let stemAudio=null, stemBag=[], stemLaatste=-1;
 function stemAan(){ return db.stem!==false; } // eigen aan/uit in de geluid-popup
-// shuffle-bag: alle 30 komen aan bod vóór er één herhaalt (en nooit twee dezelfde vlak na elkaar)
+// shuffle-bag: alle 50 komen aan bod vóór er één herhaalt (en nooit twee dezelfde vlak na elkaar)
 function volgendeStemIdx(){
   if(!stemBag.length){
     stemBag=Array.from({length:STEM_AANTAL},(_,i)=>i);
@@ -1594,7 +1614,7 @@ $("#t-mini").onclick=()=>{db.settings.mini=!db.settings.mini;if(db.settings.mini
 $("#t-flits").onclick=()=>{db.settings.flits=!db.settings.flits;save();segSync();sndKlik();};
 
 const naamIn=$("#naam");
-function knoppenSync(){const uit=!st.naam;$("#b-start").classList.toggle("wachtop",uit);$("#b-moeilijk").classList.toggle("wachtop",uit);expeditieSync();}
+function knoppenSync(){const uit=!st.naam;$("#b-start").classList.toggle("wachtop",uit);$("#b-moeilijk").classList.toggle("wachtop",uit);$("#b-steden").classList.toggle("wachtop",uit);expeditieSync();}
 function wijsNaarNaam(){ // duidelijk maken dat eerst de voornaam nodig is
   toast("👋 Vul eerst je voornaam in bij 'Wie gaat er spelen?'");
   const veld=$("#naam");
@@ -1689,7 +1709,7 @@ function startRonde(moeilijk=false){
   st.vragen=moeilijk?maakMoeilijkeVragen():maakVragen();
   if(!st.vragen.length){toast("Geen vragen mogelijk met deze instellingen 🤔");return;}
   menuSync(null);$("#s-game").classList.remove("metmenu");toonPlatteKaart();
-  st.qi=0;st.streak=0;st.verken=false;st.rondeStart=Date.now();
+  st.qi=0;st.streak=0;st.verken=false;st.rondeStart=Date.now();st.stedenronde=false;
   st.stemNaGoed=true; // eerste goede antwoord van de ronde krijgt altijd een gesproken aanmoediging
   st.ronde={goed:0,punt:0,best:0,diam:0,stempels:[],uitslagen:[]};
   st.goldIdx=Math.floor(Math.random()*st.vragen.length);
@@ -1712,6 +1732,61 @@ function herstelKaartVorm(entries){
 }
 // observeer de mapwrap-div (RO op SVG is onbetrouwbaar in sommige engines); zelfde afmetingen als de kaart
 if(window.ResizeObserver){try{new ResizeObserver(herstelKaartVorm).observe(document.querySelector(".mapwrap"));}catch(e){}}
+/* ============ STEDENRONDE (landmodus, fase 3) ============ */
+let LANDMODUS=null, landmodusLaadt=false;
+async function laadLandmodus(){
+  if(LANDMODUS||landmodusLaadt)return; landmodusLaadt=true;
+  try{
+    if(typeof LANDMODUS_INLINE!=="undefined")LANDMODUS=LANDMODUS_INLINE; // artifact-variant
+    else{const r=await fetch("./data/landen/nederland.json"); if(r.ok)LANDMODUS=await r.json();}
+  }catch(e){}
+  landmodusLaadt=false;
+}
+function stadEl(stad){return document.querySelector('#gStad circle[data-n="'+CSS.escape(stad.n)+'"]');}
+function bouwStadLaag(){
+  if(document.getElementById("gStad"))return;
+  const mk=t=>document.createElementNS(SVGNS,t);
+  const g=mk("g");g.id="gStad";
+  for(const stad of LANDMODUS.steden){
+    const c=mk("circle");
+    c.setAttribute("cx",stad.x);c.setAttribute("cy",stad.y);c.setAttribute("r",7);
+    c.setAttribute("class","stad");c.dataset.n=stad.n;
+    c.addEventListener("click",ev=>{ev.stopPropagation();
+      if(dragDist>8||!st.q||st.answered||st.q.type!=="klikStad")return;
+      st.klikStad=stad; beantwoord(stad.n===st.q.stad.n,null,false,null);
+    });
+    g.appendChild(c);
+  }
+  map.appendChild(g);
+}
+async function startStedenRonde(){
+  if(!st.naam){wijsNaarNaam();return;}
+  db.last=st.naam;save();
+  await laadLandmodus();
+  if(!LANDMODUS){toast("Kon de Nederland-kaart niet laden — probeer het even met internet 🙁");return;}
+  KAARTEN.NL=LANDMODUS;
+  const pool=[...LANDMODUS.steden];
+  for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
+  st.vragen=pool.slice(0,10).map((stad,i)=>{
+    const q={type:i%2===0?"klikStad":"mcStad", stad, c:{id:"NL",n:stad.n,h:"",f:"🏙️",cont:"NL"}};
+    if(q.type==="mcStad"){
+      const anderen=pool.filter(x=>x.n!==stad.n).slice(0,20);
+      const opts=[stad,...anderen.sort(()=>Math.random()-.5).slice(0,3)].sort(()=>Math.random()-.5);
+      q.opties=opts.map(o=>({t:o.n,ok:o.n===stad.n}));
+    }
+    return q;
+  });
+  menuSync(null);$("#s-game").classList.remove("metmenu");toonPlatteKaart();
+  st.qi=0;st.streak=0;st.verken=false;st.rondeStart=Date.now();st.stemNaGoed=true;st.stedenronde=true;
+  st.ronde={goed:0,punt:0,best:0,diam:0,stempels:[],uitslagen:[]};
+  st.goldIdx=Math.floor(Math.random()*st.vragen.length);
+  const p=speler();
+  $("#hud-naam").textContent=p.naam;$("#hud-ava").textContent=p.naam[0].toUpperCase();
+  hudSync();toonScherm("#s-game");toonVraag();
+  [40,180,450].forEach(t=>setTimeout(herstelKaartVorm,t));
+}
+$("#b-steden").onclick=()=>{sndKlik();startStedenRonde();};
+
 function hudSync(){
   const p=speler();
   $("#hud-diamant").textContent=`💎 ${p.diamonds}`;
@@ -1765,7 +1840,24 @@ function toonVraag(){
   $("#q-klik").style.display="none";
   {const nog=5-((speler().diaProg)||0);$("#q-voet").textContent=`💎 nog ${nog} goed${nog===1?"":"e"} tot je volgende diamant`;}
   const c=q.c;
-  if(q.type==="klikLand"){
+  st.klikStad=null;
+  if(q.stad){ // stedenronde: bouw de stippenlaag op de landkaart
+    if(!document.getElementById("gStad"))bouwStadLaag();
+    $("#b-hint").style.display="none";
+    if(q.type==="klikStad"){
+      $("#q-label").textContent="Zoek de stad";
+      $("#q-text").innerHTML=`Waar ligt <b>${esc(q.stad.n)}</b>?`;
+      $("#q-klik").style.display="block";
+      $("#q-klik").textContent="👆 Tik de juiste stip aan!";
+      map.classList.add("klikbaar");
+    }else{
+      $("#q-label").textContent="Steden van Nederland";
+      $("#q-text").innerHTML="Welke stad licht op? ✨";
+      const el=stadEl(q.stad); if(el)el.classList.add("target");
+      maakKeuzes(q);
+    }
+    animVB(vulAspect(VBFULL));
+  }else if(q.type==="klikLand"){
     $("#q-label").textContent="Zoek op de kaart";
     $("#q-text").innerHTML=`Waar ligt <b>${c.n}</b>? <span class="flag">${c.f}</span>`;
     $("#q-klik").style.display="block";
@@ -1831,6 +1923,17 @@ function beantwoord(goed,knop,timeout=false,geklikt=null){
   const goud=st.qi===st.goldIdx;
   map.classList.remove("klikbaar");
   // kaart-feedback
+  if(q.stad){
+    // stedenronde: stippen dimmen, de juiste groen, de foute klik rood
+    document.querySelectorAll("#gStad circle").forEach(el=>el.classList.add("dim"));
+    const jEl=stadEl(q.stad); if(jEl){jEl.classList.remove("dim","target");jEl.classList.add("goed");}
+    let zb=[q.stad.x-45,q.stad.y-45,q.stad.x+45,q.stad.y+45];
+    if(!goed&&st.klikStad&&st.klikStad.n!==q.stad.n){
+      const fEl=stadEl(st.klikStad); if(fEl){fEl.classList.remove("dim");fEl.classList.add("fout");}
+      zb=[Math.min(zb[0],st.klikStad.x-45),Math.min(zb[1],st.klikStad.y-45),Math.max(zb[2],st.klikStad.x+45),Math.max(zb[3],st.klikStad.y+45)];
+    }
+    zoomNaarBB(zb,true);
+  }else{
   // zoals bij meerkeuze: alles dimmen, het goede land groen laten pulseren, de foute klik rood arceren
   LANDEN.forEach(x=>{if(paden[x.id])paden[x.id].classList.add("dim");});
   paden[c.id].classList.remove("target","dim");
@@ -1842,14 +1945,15 @@ function beantwoord(goed,knop,timeout=false,geklikt=null){
     zb=[Math.min(c.bb[0],geklikt.bb[0]),Math.min(c.bb[1],geklikt.bb[1]),Math.max(c.bb[2],geklikt.bb[2]),Math.max(c.bb[3],geklikt.bb[3])];
   }
   zoomNaarBB(zb,true);
+  }
   // keuzes kleuren
   if(knop)knop.classList.add(goed?"good":"bad");
-  const juisteTekst=q.type==="mcHoofdstad"?c.h:q.type==="mcVlag"?c.f:c.n;
+  const juisteTekst=q.stad?q.stad.n:(q.type==="mcHoofdstad"?c.h:q.type==="mcVlag"?c.f:c.n);
   document.querySelectorAll("#q-choices .choice").forEach(b=>{
     b.disabled=true;
     if(b.textContent.slice(1)===juisteTekst)b.classList.add("good");
   });
-  logVan(p,c.id)[catVan(q.type)+(goed?"g":"f")]++; // logging per land én categorie, vanaf de allereerste vraag
+  if(!q.stad)logVan(p,c.id)[catVan(q.type)+(goed?"g":"f")]++; // logging per land én categorie (steden: nog niet)
   const belon=[];
   let stemTekst=null; // gesproken zin (indien afgespeeld) → pop-up-tekst moet hiermee overeenkomen
   if(goed){
@@ -1860,9 +1964,11 @@ function beantwoord(goed,knop,timeout=false,geklikt=null){
     belon.push(goud?'<span class="goudstaaf"></span> Gouden vraag: +2 muntjes':"🪙 +1 muntje");
     if(st.streak>0&&st.streak%3===0){pts+=1;belon.push("🔥 3 op een rij: bonusmuntje!");setTimeout(()=>{vlamEffect();sndVlam();},650);}
     st.ronde.punt+=pts;p.points+=pts;p.goedTotaal++; // muntjes stapelen door, worden nooit opgesoupeerd
-    const eerder=p.pass[c.id]||0;
-    p.pass[c.id]=eerder+1;
-    if(eerder===0)st.ronde.stempels.push(c);
+    if(!q.stad){
+      const eerder=p.pass[c.id]||0;
+      p.pass[c.id]=eerder+1;
+      if(eerder===0)st.ronde.stempels.push(c);
+    }
     // diamant: precies 1 per 5 goede antwoorden — los van gouden/bonusvragen
     let diamant=false;
     p.diaProg=(p.diaProg||0)+1;
@@ -1875,14 +1981,14 @@ function beantwoord(goed,knop,timeout=false,geklikt=null){
     if(st.stemNaGoed){ stemTekst=speelStem(); st.stemNaGoed=false; }
     else { st.stemNaGoed=true; }
     // muntjes vliegen vanaf het goede land naar de teller
-    const lr=paden[c.id].getBoundingClientRect();
+    const lr=(q.stad&&stadEl(q.stad)?stadEl(q.stad):paden[c.id]).getBoundingClientRect();
     for(let i=0;i<pts;i++)vliegMunt(lr.left+lr.width/2,lr.top+lr.height/2,i*180);
     const r=$("#map").getBoundingClientRect();
     knal(r.left+r.width/2,r.top+r.height/2,70);
   }else{
     st.streak=0;sndFout();
     st.ronde.uitslagen[st.qi]={goed:false,diamant:false};
-    p.fouten=p.fouten||{};p.fouten[c.id]=(p.fouten[c.id]||0)+1; // voor de moeilijke ronde
+    if(!q.stad){p.fouten=p.fouten||{};p.fouten[c.id]=(p.fouten[c.id]||0)+1;} // voor de moeilijke ronde
     st.stemNaGoed=true; // ná een fout speelt het eerstvolgende goede antwoord altijd een aanmoediging
   }
   save();hudSync();voortgangSync();
@@ -1937,12 +2043,22 @@ function toonFeedback(goed,belon,timeout,geklikt,stemTekst){
   $("#f-emoji").textContent=goed?rnd(["🎉","🌟","🚀","🥳","💪","🧭"]):(timeout?"⏰":"😅");
   // als er een aanmoediging klinkt, toon exact díe zin; anders een gewone pep-tekst
   $("#f-titel").textContent=goed?(stemTekst||pep(PEP_GOED)):(timeout?"De tijd is om!":pep(PEP_FOUT));
-  let sub=`${c.f} <b>${c.n}</b> — hoofdstad: <b>${c.h}</b>`;
-  if(!goed&&geklikt)sub=`Je klikte op ${geklikt.f} ${geklikt.n}.<br>${sub}`;
-  if(!goed&&!geklikt)sub=`Het juiste antwoord: ${sub}`;
+  let sub;
+  if(q.stad){
+    const inw=q.stad.p>=1e6?(q.stad.p/1e6).toFixed(1).replace(".",",")+" miljoen":Math.round(q.stad.p/1000)+" duizend";
+    sub=`🏙️ <b>${esc(q.stad.n)}</b> — ongeveer ${inw} inwoners`;
+    if(!goed&&st.klikStad&&st.klikStad.n!==q.stad.n)sub=`Je tikte op ${esc(st.klikStad.n)}.<br>${sub}`;
+    if(!goed&&!st.klikStad)sub=`Het juiste antwoord: ${sub}`;
+  }else{
+    sub=`${c.f} <b>${c.n}</b> — hoofdstad: <b>${c.h}</b>`;
+    if(!goed&&geklikt)sub=`Je klikte op ${geklikt.f} ${geklikt.n}.<br>${sub}`;
+    if(!goed&&!geklikt)sub=`Het juiste antwoord: ${sub}`;
+  }
   $("#f-land").innerHTML=sub;
-  $("#f-pc").textContent=c.card;
-  if(goed){
+  $("#f-pc").textContent=q.stad?"🏙️🇳🇱":c.card;
+  if(q.stad){ // steden: (nog) geen weetjes/foto's per stad
+    $("#f-feit").style.display="none";$("#f-woord").style.display="none";$("#f-fotobox").style.display="none";
+  }else if(goed){
     const n=speler().pass[c.id]||1; // zoveelste keer dit land goed: bepaalt wélk feitje of wélke foto
     // strak om en om binnen de ronde: 1e goede antwoord feitje+woordje, 2e foto, 3e feitje…
     if(st.ronde.goed%2===0)vulFoto(c,n);else vulWeetje(c,n);
@@ -2428,7 +2544,7 @@ $("#b-pass2").onclick=()=>{sndKlik();toonPaspoort();};
 function naarHome(){ // ronde ALTIJD volledig afbreken (ook bliksemronde, feedback en grote foto)
   stopTimer();stopSpeeltijd();kaartReset();annuleerFoto();toonPlatteKaart();
   $("#fb").classList.remove("open");
-  st.verken=false;st.q=null;st.vragen=[];st.qi=0;
+  st.verken=false;st.q=null;st.vragen=[];st.qi=0;st.stedenronde=false;
   $("#s-game").classList.remove("metmenu");
   chipsSync();segSync();expeditieSync();toonScherm("#s-start");menuSync("expeditie");
 }
