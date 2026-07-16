@@ -57,16 +57,14 @@ if (missers.length) { console.log("NIET GEVONDEN:"); for (const m of missers) co
 
 // bij een API-blokkade (0 foto's): niets wegschrijven, zodat een herhaal-lus het later opnieuw kan proberen
 const totaalFotos = Object.values(EXTRA).reduce((s, l) => s + l.fotos.length, 0);
-if (totaalFotos === 0) { console.log("Geen enkele foto opgehaald (API-blokkade?) — HTML NIET aangepast."); process.exit(1); }
+if (totaalFotos === 0) { console.log("Geen enkele foto opgehaald (API-blokkade?) — packs NIET aangepast."); process.exit(1); }
 
-let html = readFileSync(HTML, "utf8");
-const blok = `<script id="inhoud">
-// Feitjes, woordjes en foto's per land. Foto's: Wikimedia Commons via Wikipedia (vrije licenties), met bronlink.
-const EXTRA=${JSON.stringify(EXTRA)};
-</${"script"}>`;
-html = html.replace(/<script id="inhoud">[\s\S]*?<\/script>/, blok);
-writeFileSync(HTML, html);
+// datapacks per continent schrijven (daarna: node maak-manifest.mjs)
+const euIds = new Set(Object.keys(JSON.parse(readFileSync("data/continents/europa.json","utf8")).geo));
+const perCont = { europa:{}, azie:{} };
+for (const [code, inhoud] of Object.entries(EXTRA)) (euIds.has(code) ? perCont.europa : perCont.azie)[code] = inhoud;
+writeFileSync("data/content/nl/europa.json", JSON.stringify(perCont.europa));
+writeFileSync("data/content/nl/azie.json", JSON.stringify(perCont.azie));
 const tot = k => Object.values(EXTRA).reduce((s, l) => s + l[k].length, 0);
 const dun = Object.entries(EXTRA).filter(([, l]) => l.fotos.length < 3).map(([c, l]) => `${c}:${l.fotos.length}`);
-console.log(`Totaal: ${tot("feiten")} feitjes, ${tot("woorden")} woordjes, ${tot("fotos")} foto's. HTML: ${html.length} tekens.`);
-console.log("Landen met <3 foto's:", dun.length ? dun.join(", ") : "geen");
+console.log(`Totaal: ${tot("feiten")} feitjes, ${tot("woorden")} woordjes, ${tot("fotos")} foto's → data/content/nl/*.json — vergeet 'node maak-manifest.mjs' niet`);

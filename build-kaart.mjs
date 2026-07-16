@@ -185,12 +185,7 @@ const AS = bouwContinent({
   gratLon:[40,60,80,100,120,140], gratLat:[0,10,20,30,40,50],
 });
 
-/* ---------- injecteren ---------- */
-let html=readFileSync(HTML,"utf8");
-const blok=`<script id="geodata">
-// Echte landgrenzen: Natural Earth 50m (publiek domein), Lambert azimuthal equal-area per continent, vereenvoudigd.
-const KAARTEN=${JSON.stringify({EU,AS})};
-</${"script"}>`;
-html=html.replace(/<script id="geodata">[\s\S]*?<\/script>/,blok);
-writeFileSync(HTML,html);
-console.log("HTML bijgewerkt:",html.length,"tekens");
+/* ---------- datapacks schrijven (daarna: node maak-manifest.mjs) ---------- */
+writeFileSync("data/continents/europa.json",JSON.stringify(EU));
+writeFileSync("data/continents/azie.json",JSON.stringify(AS));
+console.log("packs geschreven: data/continents/europa.json + azie.json — vergeet 'node maak-manifest.mjs' niet");

@@ -1,0 +1,25 @@
+{
+ "kaartgrenzen": {
+  "bron": "Natural Earth 1:10m",
+  "url": "https://www.naturalearthdata.com",
+  "licentie": "publiek domein"
+ },
+ "steden (gepland)": {
+  "bron": "GeoNames",
+  "url": "https://www.geonames.org",
+  "licentie": "CC BY 4.0"
+ },
+ "fotos": {
+  "bron": "Wikimedia Commons via Wikipedia",
+  "url": "https://commons.wikimedia.org",
+  "licentie": "vrije licenties, bronlink per foto in het spel"
+ },
+ "scheetgeluid": {
+  "bron": "Human fart.wav, Wikimedia Commons",
+  "licentie": "CC BY-SA 4.0"
+ },
+ "stemmen": {
+  "bron": "ElevenLabs (stem: Chris)",
+  "licentie": "gegenereerd met betaald account"
+ }
+}

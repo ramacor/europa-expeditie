@@ -78,12 +78,6 @@ const tel=Object.keys(landen).length;
 const punten=Object.values(landen).flat().reduce((a,r)=>a+r.length,0)+rest.reduce((a,r)=>a+r.length,0);
 console.log(`speelbaar: ${tel} landen + ${Object.keys(dots).length} stippen, rest: ${rest.length} ringen, punten totaal: ${punten}`);
 
-let html=readFileSync(HTML,"utf8");
-const blok=`<script id="globedata">
-// Ruwe lon/lat-geometrie voor de 3D-globe (Natural Earth 50m, vereenvoudigd).
-const GLOBE=${JSON.stringify(GLOBE)};
-</${"script"}>`;
-if(html.includes('<script id="globedata">')) html=html.replace(/<script id="globedata">[\s\S]*?<\/script>/,blok);
-else html=html.replace('<script id="geodata">', blok+'\n<script id="geodata">');
-writeFileSync(HTML,html);
-console.log("HTML bijgewerkt:",html.length,"tekens");
+// datapack schrijven (daarna: node maak-manifest.mjs)
+writeFileSync("data/core/globe.json",JSON.stringify(GLOBE));
+console.log("pack geschreven: data/core/globe.json — vergeet 'node maak-manifest.mjs' niet");

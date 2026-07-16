@@ -1,0 +1,25 @@
+{
+ "formaat": 1,
+ "packs": {
+  "content/nl/azie.json": {
+   "hash": "44136fa355b3",
+   "bytes": 2
+  },
+  "content/nl/europa.json": {
+   "hash": "2c81f25800bf",
+   "bytes": 94234
+  },
+  "continents/azie.json": {
+   "hash": "1306b3cd0946",
+   "bytes": 118632
+  },
+  "continents/europa.json": {
+   "hash": "cabbcb6b0ff7",
+   "bytes": 120241
+  },
+  "core/globe.json": {
+   "hash": "2c5fdef7e1a2",
+   "bytes": 319780
+  }
+ }
+}
