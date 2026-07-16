@@ -35,9 +35,12 @@ GitHub Pages werkt de site binnen ± een minuut bij. De beginscherm-app op de iP
 ## Kaartdata vernieuwen
 
 ```
-curl -sL -o ne10m.geojson "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_admin_0_countries.geojson"
+curl -sL -o ne10m.geojson  "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_admin_0_countries.geojson"
+curl -sL -o steden.geojson "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_populated_places.geojson"
+curl -sL -o meren.geojson  "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_lakes.geojson"
+npm install              # topojson-buildgereedschap (eenmalig)
 node build-kaart.mjs     # platte kaarten per continent → data/continents/
-node build-globe.mjs     # 3D-globe-geometrie → data/core/globe.json
+node build-globe.mjs     # 3D-globe (3 detailniveaus) → data/core/
 node maak-manifest.mjs   # manifest bijwerken
 node maak-artifact.mjs   # preview-variant bijwerken
 ```
