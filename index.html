@@ -727,7 +727,7 @@ const DATA_KLAAR=(async()=>{
 </script>
 <script>
 "use strict";
-const VERSIE="38"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="39"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -1138,15 +1138,49 @@ function bouwKaart(){
   });
   map.appendChild(gLand);
   map.appendChild(gDots);
+  lodFijn=false; // verse paden zijn grof; lodPas wisselt zo nodig terug naar fijn
   setVB(vulAspect(VBFULL));
 }
-function setVB(v){vb={...v};map.setAttribute("viewBox",`${v.x} ${v.y} ${v.w} ${v.h}`);}
+function setVB(v){vb={...v};map.setAttribute("viewBox",`${v.x} ${v.y} ${v.w} ${v.h}`);lodPas();}
 // verhouding van de kaart-container (breedte/hoogte); bepaalt de viewBox-vorm zodat de kaart de hele ruimte vult
 function contRatio(){const b=map.getBoundingClientRect();return (b.width>4&&b.height>4)?b.width/b.height:1050/920;}
 // rek een viewBox op naar de container-verhouding (heel het gebied blijft zichtbaar, geen lege banden boven/onder)
 function vulAspect(v){let {x,y,w,h}=v;const r=contRatio();
   if(w/h>r){const nh=w/r;y-=(nh-h)/2;h=nh;}else{const nw=h*r;x-=(nw-w)/2;w=nw;}
   return {x,y,w,h};}
+
+/* ---------- fijn detailniveau bij inzoomen ----------
+   Per continent bestaat een "-fijn"-pack met ~5x meer grenspunten. Zodra je ver genoeg
+   inzoomt wisselen de landpaden naar de fijne versie; uitzoomen wisselt terug. */
+const FIJN={}, fijnLaadt={};
+let lodFijn=false;
+const CONT_PACK={EU:"europa",AS:"azie",AF:"afrika",NA:"noord-amerika",SA:"zuid-amerika",OC:"oceanie"};
+async function laadFijn(cont){
+  if(FIJN[cont]||fijnLaadt[cont])return;
+  fijnLaadt[cont]=true;
+  try{
+    if(typeof FIJN_INLINE!=="undefined"&&FIJN_INLINE[cont])FIJN[cont]=FIJN_INLINE[cont]; // artifact-variant
+    else{const r=await fetch("./data/continents/"+CONT_PACK[cont]+"-fijn.json");if(r.ok)FIJN[cont]=await r.json();}
+  }catch(e){}
+  fijnLaadt[cont]=false;
+  lodPas(); // nu de data er is: alsnog wisselen als de zoom daarom vraagt
+}
+function lodZet(fijn){
+  lodFijn=fijn;
+  const F=FIJN[actieveKaart]||{};
+  for(const id in paden){
+    const el=paden[id]; if(el.tagName!=="path")continue;
+    const g=GEO[id]; if(!g||!g.d)continue;
+    el.setAttribute("d", fijn&&F[id] ? F[id] : g.d);
+  }
+}
+function lodPas(){
+  if(!KAARTEN||!GEO)return;
+  const vol=(VBFULL&&VBFULL.w)||1050;
+  const wilFijn = vb.w < vol*(lodFijn?0.66:0.58); // hysterese: niet flapperen op de grens
+  if(wilFijn&&!FIJN[actieveKaart]){laadFijn(actieveKaart);return;}
+  if(wilFijn!==lodFijn)lodZet(wilFijn);
+}
 let animId=null;
 function animVB(doel,dur=450){
   if(matchMedia("(prefers-reduced-motion: reduce)").matches){setVB(doel);return;}

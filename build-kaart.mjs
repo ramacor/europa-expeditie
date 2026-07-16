@@ -5,7 +5,7 @@ import { WERELD } from "./bron-wereld.mjs";
 
 const SRC = "ne10m.geojson";   // hoogste Natural Earth-resolutie (1:10m): nauwkeurige grenzen en kustlijnen
 const VB = { w:1050, h:920, marge:8 };
-const TOL_PLAY = 0.55, TOL_CTX = 1.5;
+const TOL_PLAY = 0.55, TOL_CTX = 1.5, TOL_FIJN = 0.1; // fijn = ~5x meer detail, voor bij het inzoomen
 const MIN_RING_PLAY = 5, MIN_RING_CTX = 40;
 const D = Math.PI/180;
 const r1 = n=>Math.round(n*10)/10;
@@ -154,6 +154,16 @@ function bouwContinent(cfg){
   }
   for(const code in DOTS){ if(!GEO[code]) GEO[code]=dotLand(code); }
 
+  // fijn detailniveau (bijna ongesimplificeerd): apart pack, wordt geladen zodra de speler inzoomt
+  const FIJN={};
+  for(const code of PLAY){
+    const ringen=(geproj[code]||[]).map(r=>r.map(fit));
+    if(!ringen.length) continue;
+    ringen.sort((a,b)=>area(b)-area(a));
+    const kept=ringen.filter((r,i)=>i===0||area(r)>=1.2).map(r=>simplify(r,TOL_FIJN)).filter(r=>r.length>=3);
+    if(kept.length) FIJN[code]=pad(kept);
+  }
+
   let ctxD="";
   for(const code of CTX){
     const ringen=(geproj[code]||[]).map(r=>r.map(fit));
@@ -180,7 +190,7 @@ function bouwContinent(cfg){
 
   const tot=Object.values(GEO).reduce((a,g)=>a+(g.d?g.d.length:0),0);
   console.log(`  ${PLAY.length} landen, ${tot} tekens paden, ${ctxD.length} tekens context, start`,vbstart);
-  return {geo:GEO, grat, ctx:ctxD, zee, vbstart};
+  return {geo:GEO, grat, ctx:ctxD, zee, vbstart, fijn:FIJN};
 }
 
 /* ---------- Europa (ongewijzigde parameters) ---------- */
@@ -258,10 +268,10 @@ const OC = bouwContinent({
 });
 
 /* ---------- datapacks schrijven (daarna: node maak-manifest.mjs) ---------- */
-writeFileSync("data/continents/europa.json",JSON.stringify(EU));
-writeFileSync("data/continents/azie.json",JSON.stringify(AS));
-writeFileSync("data/continents/afrika.json",JSON.stringify(AF));
-writeFileSync("data/continents/noord-amerika.json",JSON.stringify(NAK));
-writeFileSync("data/continents/zuid-amerika.json",JSON.stringify(SAK));
-writeFileSync("data/continents/oceanie.json",JSON.stringify(OC));
-console.log("packs geschreven: data/continents/*.json — vergeet 'node maak-manifest.mjs' niet");
+for(const [naam,K] of [["europa",EU],["azie",AS],["afrika",AF],["noord-amerika",NAK],["zuid-amerika",SAK],["oceanie",OC]]){
+  const {fijn,...basis}=K;
+  writeFileSync(`data/continents/${naam}.json`,JSON.stringify(basis));
+  writeFileSync(`data/continents/${naam}-fijn.json`,JSON.stringify(fijn));
+  console.log(`  ${naam}: basis ${JSON.stringify(basis).length} B, fijn ${JSON.stringify(fijn).length} B`);
+}
+console.log("packs geschreven: data/continents/*.json (+ -fijn) — vergeet 'node maak-manifest.mjs' niet");
