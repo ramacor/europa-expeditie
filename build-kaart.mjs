@@ -1,11 +1,14 @@
 // Zet Natural Earth landgrenzen (1:10m) om naar SVG-paden per continent.
 // Elk continent krijgt zijn eigen Lambert azimuthal equal-area-projectie, passend in 1050×920.
 import { readFileSync, writeFileSync } from "node:fs";
+import { topology } from "topojson-server";
+import { presimplify, simplify as vwSimplify } from "topojson-simplify";
+import { feature } from "topojson-client";
 import { WERELD } from "./bron-wereld.mjs";
 
 const SRC = "ne10m.geojson";   // hoogste Natural Earth-resolutie (1:10m): nauwkeurige grenzen en kustlijnen
 const VB = { w:1050, h:920, marge:8 };
-const TOL_PLAY = 0.55, TOL_CTX = 1.5, TOL_FIJN = 0.1; // fijn = ~5x meer detail, voor bij het inzoomen
+const W_GROF = 0.5, W_FIJN = 0.02; // Visvalingam-drempels (px²): grof voor overzicht, fijn voor inzoomen
 const MIN_RING_PLAY = 5, MIN_RING_CTX = 40;
 const D = Math.PI/180;
 const r1 = n=>Math.round(n*10)/10;
@@ -128,23 +131,34 @@ function bouwContinent(cfg){
   const fit=([x,y])=>[x*s+tx,y*s+ty];
   const projFit=ll=>fit(proj(ll));
 
+  /* topologie: gedeelde grenzen worden één boog en dus één keer vereenvoudigd →
+     buurlanden sluiten exact aan, geen kieren — op elk detailniveau */
+  const feats=[];
+  for(const code in geproj) feats.push({type:"Feature",id:code,properties:{},
+    geometry:{type:"MultiPolygon",coordinates:geproj[code].map(r=>[r.map(fit)])}});
+  const topo=topology({landen:{type:"FeatureCollection",features:feats}},1e5);
+  const pre=presimplify(topo);
+  const perNiveau=t=>{const uit={};
+    for(const f of feature(t,t.objects.landen).features){
+      const ringen=f.geometry.coordinates.map(pg=>pg[0]).filter(r=>r&&r.length>=4);
+      if(ringen.length)uit[f.id]=ringen;
+    } return uit;};
+  const ringGrof=perNiveau(vwSimplify(pre,W_GROF));
+  const ringFijn=perNiveau(vwSimplify(pre,W_FIJN));
+
   const GEO={};
-  function dotLand(code){ // ministaatje: klik-stip + (waar zichtbaar) de échte vorm eronder
+  function dotLand(code){ // ministaatje: klik-stip + (waar zichtbaar) de échte vorm eronder (fijne versie)
     const g={dot:projFit(DOTS[code]).map(r1)};
-    const ringen=(geproj[code]||[]).map(r=>r.map(fit));
-    if(ringen.length){
-      ringen.sort((a,b)=>area(b)-area(a));
-      const kept=ringen.filter((r,i)=>i===0||area(r)>=2).map(r=>simplify(r,TOL_PLAY*0.5)).filter(r=>r.length>=3);
-      if(kept.length&&area(kept[0])>=0.8)g.d=pad(kept);
-    }
+    const ringen=(ringFijn[code]||[]).slice().sort((a,b)=>area(b)-area(a));
+    const kept=ringen.filter((r,i)=>i===0||area(r)>=2);
+    if(kept.length&&area(kept[0])>=0.8)g.d=pad(kept);
     return g;
   }
   for(const code of PLAY){
     if(DOTS[code]){ GEO[code]=dotLand(code); continue; }
-    const ringen=(geproj[code]||[]).map(r=>r.map(fit));
+    const ringen=(ringGrof[code]||[]).slice().sort((a,b)=>area(b)-area(a));
     if(!ringen.length){ console.error("  GEEN GEOMETRIE:",code); continue; }
-    ringen.sort((a,b)=>area(b)-area(a));
-    const kept=ringen.filter((r,i)=>i===0||area(r)>=MIN_RING_PLAY).map(r=>simplify(r,TOL_PLAY)).filter(r=>r.length>=3);
+    const kept=ringen.filter((r,i)=>i===0||area(r)>=MIN_RING_PLAY);
     let xs=[],ys=[];kept.flat().forEach(p=>{xs.push(p[0]);ys.push(p[1]);});
     const bb=[Math.min(...xs),Math.min(...ys),Math.max(...xs),Math.max(...ys)].map(r1);
     const [cx,cy]=centroid(kept[0]).map(r1);
@@ -154,20 +168,17 @@ function bouwContinent(cfg){
   }
   for(const code in DOTS){ if(!GEO[code]) GEO[code]=dotLand(code); }
 
-  // fijn detailniveau (bijna ongesimplificeerd): apart pack, wordt geladen zodra de speler inzoomt
+  // fijn detailniveau: zelfde topologie, lagere drempel — apart pack voor bij het inzoomen
   const FIJN={};
   for(const code of PLAY){
-    const ringen=(geproj[code]||[]).map(r=>r.map(fit));
-    if(!ringen.length) continue;
-    ringen.sort((a,b)=>area(b)-area(a));
-    const kept=ringen.filter((r,i)=>i===0||area(r)>=1.2).map(r=>simplify(r,TOL_FIJN)).filter(r=>r.length>=3);
+    const ringen=(ringFijn[code]||[]).slice().sort((a,b)=>area(b)-area(a));
+    const kept=ringen.filter((r,i)=>i===0||area(r)>=1.2);
     if(kept.length) FIJN[code]=pad(kept);
   }
 
   let ctxD="";
   for(const code of CTX){
-    const ringen=(geproj[code]||[]).map(r=>r.map(fit));
-    const kept=ringen.filter(r=>area(r)>=MIN_RING_CTX).map(r=>simplify(r,TOL_CTX)).filter(r=>r.length>=3);
+    const kept=(ringGrof[code]||[]).filter(r=>area(r)>=MIN_RING_CTX);
     ctxD+=pad(kept);
   }
   // graticule

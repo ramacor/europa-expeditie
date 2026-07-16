@@ -1,6 +1,9 @@
 // Genereert ruwe lon/lat-geometrie voor de 3D-globe: speelbare landen (EU+AS) apart,
 // de rest van de wereld als neutrale landmassa. Injecteert GLOBE in index/europa-expeditie.html.
 import { readFileSync, writeFileSync } from "node:fs";
+import { topology } from "topojson-server";
+import { presimplify, simplify as vwSimplify } from "topojson-simplify";
+import { feature } from "topojson-client";
 const SRC="ne10m.geojson"; // hoogste resolutie (1:10m)
 const HTML="index.html";
 
@@ -46,7 +49,8 @@ const r2=n=>Math.round(n*100)/100;
 const round=ring=>ring.map(([lo,la])=>[r2(lo),r2(la)]);
 
 const gj=JSON.parse(readFileSync(SRC,"utf8"));
-const landen={}, rest=[];
+// 1) ringen verzamelen (met area-voorfilter), NOG NIET vereenvoudigen
+const perCode={}, restRingen=[];
 for(const f of gj.features){
   const p=f.properties;
   let code=p.ISO_A2&&p.ISO_A2!=="-99"?p.ISO_A2:(p.ISO_A2_EH&&p.ISO_A2_EH!=="-99"?p.ISO_A2_EH:null);
@@ -54,15 +58,30 @@ for(const f of gj.features){
   const speel=code&&PLAY.has(code);
   const polys=f.geometry.type==="Polygon"?[f.geometry.coordinates]:f.geometry.coordinates;
   for(const poly of polys){
-    let ring=poly[0];
+    const ring=poly[0];
     if(!ring||ring.length<4)continue;
     const A=area(ring);
     if(A < (speel?0.0008:0.15))continue;           // te kleine stukjes weglaten
-    const simp=simplify(ring, speel?0.06:0.30);
-    if(simp.length<3)continue;
-    if(speel){(landen[code] ||= []).push(round(simp));}
-    else rest.push(round(simp));
+    if(speel)(perCode[code] ||= []).push(ring);
+    else restRingen.push(ring);
   }
+}
+// 2) topologie: gedeelde grenzen worden één boog en dus één keer vereenvoudigd → buurlanden sluiten exact aan (geen kieren)
+const feats=Object.entries(perCode).map(([code,ringen])=>({type:"Feature",id:code,properties:{},geometry:{type:"MultiPolygon",coordinates:ringen.map(r=>[r])}}));
+const topo=topology({
+  landen:{type:"FeatureCollection",features:feats},
+  rest:{type:"MultiPolygon",coordinates:restRingen.map(r=>[r])}
+},1e6);
+const W_GLOBE=0.014; // Visvalingam-drempel in graden² (vergelijkbaar met de oude 0.06°-tolerantie)
+const simp=vwSimplify(presimplify(topo),W_GLOBE);
+// 3) uitpakken en afronden (identieke coördinaten ronden identiek af → aansluiting blijft exact)
+const landen={}, rest=[];
+for(const f2 of feature(simp,simp.objects.landen).features){
+  const ringen=f2.geometry.coordinates.map(pg=>pg[0]).filter(r=>r&&r.length>=4);
+  if(ringen.length)landen[f2.id]=ringen.map(round);
+}
+for(const pg of feature(simp,simp.objects.rest).geometry.coordinates){
+  const r=pg[0]; if(r&&r.length>=4)rest.push(round(r));
 }
 // stippen voor mini-landen zonder (bewaarde) polygoon
 const dots={};
