@@ -11,6 +11,7 @@ const KAARTEN={EU:${pak("continents/europa.json")},AS:${pak("continents/azie.jso
 const GLOBE=${pak("core/globe.json")};
 let EXTRA=Object.assign({},${pak("content/nl/europa.json")},${pak("content/nl/azie.json")});
 const FIJN_INLINE={EU:${pak("continents/europa-fijn.json")},AS:${pak("continents/azie-fijn.json")},AF:${pak("continents/afrika-fijn.json")},NA:${pak("continents/noord-amerika-fijn.json")},SA:${pak("continents/zuid-amerika-fijn.json")},OC:${pak("continents/oceanie-fijn.json")}};
+const GLOBE_FIJN_INLINE=${pak("core/globe-fijn.json")};
 const DATA_KLAAR=Promise.resolve();
 </${"script"}>
 `;

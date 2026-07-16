@@ -727,7 +727,7 @@ const DATA_KLAAR=(async()=>{
 </script>
 <script>
 "use strict";
-const VERSIE="41"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="42"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -1999,6 +1999,16 @@ const GLOBE_ZEEEN=[ // [naam, lon, lat] — zeenamen op de globe
  ["Kaspische Zee",50.6,41.8],["Rode Zee",38,20.5],["Arabische Zee",63.5,14],["Golf van Bengalen",89,13],
  ["Zuid-Chinese Zee",114,13],["Japanse Zee",134.5,40.5],["Zuidelijke Oceaan",70,-58]
 ];
+/* fijn globe-niveau: geladen zodra er ingezoomd wordt; render kiest per frame de bron */
+let GLOBE_FIJN=null, globeFijnLaadt=false;
+async function laadGlobeFijn(){
+  if(GLOBE_FIJN||globeFijnLaadt)return; globeFijnLaadt=true;
+  try{
+    if(typeof GLOBE_FIJN_INLINE!=="undefined")GLOBE_FIJN=GLOBE_FIJN_INLINE; // artifact-variant
+    else{const r=await fetch("./data/core/globe-fijn.json"); if(r.ok)GLOBE_FIJN=await r.json();}
+  }catch(e){}
+  globeFijnLaadt=false;
+}
 function maakGlobe(canvas, opts){
   opts=opts||{};
   const ctx=canvas.getContext("2d");
@@ -2019,7 +2029,7 @@ function maakGlobe(canvas, opts){
     canvas.width=Math.round(W*dpr); canvas.height=Math.round(H*dpr);
     cx=W/2; cy=H/2; baseR=Math.min(W,H)*0.46; R=baseR*zoom;
   }
-  function setZoom(z){zoom=Math.max(1,Math.min(5,z)); R=baseR*zoom;}
+  function setZoom(z){zoom=Math.max(1,Math.min(5,z)); R=baseR*zoom; if(zoom>=1.4)laadGlobeFijn();}
   function zicht(lon,lat){const l=(lon+rot.l)*DG,f=lat*DG,f0=rot.p*DG;return Math.sin(f0)*Math.sin(f)+Math.cos(f0)*Math.cos(f)*Math.cos(l);}
   function pr(lon,lat){const l=(lon+rot.l)*DG,f=lat*DG,f0=rot.p*DG;
     return [cx+R*Math.cos(f)*Math.sin(l), cy-R*(Math.cos(f0)*Math.sin(f)-Math.sin(f0)*Math.cos(f)*Math.cos(l))];}
@@ -2048,7 +2058,22 @@ function maakGlobe(canvas, opts){
   function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
   function render(data){
     if(!levend)return;
-    data=data||GLOBE; // fijn tenzij grof gevraagd (tijdens beweging)
+    data=data||GLOBE;
+    // ingezoomd én fijn pack binnen → toon het fijne niveau (zelfde detail als de platte kaart)
+    const landenB=(zoom>=1.6&&GLOBE_FIJN)?GLOBE_FIJN:data.landen;
+    // culling: ringen die zeker buiten beeld of op de achterkant liggen overslaan.
+    // per ring éénmalig het lon/lat-kader bepalen; per frame alleen middelpunt testen (goedkoop en veilig ruim)
+    const ringOk=ring=>{
+      let m=ring._m;
+      if(!m){let a=1e9,b=-1e9,c2=1e9,d=-1e9;
+        for(const [lo,la] of ring){if(lo<a)a=lo;if(lo>b)b=lo;if(la<c2)c2=la;if(la>d)d=la;}
+        m=ring._m={c:[(a+b)/2,(c2+d)/2],span:Math.max(b-a,d-c2)};}
+      if(m.span>25)return true;                       // grote ringen (Rusland, datumgrens) altijd tekenen
+      if(zicht(m.c[0],m.c[1])<-0.06)return false;     // volledig op de achterkant van de bol
+      const [x,y]=pr(m.c[0],m.c[1]);
+      const marge=m.span*DG*R*0.8+0.2*W;              // eigen omvang (ruim) + vaste buffer
+      return x>-marge&&x<W+marge&&y>-marge&&y<H+marge;
+    };
     ctx.save();ctx.scale(dpr,dpr);ctx.clearRect(0,0,W,H);
     // bol clippen + oceaan met bolvormige schaduw
     ctx.save();ctx.beginPath();ctx.arc(cx,cy,R,0,7);ctx.clip();
@@ -2067,13 +2092,15 @@ function maakGlobe(canvas, opts){
     const lijn=css("--map-line")||"#0B1026";
     ctx.lineJoin="round";
     const nu=performance.now();
-    for(const id in data.landen){
+    for(const id in landenB){
       const c=LAND_VAN[id];if(!c)continue;
+      const ringen=landenB[id].filter(ringOk);
+      if(!ringen.length)continue;
       const fill=opts.kleurFn?opts.kleurFn(c):c.kleur;
-      tekenRingen(data.landen[id], fill, lijn, 0.7);
+      tekenRingen(ringen, fill, lijn, 0.7);
       if(opts.glans&&(fill==="#F1B62B"||fill==="#CBD3DF")){ // veroverde zilver/goud-landen glanzen (pulserende sheen)
         const sh=0.16+0.16*Math.sin(nu/430+(c.idx||0)*0.7);
-        if(sh>0.03)tekenRingen(data.landen[id], `rgba(255,255,255,${sh.toFixed(3)})`, null, 0);
+        if(sh>0.03)tekenRingen(ringen, `rgba(255,255,255,${sh.toFixed(3)})`, null, 0);
       }
     }
     // stippen (mini-landen)
@@ -2086,7 +2113,7 @@ function maakGlobe(canvas, opts){
       ctx.fillStyle="rgba(6,10,26,0.5)";ctx.beginPath();ctx.arc(cx,cy,R,0,7);ctx.fill(); // dof waas over de bol
       const c=LAND_VAN[hi];
       const eigenKleur=opts.kleurFn?opts.kleurFn(c):(c?c.kleur:"#fff");
-      const ringen=data.landen[hi];
+      const ringen=landenB[hi];
       if(ringen){
         tekenRingen(ringen, eigenKleur, null, 0);            // volle kleur terug
         tekenRingen(ringen, null, "rgba(0,0,0,0.6)", 5.5);   // donkere halo eronder → altijd zichtbaar

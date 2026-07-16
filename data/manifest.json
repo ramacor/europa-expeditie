@@ -57,9 +57,13 @@
    "hash": "262ed6312ba7",
    "bytes": 83534
   },
+  "core/globe-fijn.json": {
+   "hash": "a269fb08367b",
+   "bytes": 1400423
+  },
   "core/globe.json": {
-   "hash": "d6d97f48064e",
-   "bytes": 577582
+   "hash": "cc0a8281b0a3",
+   "bytes": 445754
   }
  }
 }

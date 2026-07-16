@@ -61,7 +61,7 @@ for(const f of gj.features){
     const ring=poly[0];
     if(!ring||ring.length<4)continue;
     const A=area(ring);
-    if(A < (speel?0.0008:0.15))continue;           // te kleine stukjes weglaten
+    if(A < (speel?0.0002:0.15))continue;           // kleine eilandjes mee (fijn niveau toont ze; grof filtert na extractie)
     if(speel)(perCode[code] ||= []).push(ring);
     else restRingen.push(ring);
   }
@@ -72,13 +72,20 @@ const topo=topology({
   landen:{type:"FeatureCollection",features:feats},
   rest:{type:"MultiPolygon",coordinates:restRingen.map(r=>[r])}
 },1e6);
-const W_GLOBE=0.014; // Visvalingam-drempel in graden² (vergelijkbaar met de oude 0.06°-tolerantie)
-const simp=vwSimplify(presimplify(topo),W_GLOBE);
+const W_GLOBE=0.014, W_GLOBE_FIJN=0.0015; // Visvalingam-drempels: grof voor overzicht, fijn voor ingezoomd
+const pre=presimplify(topo);
+const simp=vwSimplify(pre,W_GLOBE);
+const simpF=vwSimplify(pre,W_GLOBE_FIJN);
 // 3) uitpakken en afronden (identieke coördinaten ronden identiek af → aansluiting blijft exact)
-const landen={}, rest=[];
+const landen={}, rest=[], landenFijn={};
 for(const f2 of feature(simp,simp.objects.landen).features){
-  const ringen=f2.geometry.coordinates.map(pg=>pg[0]).filter(r=>r&&r.length>=4);
+  const ringen=f2.geometry.coordinates.map(pg=>pg[0]).filter(r=>r&&r.length>=4)
+    .filter((r,i)=>i===0||area(r)>=0.0008); // grof: piepkleine eilandjes overslaan (fijn toont ze wél)
   if(ringen.length)landen[f2.id]=ringen.map(round);
+}
+for(const f2 of feature(simpF,simpF.objects.landen).features){
+  const ringen=f2.geometry.coordinates.map(pg=>pg[0]).filter(r=>r&&r.length>=4);
+  if(ringen.length)landenFijn[f2.id]=ringen.map(round);
 }
 for(const pg of feature(simp,simp.objects.rest).geometry.coordinates){
   const r=pg[0]; if(r&&r.length>=4)rest.push(round(r));
@@ -113,6 +120,9 @@ const tel=Object.keys(landen).length;
 const punten=Object.values(landen).flat().reduce((a,r)=>a+r.length,0)+rest.reduce((a,r)=>a+r.length,0);
 console.log(`speelbaar: ${tel} landen + ${Object.keys(dots).length} stippen, rest: ${rest.length} ringen, punten totaal: ${punten}`);
 
-// datapack schrijven (daarna: node maak-manifest.mjs)
+// datapacks schrijven (daarna: node maak-manifest.mjs)
 writeFileSync("data/core/globe.json",JSON.stringify(GLOBE));
-console.log("pack geschreven: data/core/globe.json — vergeet 'node maak-manifest.mjs' niet");
+writeFileSync("data/core/globe-fijn.json",JSON.stringify(landenFijn));
+const puntenF=Object.values(landenFijn).flat().reduce((a,r)=>a+r.length,0);
+console.log(`fijn: ${puntenF} punten → data/core/globe-fijn.json`);
+console.log("packs geschreven: data/core/globe.json + globe-fijn.json — vergeet 'node maak-manifest.mjs' niet");
