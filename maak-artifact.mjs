@@ -7,7 +7,7 @@ const pak = p => readFileSync("data/" + p, "utf8");
 
 const INLINE = `<script id="dataloader">
 // Artifact-variant: alle datapacks ingebakken (de artifact-preview kan geen losse bestanden laden).
-const KAARTEN={EU:${pak("continents/europa.json")},AS:${pak("continents/azie.json")}};
+const KAARTEN={EU:${pak("continents/europa.json")},AS:${pak("continents/azie.json")},AF:${pak("continents/afrika.json")},NA:${pak("continents/noord-amerika.json")},SA:${pak("continents/zuid-amerika.json")},OC:${pak("continents/oceanie.json")}};
 const GLOBE=${pak("core/globe.json")};
 let EXTRA=Object.assign({},${pak("content/nl/europa.json")},${pak("content/nl/azie.json")});
 const DATA_KLAAR=Promise.resolve();

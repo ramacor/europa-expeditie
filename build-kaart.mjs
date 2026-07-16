@@ -1,16 +1,37 @@
-// Zet Natural Earth 50m landgrenzen om naar SVG-paden per continent (Europa + Azië).
+// Zet Natural Earth landgrenzen (1:10m) om naar SVG-paden per continent.
 // Elk continent krijgt zijn eigen Lambert azimuthal equal-area-projectie, passend in 1050×920.
 import { readFileSync, writeFileSync } from "node:fs";
+import { WERELD } from "./bron-wereld.mjs";
 
 const SRC = "ne10m.geojson";   // hoogste Natural Earth-resolutie (1:10m): nauwkeurige grenzen en kustlijnen
-const HTML = "index.html";
 const VB = { w:1050, h:920, marge:8 };
 const TOL_PLAY = 0.55, TOL_CTX = 1.5;
 const MIN_RING_PLAY = 5, MIN_RING_CTX = 40;
 const D = Math.PI/180;
 const r1 = n=>Math.round(n*10)/10;
 
-const NAAM2CODE = { "Northern Cyprus":"CY", "Taiwan":"TW" };
+const NAAM2CODE = { "Northern Cyprus":"CY", "Taiwan":"TW", "Somaliland":"SO" }; // Somaliland bij Somalië (de jure)
+
+/* ---------- hoofdstad-coördinaten uit Natural Earth populated places ---------- */
+// bron: steden.geojson (ne_10m_populated_places); overrides via cap:[lon,lat] in bron-wereld.mjs
+const HOOFDSTAD = {};
+try {
+  const pp = JSON.parse(readFileSync("steden.geojson","utf8"));
+  const iso3naar2 = Object.fromEntries(WERELD.map(l=>[l.iso3,l.id]));
+  for (const f of pp.features) {
+    const p = f.properties;
+    if (!String(p.FEATURECLA||"").startsWith("Admin-0 capital")) continue;
+    const id = iso3naar2[p.ADM0_A3];
+    if (id && !HOOFDSTAD[id]) HOOFDSTAD[id] = f.geometry.coordinates.map(v=>Math.round(v*1000)/1000);
+  }
+} catch(e) { console.error("steden.geojson niet gevonden — dots vallen terug op cap-overrides"); }
+for (const l of WERELD) if (l.cap) HOOFDSTAD[l.id] = l.cap;
+const perCont = c => WERELD.filter(l=>l.cont===c);
+const speelIds = c => perCont(c).map(l=>l.id);
+const dotsVan = c => Object.fromEntries(perCont(c).filter(l=>l.dot).map(l=>{
+  if(!HOOFDSTAD[l.id]) throw new Error("geen hoofdstad-coördinaat voor dot-land "+l.id);
+  return [l.id, HOOFDSTAD[l.id]];
+}));
 
 /* ---------- polygon-gereedschap ---------- */
 const lerpX=(a,b,x)=>[x, a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0])];
@@ -73,10 +94,11 @@ const gj = JSON.parse(readFileSync(SRC,"utf8"));
 
 /* ---------- per continent ---------- */
 function bouwContinent(cfg){
-  const {PLAY, CTX, DOTS, WIN, lam0, phi1, ankers, zeenamen, gratLon, gratLat} = cfg;
+  const {PLAY, CTX, DOTS, WIN, lam0, phi1, ankers, zeenamen, gratLon, gratLat, wrap} = cfg;
+  const norm = wrap ? (lon)=>lon<0?lon+360:lon : (lon)=>lon; // datumgrens-continent (Oceanië): west-lons +360
   const LAM0=lam0*D, PHI1=phi1*D;
   const proj=([lon,lat])=>{
-    const lam=lon*D, phi=lat*D;
+    const lam=norm(lon)*D, phi=lat*D;
     const k=Math.sqrt(2/(1+Math.sin(PHI1)*Math.sin(phi)+Math.cos(PHI1)*Math.cos(phi)*Math.cos(lam-LAM0)));
     return [ k*Math.cos(phi)*Math.sin(lam-LAM0),
             -(k*(Math.cos(PHI1)*Math.sin(phi)-Math.sin(PHI1)*Math.cos(phi)*Math.cos(lam-LAM0))) ];
@@ -90,7 +112,8 @@ function bouwContinent(cfg){
     if(!code||!wanted.has(code)) continue;
     const polys=f.geometry.type==="Polygon"?[f.geometry.coordinates]:f.geometry.coordinates;
     for(const poly of polys){
-      const geclipt=clipRing(poly[0],WIN);
+      const ring=wrap?poly[0].map(([lo,la])=>[norm(lo),la]):poly[0];
+      const geclipt=clipRing(ring,WIN);
       if(geclipt.length>=3)(perCode[code] ||= []).push(geclipt);
     }
   }
@@ -185,7 +208,60 @@ const AS = bouwContinent({
   gratLon:[40,60,80,100,120,140], gratLat:[0,10,20,30,40,50],
 });
 
+/* ---------- Afrika ---------- */
+console.log("AFRIKA:");
+const AF = bouwContinent({
+  PLAY:speelIds("AF"),
+  CTX:["ES","PT","IT","GR","MT","CY","TR","SY","LB","IL","PS","JO","SA","YE","OM","IQ","KW","EH"],
+  DOTS:dotsVan("AF"),
+  WIN:{ x0:-27, y0:-38, x1:60, y1:38.5 },
+  lam0:17, phi1:0,
+  zeenamen:[["Atlantische Oceaan",-15,3],["Indische Oceaan",52,-16],["Middellandse Zee",13,36.2],["Rode Zee",37.5,21],["Golf van Guinee",2.5,1.5]],
+  gratLon:[-20,-10,0,10,20,30,40,50], gratLat:[-30,-20,-10,0,10,20,30],
+});
+
+/* ---------- Noord-Amerika ---------- */
+console.log("NOORD-AMERIKA:");
+const NAK = bouwContinent({
+  PLAY:speelIds("NA"),
+  CTX:["GL","PR","CO","VE","RU"],
+  DOTS:dotsVan("NA"),
+  WIN:{ x0:-169, y0:6, x1:-50, y1:83.5 },
+  lam0:-100, phi1:48,
+  zeenamen:[["Stille Oceaan",-136,26],["Atlantische Oceaan",-58,32],["Golf van Mexico",-91.5,24.5],["Caribische Zee",-75.5,15],["Noordelijke IJszee",-120,78]],
+  gratLon:[-160,-140,-120,-100,-80,-60], gratLat:[10,20,30,40,50,60,70,80],
+});
+
+/* ---------- Zuid-Amerika ---------- */
+console.log("ZUID-AMERIKA:");
+const SAK = bouwContinent({
+  PLAY:speelIds("SA"),
+  CTX:["PA","CR","NI","FK","FR"], // FR = Frans-Guyana (uitgeknipt uit het Frankrijk-veelvlak)
+  DOTS:dotsVan("SA"),
+  WIN:{ x0:-95, y0:-57, x1:-30, y1:14 },
+  lam0:-60, phi1:-20,
+  zeenamen:[["Stille Oceaan",-84,-22],["Atlantische Oceaan",-36,-28],["Caribische Zee",-71,13]],
+  gratLon:[-80,-70,-60,-50,-40], gratLat:[-50,-40,-30,-20,-10,0,10],
+});
+
+/* ---------- Oceanië (over de datumgrens heen: west-lons +360) ---------- */
+console.log("OCEANIË:");
+const OC = bouwContinent({
+  PLAY:speelIds("OC"),
+  CTX:["ID","TL","NC"],
+  DOTS:dotsVan("OC"),
+  wrap:true,
+  WIN:{ x0:110, y0:-50, x1:212, y1:9 },
+  lam0:160, phi1:-20,
+  zeenamen:[["Stille Oceaan",192,-10],["Indische Oceaan",114,-33],["Koraalzee",152,-17],["Tasmanzee",161,-40]],
+  gratLon:[120,140,160,180,200], gratLat:[-40,-30,-20,-10,0],
+});
+
 /* ---------- datapacks schrijven (daarna: node maak-manifest.mjs) ---------- */
 writeFileSync("data/continents/europa.json",JSON.stringify(EU));
 writeFileSync("data/continents/azie.json",JSON.stringify(AS));
-console.log("packs geschreven: data/continents/europa.json + azie.json — vergeet 'node maak-manifest.mjs' niet");
+writeFileSync("data/continents/afrika.json",JSON.stringify(AF));
+writeFileSync("data/continents/noord-amerika.json",JSON.stringify(NAK));
+writeFileSync("data/continents/zuid-amerika.json",JSON.stringify(SAK));
+writeFileSync("data/continents/oceanie.json",JSON.stringify(OC));
+console.log("packs geschreven: data/continents/*.json — vergeet 'node maak-manifest.mjs' niet");

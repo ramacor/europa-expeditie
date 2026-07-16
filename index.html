@@ -365,7 +365,7 @@
   .boektab.actief{opacity:1; background:var(--pagina); color:var(--accent)}
   .boekpagina{background:var(--pagina); color:var(--inkt); padding:16px; min-height:320px}
   .boekpagina .sub{color:var(--inkt); opacity:.75; font-size:13px; margin-bottom:12px}
-  .lbwissel{display:flex; gap:6px; margin-bottom:10px}
+  .lbwissel{display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap}
   .lbwissel button{flex:1; border:2px solid transparent; background:var(--panel2); color:var(--inkt); border-radius:10px; padding:8px 4px; font-size:13px; font-weight:bold; cursor:pointer}
   .lbwissel button.sel{border-color:var(--teal)}
   .lbrij{display:flex; align-items:center; gap:9px; padding:5px 6px; border-bottom:1px dashed color-mix(in srgb, var(--inkt) 30%, transparent); font-size:14px}
@@ -453,7 +453,7 @@
   <div class="hero">
     <span class="globe">🌍</span>
     <h1>Finn's Expeditie</h1>
-    <p>Ontdek de landen, hoofdsteden en vlaggen van Europa en Azië. Verdien muntjes, spaar diamanten en word een echte wereldkampioen topografie!</p>
+    <p>Ontdek de landen, hoofdsteden en vlaggen van de hele wereld. Verdien muntjes, spaar diamanten en word een echte wereldkampioen topografie!</p>
     <div class="rules">
       <span>✅ goed = 🪙</span>
       <span>💎 5 goed = diamant</span>
@@ -474,6 +474,10 @@
       <div class="seg segmulti" data-multi="continents">
         <button data-v="EU">🇪🇺 Europa</button>
         <button data-v="AS">🌏 Azië</button>
+        <button data-v="AF">🦁 Afrika</button>
+        <button data-v="NA">🗽 N-Amerika</button>
+        <button data-v="SA">🦜 Z-Amerika</button>
+        <button data-v="OC">🏝️ Oceanië</button>
       </div>
     </div>
     <div class="optrow"><label>Wat wil je oefenen?</label>
@@ -534,7 +538,7 @@
   </div>
   <div class="arena">
     <div class="mapwrap">
-      <svg id="map" viewBox="0 0 1050 920" role="img" aria-label="Kaart van Europa"></svg>
+      <svg id="map" viewBox="0 0 1050 920" role="img" aria-label="Wereldkaart per werelddeel"></svg>
       <canvas id="g-verken" style="display:none;position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab"></canvas>
       <div id="verken-pop">
         <div class="vp-kop"><span class="vp-vlag" id="vp-vlag"></span><b id="vp-naam"></b><button class="vp-sluit" id="vp-sluit">✕ Inklappen</button></div>
@@ -638,6 +642,10 @@
       <div class="lbwissel" id="pass-cont" style="margin-bottom:12px">
         <button class="sel" data-pc="EU">🇪🇺 Europa</button>
         <button data-pc="AS">🌏 Azië</button>
+        <button data-pc="AF">🦁 Afrika</button>
+        <button data-pc="NA">🗽 N-Amerika</button>
+        <button data-pc="SA">🦜 Z-Amerika</button>
+        <button data-pc="OC">🏝️ Oceanië</button>
       </div>
       <div id="pass-stempels">
         <div class="sub" id="pass-sub"></div>
@@ -709,14 +717,17 @@ const SCHEET_DATA="data:audio/mp4;base64,AAAAHGZ0eXBNNEEgAAAAAE00QSBtcDQyaXNvbQA
 let KAARTEN=null, GLOBE=null, EXTRA={};
 const DATA_KLAAR=(async()=>{
   const pak=async p=>{const r=await fetch("./data/"+p);if(!r.ok)throw new Error("datapack "+p);return r.json();};
-  const [eu,as,globe]=await Promise.all([pak("continents/europa.json"),pak("continents/azie.json"),pak("core/globe.json")]);
-  KAARTEN={EU:eu,AS:as};GLOBE=globe;
+  const [eu,as,af,na,sa,oc,globe]=await Promise.all([
+    pak("continents/europa.json"),pak("continents/azie.json"),pak("continents/afrika.json"),
+    pak("continents/noord-amerika.json"),pak("continents/zuid-amerika.json"),pak("continents/oceanie.json"),
+    pak("core/globe.json")]);
+  KAARTEN={EU:eu,AS:as,AF:af,NA:na,SA:sa,OC:oc};GLOBE=globe;
   for(const c of ["europa","azie"])pak("content/nl/"+c+".json").then(x=>Object.assign(EXTRA,x)).catch(()=>{}); // content niet-blokkerend: zonder pack vallen we terug op het ingebouwde feitje per land
 })();
 </script>
 <script>
 "use strict";
-const VERSIE="37"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="38"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -860,7 +871,111 @@ const LANDEN=[
  {id:"SG",n:"Singapore",h:"Singapore",f:"🇸🇬",cont:"AS",lvl:3,card:"🦁🏙️🌳🚤",hint:"Piepklein eilandstadje aan de punt van Maleisië.",fact:"Het Merlion — half leeuw, half vis — is het symbool van Singapore.",w:["shiok","Singaporees","'heerlijk! top!'"]},
  {id:"BH",n:"Bahrein",h:"Manama",f:"🇧🇭",cont:"AS",lvl:3,card:"🏝️🛢️🏙️🌊",hint:"Klein eilandland in de Perzische Golf.",fact:"Bahrein bestaat uit een groep kleine eilanden verbonden door bruggen.",w:["loulou","Arabisch (Bahrein)","parel — Bahrein was beroemd om parelduiken"]},
  {id:"MV",n:"Maldiven",h:"Malé",f:"🇲🇻",cont:"AS",lvl:3,card:"🏝️🐠🌊🐢",hint:"Piepkleine eilandjes in de Indische Oceaan onder India.",fact:"De Maldiven zijn het laagste land ter wereld — nergens hoger dan een paar meter.",w:["dhoni","Divehi","de traditionele Maldivische boot"]},
- {id:"BN",n:"Brunei",h:"Bandar Seri Begawan",f:"🇧🇳",cont:"AS",lvl:3,card:"🕌🌴🛢️👑",hint:"Klein rijk sultanaat op het eiland Borneo.",fact:"De sultan van Brunei woont in een van de grootste paleizen ter wereld.",w:["titah","Maleis (Brunei)","een bevel van de sultan"]}
+ {id:"BN",n:"Brunei",h:"Bandar Seri Begawan",f:"🇧🇳",cont:"AS",lvl:3,card:"🕌🌴🛢️👑",hint:"Klein rijk sultanaat op het eiland Borneo.",fact:"De sultan van Brunei woont in een van de grootste paleizen ter wereld.",w:["titah","Maleis (Brunei)","een bevel van de sultan"]},
+ /* ---- wereld (fase 2): gegenereerd uit bron-wereld.mjs ---- */
+ {id:"EG",n:"Egypte",h:"Caïro",f:"🇪🇬",cont:"AF",lvl:1,card:"🐫🔺🏺🌊",hint:"Land van de piramides, in de noordoosthoek van Afrika.",fact:"De piramide van Cheops was 3800 jaar lang het hoogste bouwwerk op aarde.",w:["yalla","Arabisch","kom op, we gaan!"]},
+ {id:"MA",n:"Marokko",h:"Rabat",f:"🇲🇦",cont:"AF",lvl:1,card:"🕌🐪🍊⛰️",hint:"Helemaal linksboven in Afrika, vlak onder Spanje.",fact:"In Marokko klimmen geiten in arganbomen om de vruchten te eten.",w:["zwina","Marokkaans-Arabisch","mooi, prachtig"]},
+ {id:"DZ",n:"Algerije",h:"Algiers",f:"🇩🇿",cont:"AF",lvl:1,card:"🏜️🕌🌴☀️",hint:"Het grootste land van heel Afrika, grotendeels Sahara.",fact:"Algerije is het grootste land van Afrika — en meer dan vier vijfde ervan is woestijn.",w:["sahbi","Algerijns-Arabisch","mijn maatje"]},
+ {id:"TN",n:"Tunesië",h:"Tunis",f:"🇹🇳",cont:"AF",lvl:2,card:"🏖️🕌🫒🏛️",hint:"Klein land aan de Middellandse Zee, tussen Algerije en Libië.",fact:"In Tunesië zijn scènes van Star Wars opgenomen — het decor staat er nog steeds.",w:["barsha","Tunesisch","heel veel"]},
+ {id:"LY",n:"Libië",h:"Tripoli",f:"🇱🇾",cont:"AF",lvl:2,card:"🏜️🌴🏛️☀️",hint:"Groot woestijnland aan de Middellandse Zee, oostelijk van Tunesië.",fact:"In Libië is de heetste officieuze temperatuur ooit gemeten: ruim 57 graden.",w:["shwaya shwaya","Libisch-Arabisch","rustig aan, beetje bij beetje"]},
+ {id:"SD",n:"Soedan",h:"Khartoem",f:"🇸🇩",cont:"AF",lvl:2,card:"🏜️🔺🐪🌊",hint:"Onder Egypte; de Nijl stroomt er dwars doorheen.",fact:"Soedan heeft méér piramides dan Egypte — ruim tweehonderd!",w:["habibi","Arabisch","lieverd, vriend"]},
+ {id:"SS",n:"Zuid-Soedan",h:"Djoeba",f:"🇸🇸",cont:"AF",lvl:2,card:"🌍🐘🌿🌊",hint:"Het jongste land ter wereld, onder Soedan.",fact:"Zuid-Soedan bestaat pas sinds 2011 — het jongste land op aarde.",w:["malesh","Juba-Arabisch","geeft niks, maakt niet uit"]},
+ {id:"ER",n:"Eritrea",h:"Asmara",f:"🇪🇷",cont:"AF",lvl:2,card:"🌊🏜️🚂🕌",hint:"Smal land aan de Rode Zee, boven Ethiopië.",fact:"De hoofdstad Asmara staat vol Italiaanse art-deco-gebouwen en is werelderfgoed.",w:["selam","Tigrinya","vrede — én hallo"]},
+ {id:"DJ",n:"Djibouti",h:"Djibouti",f:"🇩🇯",cont:"AF",lvl:2,card:"🌋🐪🌊🧂",hint:"Piepklein land bij de ingang van de Rode Zee.",fact:"Het Assalmeer in Djibouti ligt 155 meter ónder zeeniveau — het laagste punt van Afrika.",w:["caano geel","Somalisch","kamelenmelk — het nationale drankje"]},
+ {id:"ET",n:"Ethiopië",h:"Addis Abeba",f:"🇪🇹",cont:"AF",lvl:1,card:"☕⛰️🦁🏃",hint:"Bergachtig land in de Hoorn van Afrika, nooit gekoloniseerd.",fact:"Koffie is ontdekt in Ethiopië — volgens de legende door een geitenhoeder wiens geiten gingen dansen.",w:["ishi","Amhaars","oké, is goed!"]},
+ {id:"SO",n:"Somalië",h:"Mogadishu",f:"🇸🇴",cont:"AF",lvl:2,card:"🌊🐪🐐🌴",hint:"Op de punt van de Hoorn van Afrika, met de langste kust van het vasteland.",fact:"Somalië heeft de langste kustlijn van het Afrikaanse vasteland: ruim 3000 kilometer.",w:["nabad","Somalisch","vrede — zo groet je er"]},
+ {id:"KE",n:"Kenia",h:"Nairobi",f:"🇰🇪",cont:"AF",lvl:1,card:"🦁🦒🏃🌋",hint:"Safariland in Oost-Afrika, de evenaar loopt er dwars doorheen.",fact:"In Kenia rennen elk jaar anderhalf miljoen gnoes de savanne over — de grote trek.",w:["hakuna matata","Swahili","geen zorgen! (echt Swahili, net als in de film)"]},
+ {id:"UG",n:"Oeganda",h:"Kampala",f:"🇺🇬",cont:"AF",lvl:2,card:"🦍🌿🌊🍌",hint:"Aan het Victoriameer, land van de berggorilla's.",fact:"In de bergen van Oeganda leeft bijna de helft van alle berggorilla's ter wereld.",w:["matoke","Luganda","gestoomde banaan — het lievelingseten"]},
+ {id:"TZ",n:"Tanzania",h:"Dodoma",f:"🇹🇿",cont:"AF",lvl:1,card:"🗻🦓🏝️🦁",hint:"Onder Kenia; hier staat de hoogste berg van Afrika.",fact:"De Kilimanjaro is met 5895 meter de hoogste vrijstaande berg ter wereld.",w:["pole pole","Swahili","rustig aan — zo beklim je de Kilimanjaro"]},
+ {id:"RW",n:"Rwanda",h:"Kigali",f:"🇷🇼",cont:"AF",lvl:2,card:"🦍⛰️🌿🚲",hint:"Klein, heuvelachtig land in het hart van Afrika.",fact:"Rwanda heet het land van duizend heuvels — en plastic tasjes zijn er verboden.",w:["umuganda","Kinyarwanda","dag waarop iedereen samen het land opruimt"]},
+ {id:"BI",n:"Burundi",h:"Gitega",f:"🇧🇮",cont:"AF",lvl:2,card:"🥁⛰️🌊🌿",hint:"Buurland van Rwanda, aan het Tanganyikameer.",fact:"De koninklijke trommelaars van Burundi staan op de werelderfgoedlijst.",w:["amahoro","Kirundi","vrede — én de vriendelijkste groet"]},
+ {id:"CD",n:"Congo-Kinshasa",h:"Kinshasa",f:"🇨🇩",cont:"AF",lvl:2,card:"🌧️🦍🌊🐆",hint:"Reusachtig regenwoudland midden in Afrika.",fact:"Alleen hier leeft de bonobo, de vriendelijkste mensaap ter wereld.",w:["mbote","Lingala","hallo!"]},
+ {id:"CG",n:"Congo-Brazzaville",h:"Brazzaville",f:"🇨🇬",cont:"AF",lvl:2,card:"🌳🦜🌊🐊",hint:"De kleinere Congo, aan de overkant van de rivier.",fact:"Kinshasa en Brazzaville liggen recht tegenover elkaar aan de rivier — nergens liggen twee hoofdsteden zó dichtbij.",w:["sapeur","Frans (Congo)","iemand die zich piekfijn in maatpak kleedt"]},
+ {id:"GA",n:"Gabon",h:"Libreville",f:"🇬🇦",cont:"AF",lvl:2,card:"🌴🐘🌊🦍",hint:"Op de evenaar aan de westkust, vol regenwoud.",fact:"In Gabon wandelen olifanten en nijlpaarden gewoon over het strand.",w:["mamba","Fang","water — én de naam van een gevaarlijke slang"]},
+ {id:"GQ",n:"Equatoriaal-Guinea",h:"Malabo",f:"🇬🇶",cont:"AF",lvl:3,card:"🏝️🌴🛢️🌧️",hint:"Klein land op de evenaar; de hoofdstad ligt op een eiland.",fact:"De hoofdstad Malabo ligt niet op het vasteland maar op een vulkaaneiland.",w:["chapear","Equatoguineaans Spaans","met een kapmes het gras maaien"]},
+ {id:"CM",n:"Kameroen",h:"Yaoundé",f:"🇨🇲",cont:"AF",lvl:2,card:"⚽🌋🦁🌧️",hint:"In de 'oksel' van Afrika, gek op voetbal.",fact:"Kameroen wordt 'Afrika in het klein' genoemd: woestijn, bergen, regenwoud én strand.",w:["ndolè","Duala","bittere-bladstoofpot, het nationale gerecht"]},
+ {id:"CF",n:"Centraal-Afrikaanse Republiek",h:"Bangui",f:"🇨🇫",cont:"AF",lvl:2,card:"🌍🦋🌳💎",hint:"Precies in het midden van Afrika.",fact:"Hier vind je enorme regenwoud-open plekken waar honderden olifanten tegelijk mineralen komen likken.",w:["balao","Sango","hallo!"]},
+ {id:"TD",n:"Tsjaad",h:"N'Djamena",f:"🇹🇩",cont:"AF",lvl:2,card:"🏜️🐪🌊🐟",hint:"Woestijnland met een groot, krimpend meer.",fact:"Het Tsjaadmeer was ooit zo groot als Engeland, maar is enorm gekrompen.",w:["lawya","Tsjadisch-Arabisch","kletsen tot diep in de nacht"]},
+ {id:"NE",n:"Niger",h:"Niamey",f:"🇳🇪",cont:"AF",lvl:2,card:"🏜️🐪🦒☀️",hint:"Woestijnland bóven Nigeria, genoemd naar de rivier.",fact:"In Niger leeft de laatste wilde kudde West-Afrikaanse giraffen.",w:["fofo","Zarma","hallo!"]},
+ {id:"NG",n:"Nigeria",h:"Abuja",f:"🇳🇬",cont:"AF",lvl:1,card:"🎬🥁⚽🌆",hint:"Het land met de meeste inwoners van Afrika.",fact:"Nollywood in Nigeria maakt meer films per jaar dan Hollywood.",w:["wahala","Pidgin-Engels","problemen, gedoe — 'no wahala' = geen probleem!"]},
+ {id:"BJ",n:"Benin",h:"Porto-Novo",f:"🇧🇯",cont:"AF",lvl:2,card:"🐍👑🛶🥁",hint:"Smal landje naast Nigeria.",fact:"In Ganvié in Benin staat een heel dorp op palen ín een meer — de school en de markt ook.",w:["akwaba","Fon","welkom!"]},
+ {id:"TG",n:"Togo",h:"Lomé",f:"🇹🇬",cont:"AF",lvl:2,card:"🌴🥁🏖️🌽",hint:"Heel smal strookje land naast Ghana.",fact:"Togo is op z'n smalst maar zo'n 50 kilometer breed, maar wel 600 kilometer lang.",w:["woezon","Ewe","welkom!"]},
+ {id:"GH",n:"Ghana",h:"Accra",f:"🇬🇭",cont:"AF",lvl:1,card:"⭐🍫👑⚽",hint:"Aan de Golf van Guinee; beroemd om cacao.",fact:"Ghana is een van de grootste cacaolanden ter wereld — jouw chocola komt er vaak vandaan.",w:["akwaaba","Twi","welkom!"]},
+ {id:"CI",n:"Ivoorkust",h:"Yamoussoukro",f:"🇨🇮",cont:"AF",lvl:2,card:"🍫🐘⚽⛪",hint:"Buurland van Ghana; wereldkampioen cacao.",fact:"In Yamoussoukro staat de grootste kerk ter wereld — groter dan de Sint-Pieter in Rome.",w:["enjailler","Ivoriaans Frans","ergens helemaal blij van worden"]},
+ {id:"LR",n:"Liberia",h:"Monrovia",f:"🇱🇷",cont:"AF",lvl:2,card:"🌴🚢⭐🌧️",hint:"Aan de westkust, gesticht door bevrijde slaven.",fact:"Liberia is gesticht door bevrijde Amerikaanse slaven — de hoofdstad heet naar president Monroe.",w:["ma broda","Liberiaans Engels","mijn broer — zo noem je een vriend"]},
+ {id:"SL",n:"Sierra Leone",h:"Freetown",f:"🇸🇱",cont:"AF",lvl:2,card:"💎🦁⛰️🏖️",hint:"De naam betekent 'leeuwenbergen'.",fact:"Sierra Leone betekent 'leeuwenbergen' — Portugese zeelieden hoorden er donder die klonk als gebrul.",w:["kushe","Krio","hallo!"]},
+ {id:"GN",n:"Guinee",h:"Conakry",f:"🇬🇳",cont:"AF",lvl:2,card:"⛰️💧🥁🛶",hint:"Hier ontspringen de grote rivieren van West-Afrika.",fact:"Guinee heet de 'watertoren van West-Afrika': de Niger, Senegal en Gambia ontspringen er alle drie.",w:["tana mu si","Malinke","goedemorgen, is alles vredig?"]},
+ {id:"GW",n:"Guinee-Bissau",h:"Bissau",f:"🇬🇼",cont:"AF",lvl:3,card:"🏝️🦛🛶🥭",hint:"Klein kustland met tientallen eilandjes.",fact:"Voor de kust zwemmen zeldzame zoutwater-nijlpaarden tussen de eilanden.",w:["mantenha","Creools","groet, hoe gaat het"]},
+ {id:"GM",n:"Gambia",h:"Banjul",f:"🇬🇲",cont:"AF",lvl:3,card:"🌊🐊🐒🏖️",hint:"Het kleinste land van het Afrikaanse vasteland: een strook langs een rivier.",fact:"Gambia is een landstrook van hooguit 50 kilometer breed rondom één rivier, helemaal omringd door Senegal.",w:["nanga def","Wolof","hoe gaat het?"]},
+ {id:"SN",n:"Senegal",h:"Dakar",f:"🇸🇳",cont:"AF",lvl:1,card:"🎣🥁🌊🦩",hint:"Het meest westelijke land van het vasteland.",fact:"Het Retbameer in Senegal is knalroze door mini-algen die van zout houden.",w:["teranga","Wolof","gastvrijheid — het motto van het land"]},
+ {id:"MR",n:"Mauritanië",h:"Nouakchott",f:"🇲🇷",cont:"AF",lvl:2,card:"🏜️🐪🚂🌊",hint:"Groot woestijnland boven Senegal.",fact:"Door Mauritanië rijdt een van de langste treinen ter wereld: soms 2,5 kilometer ijzererts-wagons.",w:["zrig","Hassaniya","zoete melk met water — welkomstdrank"]},
+ {id:"ML",n:"Mali",h:"Bamako",f:"🇲🇱",cont:"AF",lvl:2,card:"🕌🏜️📚🐪",hint:"Woestijnland met de beroemde stad Timboektoe.",fact:"De grote moskee van Djenné is het grootste lemen gebouw ter wereld — heel het dorp smeert 'm elk jaar opnieuw in.",w:["i ni ce","Bambara","hallo, bedankt"]},
+ {id:"BF",n:"Burkina Faso",h:"Ouagadougou",f:"🇧🇫",cont:"AF",lvl:2,card:"🎭🐊🥁🌾",hint:"Binnenland-staat met de leukste hoofdstadnaam.",fact:"De hoofdstad heet Ouagadougou — zeg maar 'Wagadoegoe' — en de naam betekent 'waar men eer krijgt'.",w:["burkindi","Mooré","eerlijk en oprecht zijn — waar het land naar heet"]},
+ {id:"AO",n:"Angola",h:"Luanda",f:"🇦🇴",cont:"AF",lvl:2,card:"🛢️💃🌴🦓",hint:"Groot land aan de zuidwestkust, Portugees-talig.",fact:"De reuzensabelantilope leeft alléén in Angola en stond model voor de nationale trots.",w:["kizomba","Kimbundu","feest — én een beroemde dans"]},
+ {id:"ZM",n:"Zambia",h:"Lusaka",f:"🇿🇲",cont:"AF",lvl:2,card:"💦🐘🌊🦛",hint:"Binnenland-staat met de beroemdste waterval van Afrika.",fact:"De Victoriawatervallen heten hier 'Mosi-oa-Tunya': de rook die dondert.",w:["zikomo","Nyanja","dankjewel"]},
+ {id:"MW",n:"Malawi",h:"Lilongwe",f:"🇲🇼",cont:"AF",lvl:2,card:"🐟🌊🌅🛶",hint:"Smal land om een reusachtig meer.",fact:"In het Malawimeer zwemmen meer vissoorten dan in welk ander meer ter wereld.",w:["chambo","Chichewa","de lekkerste vis uit het meer"]},
+ {id:"MZ",n:"Mozambique",h:"Maputo",f:"🇲🇿",cont:"AF",lvl:2,card:"🏝️🦐🎶🌊",hint:"Lange kuststrook aan de Indische Oceaan.",fact:"Mozambique is het enige land met een AK-47 én een boek in de vlag — als teken van vrijheid en onderwijs.",w:["marrabenta","Portugees (Moz.)","vrolijke dansmuziek van eigen bodem"]},
+ {id:"ZW",n:"Zimbabwe",h:"Harare",f:"🇿🇼",cont:"AF",lvl:2,card:"🪨🐘💦🦅",hint:"Genoemd naar een eeuwenoude stenen stad.",fact:"Zimbabwe betekent 'huizen van steen' — de ruïnestad Groot-Zimbabwe is 900 jaar oud.",w:["mhoro","Shona","hallo!"]},
+ {id:"BW",n:"Botswana",h:"Gaborone",f:"🇧🇼",cont:"AF",lvl:2,card:"🐘🏜️💎🦛",hint:"Woestijn- en delta-land vol olifanten.",fact:"Nergens ter wereld leven zoveel olifanten als in Botswana: meer dan 130.000.",w:["pula","Setswana","regen — zó kostbaar dat het geld ernaar heet"]},
+ {id:"NA",n:"Namibië",h:"Windhoek",f:"🇳🇦",cont:"AF",lvl:2,card:"🏜️🦌🌅💀",hint:"Woestijnland met de hoogste zandduinen ter wereld.",fact:"De duinen van Sossusvlei zijn ruim 300 meter hoog — de hoogste ter wereld.",w:["oshili","Oshiwambo","echt waar!"]},
+ {id:"SZ",n:"Eswatini",h:"Mbabane",f:"🇸🇿",cont:"AF",lvl:3,card:"👑🦏🥁⛰️",hint:"Piepklein koninkrijk tussen Zuid-Afrika en Mozambique.",fact:"Eswatini heette tot 2018 Swaziland — de koning veranderde de naam op zijn vijftigste verjaardag.",w:["sawubona","Swazi","ik zie je — zo zeg je hallo"]},
+ {id:"LS",n:"Lesotho",h:"Maseru",f:"🇱🇸",cont:"AF",lvl:3,card:"⛰️🎿🐎🧣",hint:"Bergkoninkrijk dat helemaal ín Zuid-Afrika ligt.",fact:"Lesotho is het enige land ter wereld dat overal hoger dan 1400 meter ligt — er is zelfs een skibaan.",w:["khotso","Sesotho","vrede"]},
+ {id:"ZA",n:"Zuid-Afrika",h:"Pretoria",f:"🇿🇦",cont:"AF",lvl:1,card:"🦁🏉🍇🏔️",hint:"Helemaal onderaan het continent, land van Mandela.",fact:"Zuid-Afrika heeft drie hoofdsteden tegelijk: Pretoria, Kaapstad en Bloemfontein.",w:["lekker","Afrikaans","net als bij ons: fijn, leuk, heerlijk!"]},
+ {id:"MG",n:"Madagaskar",h:"Antananarivo",f:"🇲🇬",cont:"AF",lvl:2,card:"🐒🌳🦎🏝️",hint:"Reusachtig eiland rechts van Afrika.",fact:"Bijna alle dieren op Madagaskar — zoals de maki's — leven nérgens anders op aarde.",w:["mora mora","Malagasi","rustig aan, geen haast"]},
+ {id:"KM",n:"Comoren",h:"Moroni",f:"🇰🇲",cont:"AF",lvl:3,card:"🌋🌺🐟🌙",hint:"Eilandengroep tussen Madagaskar en het vasteland.",fact:"De Comoren heten de 'parfumeilanden': hier groeit de ylang-ylang voor de duurste parfums.",w:["karibu","Comorees","welkom!"]},
+ {id:"MU",n:"Mauritius",h:"Port Louis",f:"🇲🇺",cont:"AF",lvl:3,card:"🦤🏖️🌈🍍",hint:"Eiland ver in de Indische Oceaan.",fact:"Op Mauritius leefde de dodo — de beroemdste uitgestorven vogel ter wereld.",w:["dodo","Mauritiaans Creools","slapen! 'Al dodo' = naar bed"]},
+ {id:"SC",n:"Seychellen",h:"Victoria",f:"🇸🇨",cont:"AF",lvl:3,card:"🐢🏝️🥥🐠",hint:"Piepkleine eilandengroep in de Indische Oceaan.",fact:"Op de Seychellen groeit de coco de mer: de grootste noot ter wereld, wel 20 kilo zwaar.",w:["bonzour","Seychellois","goedendag!"]},
+ {id:"CV",n:"Kaapverdië",h:"Praia",f:"🇨🇻",cont:"AF",lvl:3,card:"🌋🎶🐢🌊",hint:"Eilanden in de oceaan, links van Senegal.",fact:"Kaapverdië bestaat uit tien vulkaaneilanden midden in de Atlantische Oceaan.",w:["morabeza","Kaapverdisch Creools","gastvrijheid met een glimlach"]},
+ {id:"ST",n:"Sao Tomé en Principe",h:"São Tomé",f:"🇸🇹",cont:"AF",lvl:3,card:"🍫🏝️🌺🐦",hint:"Twee mini-eilandjes op de evenaar, in de Golf van Guinee.",fact:"Dit op één na kleinste land van Afrika maakt van de allerbeste cacao ter wereld.",w:["leve leve","Santomees","rustig aan, relax"]},
+ {id:"US",n:"Verenigde Staten",h:"Washington",f:"🇺🇸",cont:"NA",lvl:1,card:"🗽🏈🍔🎬",hint:"Groot land tussen Canada en Mexico.",fact:"In de VS liggen de Grand Canyon, Hollywood én de eerste voetstappen op de maan — die vertrokken vanaf hier.",w:["y'all","Amerikaans-Engels","jullie allemaal — zo praat het zuiden"]},
+ {id:"CA",n:"Canada",h:"Ottawa",f:"🇨🇦",cont:"NA",lvl:1,card:"🍁🏒🐻🏔️",hint:"Het op één na grootste land ter wereld, boven de VS.",fact:"Canada heeft meer meren dan alle andere landen van de wereld bij elkaar.",w:["toque","Canadees-Engels","wollen muts — onmisbaar in de winter"]},
+ {id:"MX",n:"Mexico",h:"Mexico-Stad",f:"🇲🇽",cont:"NA",lvl:1,card:"🌮🎸🔺🌵",hint:"Onder de VS; land van taco's en Maya-piramides.",fact:"Mexico-Stad is gebouwd op een oud meer en zakt elk jaar een paar centimeter verder weg.",w:["¡órale!","Mexicaans-Spaans","wauw! kom op! — past overal"]},
+ {id:"GT",n:"Guatemala",h:"Guatemala-Stad",f:"🇬🇹",cont:"NA",lvl:2,card:"🌋🦜🔺🌽",hint:"Net onder Mexico, hart van de Mayacultuur.",fact:"In Guatemala steken de Maya-tempels van Tikal boven het regenwoud uit.",w:["chapín","Guatemalteeks","bijnaam voor een Guatemalteek zelf"]},
+ {id:"BZ",n:"Belize",h:"Belmopan",f:"🇧🇿",cont:"NA",lvl:2,card:"🐠🕳️🌊🦈",hint:"Klein kustland naast Guatemala, Engelstalig.",fact:"Voor de kust ligt het Great Blue Hole: een kraakhelder blauw gat van 300 meter breed in zee.",w:["weh di go aan?","Belizaans Creools","hoe gaat het?"]},
+ {id:"SV",n:"El Salvador",h:"San Salvador",f:"🇸🇻",cont:"NA",lvl:2,card:"🌋🏄☕🫓",hint:"Het kleinste land van Midden-Amerika, aan de Stille Oceaan.",fact:"El Salvador heet het 'land van de vulkanen' — er zijn er meer dan twintig.",w:["pupusa","Salvadoraans","gevulde maispannenkoek, het nationale gerecht"]},
+ {id:"HN",n:"Honduras",h:"Tegucigalpa",f:"🇭🇳",cont:"NA",lvl:2,card:"🦜🌧️🐟🔺",hint:"Midden-Amerikaans land met een lastige hoofdstadnaam.",fact:"In Honduras 'regent' het soms vis: na zware stormen liggen de straten van Yoro vol visjes.",w:["catracho","Hondurees","bijnaam voor een Hondurees — met trots"]},
+ {id:"NI",n:"Nicaragua",h:"Managua",f:"🇳🇮",cont:"NA",lvl:2,card:"🌋🌊🛶🦈",hint:"Land van meren en vulkanen, onder Honduras.",fact:"In het grote Meer van Nicaragua zwommen vroeger echte haaien — de enige zoetwaterhaaien ter wereld.",w:["tuani","Nicaraguaans","gaaf, cool"]},
+ {id:"CR",n:"Costa Rica",h:"San José",f:"🇨🇷",cont:"NA",lvl:2,card:"🦥🌿🦋🌋",hint:"Groen land zonder leger, tussen twee oceanen.",fact:"Costa Rica schafte in 1948 zijn leger af en stak het geld in scholen en natuur.",w:["pura vida","Costa Ricaans","puur leven! — hallo, doei en alles-is-goed tegelijk"]},
+ {id:"PA",n:"Panama",h:"Panama-Stad",f:"🇵🇦",cont:"NA",lvl:2,card:"🚢🌉👒🐸",hint:"Het smalle landbruggetje naar Zuid-Amerika.",fact:"Door het Panamakanaal varen schepen dwars door het land van de ene oceaan naar de andere.",w:["chévere","Panamees","tof, leuk!"]},
+ {id:"CU",n:"Cuba",h:"Havana",f:"🇨🇺",cont:"NA",lvl:1,card:"🚗🎺🏝️🦩",hint:"Het grootste eiland van de Caraïben.",fact:"Op Cuba rijden nog duizenden Amerikaanse auto's uit de jaren vijftig rond.",w:["guagua","Cubaans-Spaans","de bus — zeg maar 'wawa'"]},
+ {id:"JM",n:"Jamaica",h:"Kingston",f:"🇯🇲",cont:"NA",lvl:2,card:"🎵🏃🏝️🥇",hint:"Eiland van reggae en supersnelle sprinters.",fact:"Het snelste mens ooit, Usain Bolt, komt van dit eiland — net als de reggae.",w:["irie","Patois","alles is goed, lekker relaxed"]},
+ {id:"HT",n:"Haïti",h:"Port-au-Prince",f:"🇭🇹",cont:"NA",lvl:2,card:"🎨🥁🏝️⛰️",hint:"Westelijke helft van het eiland Hispaniola.",fact:"Haïti was in 1804 het eerste land ter wereld waar tot slaaf gemaakte mensen zichzelf bevrijdden.",w:["dous makòs","Haïtiaans Creools","zoete gelaagde melksnoep"]},
+ {id:"DO",n:"Dominicaanse Republiek",h:"Santo Domingo",f:"🇩🇴",cont:"NA",lvl:2,card:"⚾🏖️💃🌴",hint:"Oostelijke helft van Hispaniola, gek op honkbal.",fact:"Santo Domingo is de oudste Europese stad van heel Amerika, gesticht in 1498.",w:["qué lo qué","Dominicaans","wat is er? hoe gaat-ie?"]},
+ {id:"BS",n:"Bahama's",h:"Nassau",f:"🇧🇸",cont:"NA",lvl:2,card:"🐷🏝️🌊⛵",hint:"Honderden eilandjes onder Florida.",fact:"Op één van de 700 eilanden zwemmen wilde varkens gewoon met je mee in zee.",w:["sip sip","Bahamaans","roddels, nieuwtjes"]},
+ {id:"TT",n:"Trinidad en Tobago",h:"Port of Spain",f:"🇹🇹",cont:"NA",lvl:3,card:"🥁🎭🦜🏝️",hint:"Twee eilanden vlak voor Zuid-Amerika.",fact:"Hier is de steeldrum uitgevonden — het enige nieuwe akoestische instrument van de twintigste eeuw.",w:["liming","Trinidadiaans","gezellig rondhangen met vrienden"]},
+ {id:"BB",n:"Barbados",h:"Bridgetown",f:"🇧🇧",cont:"NA",lvl:3,card:"🏝️🏏🌊🎤",hint:"Het meest oostelijke eiland van de Caraïben.",fact:"Zangeres Rihanna komt van Barbados en is er officieel tot nationale held benoemd.",w:["wuh loss!","Bajan","krijg nou wat!"]},
+ {id:"KN",n:"Saint Kitts en Nevis",h:"Basseterre",f:"🇰🇳",cont:"NA",lvl:3,card:"🌋🏝️🚂🐒",hint:"Het kleinste land van heel Amerika.",fact:"Dit is het kleinste land van Noord- én Zuid-Amerika — met meer apen dan mensen.",w:["limin'","Kittitiaans","chillen"]},
+ {id:"LC",n:"Saint Lucia",h:"Castries",f:"🇱🇨",cont:"NA",lvl:3,card:"⛰️🌺🏝️🌋",hint:"Eiland met twee beroemde puntbergen.",fact:"De twee spitse Pitons-bergen van Saint Lucia staan zelfs op de vlag.",w:["lajan","Saint-Luciaans Creools","geld"]},
+ {id:"VC",n:"Saint Vincent en de Grenadines",h:"Kingstown",f:"🇻🇨",cont:"NA",lvl:3,card:"⛵🏝️🌋🦜",hint:"Eilandenrij tussen Saint Lucia en Grenada.",fact:"Delen van Pirates of the Caribbean zijn op deze eilanden opgenomen.",w:["vincy","Vincentiaans","koosnaam voor het eiland en zijn mensen"]},
+ {id:"GD",n:"Grenada",h:"Saint George's",f:"🇬🇩",cont:"NA",lvl:3,card:"🌰🏝️🌊🎨",hint:"Het 'specerijeneiland' onderaan de eilandenrij.",fact:"Grenada ruikt naar nootmuskaat: het eiland is een van de grootste nootmuskaat-producenten ter wereld.",w:["spice isle","Grenadiaans","het kruideneiland — de trotse bijnaam"]},
+ {id:"AG",n:"Antigua en Barbuda",h:"Saint John's",f:"🇦🇬",cont:"NA",lvl:3,card:"🏖️⛵🌊☀️",hint:"Tweelingeilandjes met héél veel stranden.",fact:"Antigua heeft 365 stranden — voor elke dag van het jaar één.",w:["jumbee","Antiguaans","ondeugend spookje uit de verhalen"]},
+ {id:"DM",n:"Dominica",h:"Roseau",f:"🇩🇲",cont:"NA",lvl:3,card:"🌿🐋♨️🌈",hint:"Het groene 'natuureiland' — niet verwarren met de Dominicaanse Republiek!",fact:"Op Dominica ligt een kokend meer: het water borrelt er echt.",w:["kwéyòl","Dominicaans Creools","de eigen taal van het eiland"]},
+ {id:"BR",n:"Brazilië",h:"Brasilia",f:"🇧🇷",cont:"SA",lvl:1,card:"⚽🎭🌳🦜",hint:"Het reusachtige land van het Amazonewoud.",fact:"Het Amazoneregenwoud in Brazilië maakt zóveel zuurstof dat het de 'longen van de aarde' heet.",w:["cafuné","Portugees (Br.)","zachtjes met je vingers door iemands haar kroelen"]},
+ {id:"AR",n:"Argentinië",h:"Buenos Aires",f:"🇦🇷",cont:"SA",lvl:1,card:"⚽💃🥩🏔️",hint:"Lang land van tango en voetbal, tot bijna op Antarctica.",fact:"Messi en Maradona komen allebei uit Argentinië — voetbal is er bijna heilig.",w:["che","Argentijns-Spaans","hé maat! — zo begon de bijnaam van Che Guevara"]},
+ {id:"CL",n:"Chili",h:"Santiago",f:"🇨🇱",cont:"SA",lvl:1,card:"🏔️🌵🍇🗿",hint:"Het langste, smalste land ter wereld.",fact:"Chili is ruim 4300 kilometer lang maar gemiddeld maar 180 kilometer breed.",w:["cachai","Chileens-Spaans","snap je? — zeggen Chilenen om de haverklap"]},
+ {id:"CO",n:"Colombia",h:"Bogotá",f:"🇨🇴",cont:"SA",lvl:1,card:"☕🦋🌺💃",hint:"In de linkerbovenhoek, aan twee oceanen tegelijk.",fact:"In Colombia stroomt de Caño Cristales: een rivier in vijf kleuren tegelijk.",w:["chévere","Colombiaans","supertof!"]},
+ {id:"PE",n:"Peru",h:"Lima",f:"🇵🇪",cont:"SA",lvl:1,card:"🦙🏔️🔺🌽",hint:"Land van de Inca's en Machu Picchu.",fact:"De Inca-stad Machu Picchu ligt verstopt op 2430 meter hoogte in de bergen van Peru.",w:["chamba","Peruaans","werk, baantje"]},
+ {id:"VE",n:"Venezuela",h:"Caracas",f:"🇻🇪",cont:"SA",lvl:2,card:"💦⛰️🦜⚾",hint:"Bovenaan het continent, met de hoogste waterval ter wereld.",fact:"De Angelwaterval valt 979 meter naar beneden — het water verstuift onderweg tot mist.",w:["chamo","Venezolaans","joh, gast, vriend"]},
+ {id:"EC",n:"Ecuador",h:"Quito",f:"🇪🇨",cont:"SA",lvl:2,card:"🐢🌋🍌🌎",hint:"Genoemd naar de evenaar die er doorheen loopt.",fact:"Bij Ecuador horen de Galápagoseilanden, waar reuzenschildpadden ouder dan 100 jaar leven.",w:["chuchaqui","Kichwa","dat slome gevoel na te weinig slaap"]},
+ {id:"BO",n:"Bolivia",h:"Sucre",f:"🇧🇴",cont:"SA",lvl:2,card:"🧂🦙⛰️🎩",hint:"Binnenland-staat met de grootste zoutvlakte ter wereld.",fact:"De zoutvlakte van Uyuni verandert na regen in de grootste spiegel ter wereld — en Bolivia heeft twee hoofdsteden: Sucre én regeringsstad La Paz.",w:["ch'alla","Aymara","feestelijk bedankje aan Moeder Aarde"]},
+ {id:"PY",n:"Paraguay",h:"Asunción",f:"🇵🇾",cont:"SA",lvl:2,card:"🧉⚡🌳🦫",hint:"Binnenland-staat tussen Brazilië en Argentinië.",fact:"De Itaipúdam van Paraguay en Brazilië maakt stroom voor miljoenen huizen tegelijk.",w:["tereré","Guaraní","ijskoude kruidenthee die iedereen samen deelt"]},
+ {id:"UY",n:"Uruguay",h:"Montevideo",f:"🇺🇾",cont:"SA",lvl:2,card:"⚽🧉🏖️🐄",hint:"Klein land tussen twee grote buren, aan de kust.",fact:"Uruguay won in 1930 het allereerste WK voetbal — in eigen land.",w:["ta","Uruguayaans","oké, prima — korter kan niet"]},
+ {id:"GY",n:"Guyana",h:"Georgetown",f:"🇬🇾",cont:"SA",lvl:2,card:"🌳💦🦜🛶",hint:"Engelstalig land naast Suriname.",fact:"De Kaieteur-waterval is vijf keer zo hoog als de Niagara — en valt in één vrije sprong.",w:["gyaff","Guyanees Creools","gezellig kletsen"]},
+ {id:"SR",n:"Suriname",h:"Paramaribo",f:"🇸🇷",cont:"SA",lvl:1,card:"🌳🦋🍛🛶",hint:"Nederlandstalig land in Zuid-Amerika.",fact:"In Suriname spreken ze Nederlands — en ruim negentig procent van het land is regenwoud.",w:["fawaka","Sranantongo","hoe gaat het? — ken je vast al!"]},
+ {id:"AU",n:"Australië",h:"Canberra",f:"🇦🇺",cont:"OC",lvl:1,card:"🦘🐨🏄🎡",hint:"Het enige land dat ook een heel continent is.",fact:"In Australië leven meer kangoeroes dan mensen.",w:["arvo","Australisch-Engels","middag — 'this arvo' = vanmiddag"]},
+ {id:"NZ",n:"Nieuw-Zeeland",h:"Wellington",f:"🇳🇿",cont:"OC",lvl:1,card:"🥝🏉🌋🐑",hint:"Twee grote eilanden rechtsonder Australië.",fact:"In Nieuw-Zeeland wonen negen keer zoveel schapen als mensen — en de kiwi (vogel!) kan niet vliegen.",w:["kia ora","Maori","hallo én bedankt tegelijk"]},
+ {id:"PG",n:"Papoea-Nieuw-Guinea",h:"Port Moresby",f:"🇵🇬",cont:"OC",lvl:2,card:"🦜🌋🥁🌳",hint:"De oostelijke helft van het grote eiland boven Australië.",fact:"In Papoea-Nieuw-Guinea worden zo'n 840 talen gesproken — meer dan waar ook ter wereld.",w:["susa","Tok Pisin","zus — en 'brata' is broer"]},
+ {id:"FJ",n:"Fiji",h:"Suva",f:"🇫🇯",cont:"OC",lvl:2,card:"🏝️🏉🌺🐠",hint:"Beroemde eilandengroep midden in de Stille Oceaan.",fact:"Fiji bestaat uit 333 eilanden — en op sommige begint de nieuwe dag het allereerst ter wereld.",w:["bula","Fijisch","hallo! — met een grote glimlach"]},
+ {id:"SB",n:"Salomonseilanden",h:"Honiara",f:"🇸🇧",cont:"OC",lvl:3,card:"🏝️🐬🛶🌺",hint:"Eilandenrij ten oosten van Papoea-Nieuw-Guinea.",fact:"Op de Salomonseilanden gebruikten mensen vroeger dolfijntanden als geld.",w:["iumi","Pijin","wij samen — jij en ik"]},
+ {id:"VU",n:"Vanuatu",h:"Port Vila",f:"🇻🇺",cont:"OC",lvl:3,card:"🌋🤸🏝️🐷",hint:"Vulkaaneilanden rechts van Australië.",fact:"Op Vanuatu is het bungeejumpen uitgevonden: mannen springen er al eeuwen met lianen van houten torens.",w:["tank yu tumas","Bislama","heel erg bedankt"]},
+ {id:"WS",n:"Samoa",h:"Apia",f:"🇼🇸",cont:"OC",lvl:3,card:"🏝️🌺🕺🥥",hint:"Eilandjes midden in de Stille Oceaan.",fact:"Samoa sloeg in 2011 een dag over: 30 december bestond er dat jaar niet, om van tijdzone te wisselen.",w:["fa'a Samoa","Samoaans","op z'n Samoaans — de eigen manier van leven"]},
+ {id:"TO",n:"Tonga",h:"Nuku'alofa",f:"🇹🇴",cont:"OC",lvl:3,card:"👑🏝️🐋🏉",hint:"Het laatste koninkrijk van de Stille Oceaan.",fact:"Tonga is nooit gekoloniseerd en heeft nog steeds een eigen koning.",w:["mālō e lelei","Tongaans","hallo!"]},
+ {id:"KI",n:"Kiribati",h:"Zuid-Tarawa",f:"🇰🇮",cont:"OC",lvl:3,card:"🌅🏝️🐟🕐",hint:"Piepkleine eilandjes, verspreid over een gigantisch stuk oceaan.",fact:"Kiribati is het enige land dat in alle vier de halfronden van de aarde ligt.",w:["mauri","Gilbertees","hallo, gezondheid!"]},
+ {id:"FM",n:"Micronesië",h:"Palikir",f:"🇫🇲",cont:"OC",lvl:3,card:"🏝️🐠🗿🛶",hint:"Honderden mini-eilandjes boven Papoea-Nieuw-Guinea.",fact:"Op het eiland Yap gebruikten ze stenen munten zo groot als een auto.",w:["kaselehlie","Pohnpeiaans","hallo!"]},
+ {id:"MH",n:"Marshalleilanden",h:"Majuro",f:"🇲🇭",cont:"OC",lvl:3,card:"🏝️🌊⛵🐚",hint:"Ringvormige koraaleilandjes in de Stille Oceaan.",fact:"De eilanden zijn ringen van koraal (atollen) die gemiddeld maar 2 meter boven zee uitsteken.",w:["yokwe","Marshallees","hallo — betekent letterlijk 'je bent een regenboog'"]},
+ {id:"PW",n:"Palau",h:"Ngerulmud",f:"🇵🇼",cont:"OC",lvl:3,card:"🐠🏝️🦈🌊",hint:"Eilandjes met het beroemdste kwallenmeer ter wereld.",fact:"In het Kwallenmeer van Palau zwem je tussen miljoenen kwallen die niet prikken.",w:["alii","Palaus","hallo!"]},
+ {id:"NR",n:"Nauru",h:"Yaren",f:"🇳🇷",cont:"OC",lvl:3,card:"🏝️🐦☀️🌊",hint:"Het kleinste eilandstaatje ter wereld.",fact:"Nauru is het kleinste eilandland ter wereld: in 30 minuten rijd je er helemaal omheen.",w:["omo yoran","Nauruaans","goedendag"]},
+ {id:"TV",n:"Tuvalu",h:"Funafuti",f:"🇹🇻",cont:"OC",lvl:3,card:"🏝️🌊🐟✉️",hint:"Een van de kleinste en laagste landen op aarde.",fact:"Tuvalu verdient geld met zijn internet-adres: elke website die op .tv eindigt, betaalt aan Tuvalu.",w:["talofa","Tuvaluaans","hallo!"]},
 ];
 
 // vaste, onderscheidende kleur per land (ook gebruikt op de globe)
@@ -959,7 +1074,8 @@ function setKaart(cont){
   GEO=k.geo;GRATICULE=k.grat;CONTEXT=k.ctx;ZEELABELS=k.zee;VBFULL=k.vbstart||VBMAX;
   bouwKaart();
 }
-const CONT_NAAM={EU:"Europa",AS:"Azië"};
+const CONT_NAAM={EU:"Europa",AS:"Azië",AF:"Afrika",NA:"Noord-Amerika",SA:"Zuid-Amerika",OC:"Oceanië"};
+const CONT_START={EU:"DE",AS:"CN",AF:"EG",NA:"US",SA:"BR",OC:"AU"}; // beginland per werelddeel (verkennen/paspoort-globe)
 
 function bouwKaart(){
   const mk=t=>document.createElementNS(SVGNS,t);
@@ -2046,7 +2162,7 @@ function startVerken(){
   const cv=$("#g-verken"); cv.style.display="block";
   $("#verken-pop").classList.remove("open");
   if(verkenGlobe)verkenGlobe.stop();
-  verkenGlobe=maakGlobe(cv,{mode:"verken", startId:contSel()[0]==="AS"?"CN":"DE",
+  verkenGlobe=maakGlobe(cv,{mode:"verken", startId:CONT_START[contSel()[0]]||"DE",
     onClick:id=>{const c=LANDEN.find(x=>x.id===id); if(c)verkenInfo(c);}});
   requestAnimationFrame(()=>verkenGlobe.meet());
   $("#q-label").textContent="Verkenmodus";
@@ -2172,7 +2288,7 @@ document.querySelectorAll("#pass-cont button").forEach(b=>{
     sndKlik();passCont=b.dataset.pc;
     document.querySelectorAll("#pass-cont button").forEach(x=>x.classList.toggle("sel",x===b));
     passRender();
-    if(kaartGlobe){kaartGlobe.focus(passCont==="AS"?"CN":"DE"); // draai even naar dit werelddeel…
+    if(kaartGlobe){kaartGlobe.focus(CONT_START[passCont]||"DE"); // draai even naar dit werelddeel…
       setTimeout(()=>{if(kaartGlobe)kaartGlobe.autoDraai(true);},650);} // …en draai daarna vanzelf verder
   };
 });
@@ -2219,7 +2335,7 @@ function kleurPassKaart(p){
   if($("#pass-kaart").style.display==="none")return; // globe pas bouwen als de Kaart-tab open is (anders 0×0)
   if(!kaartGlobe){
     $("#pk-houder").innerHTML='<canvas id="g-kaart" style="width:100%;height:min(58vh,440px);display:block;touch-action:none;cursor:grab"></canvas>';
-    kaartGlobe=maakGlobe($("#g-kaart"),{mode:"kaart", auto:true, glans:true, startId:passCont==="AS"?"CN":"DE",
+    kaartGlobe=maakGlobe($("#g-kaart"),{mode:"kaart", auto:true, glans:true, startId:CONT_START[passCont]||"DE",
       kleurFn:c=>{const n=kaartSpeler?totGoed(kaartSpeler,c.id):0; return n>=10?"#F1B62B":n>=5?"#CBD3DF":"rgba(120,132,168,0.28)";}});
     requestAnimationFrame(()=>{if(kaartGlobe)kaartGlobe.meet();});
   }else{ kaartGlobe.meet(); }

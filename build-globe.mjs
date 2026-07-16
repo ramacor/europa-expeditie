@@ -4,14 +4,27 @@ import { readFileSync, writeFileSync } from "node:fs";
 const SRC="ne10m.geojson"; // hoogste resolutie (1:10m)
 const HTML="index.html";
 
+import { WERELD } from "./bron-wereld.mjs";
 const EU=["IS","IE","GB","PT","ES","FR","NL","BE","LU","DE","DK","NO","SE","FI","PL","CZ","AT","CH","IT","GR","HU","HR","SI","SK","EE","LV","LT","BA","RS","ME","XK","AL","MK","BG","RO","MD","UA","BY","RU","TR","CY","MT","AD","MC","LI","SM","VA"];
 const AS=["CN","JP","IN","ID","TH","VN","KR","SA","PK","PH","MY","IR","IQ","AF","MN","NP","BD","LK","KP","TW","MM","KH","LA","BT","KZ","UZ","TM","KG","TJ","IL","JO","LB","SY","YE","OM","AE","QA","KW","GE","AM","AZ","TL","SG","BH","MV","BN"];
-const PLAY=new Set([...EU,...AS]);
-const CONT={}; EU.forEach(c=>CONT[c]="EU"); AS.forEach(c=>CONT[c]="AS");
-const NAAM2CODE={ "Northern Cyprus":"CY", "Taiwan":"TW" };
+const PLAY=new Set([...EU,...AS,...WERELD.map(l=>l.id)]);
+const CONT={}; EU.forEach(c=>CONT[c]="EU"); AS.forEach(c=>CONT[c]="AS"); WERELD.forEach(l=>CONT[l.id]=l.cont);
+const NAAM2CODE={ "Northern Cyprus":"CY", "Taiwan":"TW", "Somaliland":"SO" };
+// hoofdstad-coördinaten voor de nieuwe landen uit Natural Earth populated places (+ cap-overrides)
+const KAP={};
+try{
+  const pp=JSON.parse(readFileSync("steden.geojson","utf8"));
+  const iso3naar2=Object.fromEntries(WERELD.map(l=>[l.iso3,l.id]));
+  for(const f of pp.features){const q=f.properties;
+    if(!String(q.FEATURECLA||"").startsWith("Admin-0 capital"))continue;
+    const id=iso3naar2[q.ADM0_A3];
+    if(id&&!KAP[id])KAP[id]=f.geometry.coordinates.map(v=>Math.round(v*100)/100);}
+}catch(e){console.error("steden.geojson ontbreekt");}
+for(const l of WERELD)if(l.cap)KAP[l.id]=l.cap;
 // hoofdstad-coords voor landen die te klein zijn voor een polygoon (stip op de globe)
 const DOTS={ AD:[1.52,42.51], MC:[7.42,43.73], LI:[9.52,47.14], SM:[12.45,43.94], VA:[12.45,41.90], MT:[14.51,35.90],
              SG:[103.82,1.29], BH:[50.58,26.22], MV:[73.51,4.17] };
+for(const l of WERELD)if(l.dot){ if(!KAP[l.id])throw new Error("geen hoofdstad-coördinaat voor dot-land "+l.id); DOTS[l.id]=KAP[l.id]; }
 
 const r1=n=>Math.round(n*10)/10;
 function area(r){let s=0;for(let i=0;i<r.length;i++){const a=r[i],b=r[(i+1)%r.length];s+=a[0]*b[1]-b[0]*a[1];}return Math.abs(s/2);}
@@ -73,6 +86,9 @@ const STEDEN={
  QA:[51.53,25.29],KW:[47.98,29.38],GE:[44.79,41.72],AM:[44.51,40.18],AZ:[49.87,40.41],TL:[125.57,-8.56],
  SG:[103.85,1.29],BH:[50.59,26.23],MV:[73.51,4.17],BN:[114.94,4.94]
 };
+for(const l of WERELD)if(KAP[l.id]&&!STEDEN[l.id])STEDEN[l.id]=KAP[l.id];
+const ontbreekt=WERELD.filter(l=>!STEDEN[l.id]).map(l=>l.id);
+if(ontbreekt.length)console.error("GEEN hoofdstad-coördinaat voor:",ontbreekt.join(","));
 const GLOBE={cont:CONT, landen, dots, rest, steden:STEDEN};
 const tel=Object.keys(landen).length;
 const punten=Object.values(landen).flat().reduce((a,r)=>a+r.length,0)+rest.reduce((a,r)=>a+r.length,0);

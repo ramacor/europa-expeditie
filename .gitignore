@@ -1,2 +1,4 @@
-ne50m.geojson
-.DS_Store
+ne10m.geojson
+steden.geojson
+gisco_*.geojson
+cities15000.zip
