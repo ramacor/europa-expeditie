@@ -18,12 +18,12 @@
    "bytes": 140916
   },
   "continents/azie-fijn.json": {
-   "hash": "6ea2892bf7f4",
-   "bytes": 637412
+   "hash": "02dcf606519e",
+   "bytes": 637011
   },
   "continents/azie.json": {
-   "hash": "dee97008d4aa",
-   "bytes": 162311
+   "hash": "366f873213c1",
+   "bytes": 162170
   },
   "continents/europa-fijn.json": {
    "hash": "b8bb5485b001",
@@ -58,16 +58,16 @@
    "bytes": 95637
   },
   "core/globe-fijn.json": {
-   "hash": "a269fb08367b",
-   "bytes": 1400423
+   "hash": "2392bb0c9867",
+   "bytes": 1399730
   },
   "core/globe-max.json": {
-   "hash": "f6fcb75616d1",
-   "bytes": 5055323
+   "hash": "7098fbe60b6c",
+   "bytes": 5053480
   },
   "core/globe.json": {
-   "hash": "81e5cf226e05",
-   "bytes": 1136440
+   "hash": "4c342c6d2cf9",
+   "bytes": 1136301
   },
   "landen/nederland.json": {
    "hash": "1655941c92d4",

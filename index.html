@@ -21,7 +21,7 @@
       --bg:#0B1026; --panel:#151C3A; --panel2:#1C2448; --sea:#0D1430; --ink:#EAF0FF; --muted:#93A0C4;
       --accent:#FFC94D; --accent-fill:#FFC94D; --teal:#3FE0BE; --good:#4ADE80; --bad:#FF6B7A;
       --map-line:#0B1026; --chip:#222B55; --shadow:0 8px 28px rgba(0,0,0,.45);
-      --land-context:#1B2245; --pagina:var(--panel); --inkt:var(--ink);
+      --land-context:#2C3766; --pagina:var(--panel); --inkt:var(--ink);
     }
   }
   :root[data-theme="light"]{
@@ -34,7 +34,7 @@
     --bg:#0B1026; --panel:#151C3A; --panel2:#1C2448; --sea:#0D1430; --ink:#EAF0FF; --muted:#93A0C4;
     --accent:#FFC94D; --accent-fill:#FFC94D; --teal:#3FE0BE; --good:#4ADE80; --bad:#FF6B7A;
     --map-line:#0B1026; --chip:#222B55; --shadow:0 8px 28px rgba(0,0,0,.45);
-    --land-context:#1B2245; --pagina:var(--panel); --inkt:var(--ink);
+    --land-context:#2C3766; --pagina:var(--panel); --inkt:var(--ink);
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
@@ -260,6 +260,7 @@
   .graticule{stroke:var(--muted); stroke-width:.4; opacity:.14; fill:none}
   .context{fill:var(--land-context); stroke:var(--map-line); stroke-width:.7; vector-effect:non-scaling-stroke; pointer-events:none}
   .meer{fill:var(--sea); stroke:none; pointer-events:none}
+  @supports (color: color-mix(in srgb, red, blue)){ .meer{fill:color-mix(in srgb, var(--sea) 74%, #4A7DFF 26%)} }
 
   /* ---------- Feedback: strook onderin, kaart blijft zichtbaar ---------- */
   #fb{
@@ -737,7 +738,7 @@ const DATA_KLAAR=(async()=>{
 </script>
 <script>
 "use strict";
-const VERSIE="46"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="47"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -2235,7 +2236,7 @@ function maakGlobe(canvas, opts){
       }
     }
     // meren als waterlaag over de landen
-    if(GLOBE.meren){for(const pg of GLOBE.meren){if(ringOk(pg[0]))tekenRingen(pg, zee, null, 0);}}
+    if(GLOBE.meren){for(const pg of GLOBE.meren){if(ringOk(pg[0])){tekenRingen(pg, zee, null, 0);tekenRingen(pg, "rgba(86,130,255,0.22)", null, 0);}}}
     // stippen (mini-landen)
     for(const id in GLOBE.dots){const d=GLOBE.dots[id];if(zicht(d[0],d[1])<0)continue;const c=LAND_VAN[id];
       const [x,y]=pr(d[0],d[1]);ctx.beginPath();ctx.arc(x,y,4,0,7);
@@ -2252,7 +2253,7 @@ function maakGlobe(canvas, opts){
         tekenRingen(ringen, null, "rgba(0,0,0,0.6)", 5.5);   // donkere halo eronder → altijd zichtbaar
         tekenRingen(ringen, null, "#FFD24A", 2.6);           // heldere gouden rand precies op de grens
       }
-      if(GLOBE.meren){for(const pg of GLOBE.meren){if(ringOk(pg[0]))tekenRingen(pg, zee, null, 0);}}
+      if(GLOBE.meren){for(const pg of GLOBE.meren){if(ringOk(pg[0])){tekenRingen(pg, zee, null, 0);tekenRingen(pg, "rgba(86,130,255,0.22)", null, 0);}}}
       const d=GLOBE.dots[hi];
       if(d&&zicht(d[0],d[1])>=0){const [x,y]=pr(d[0],d[1]);
         ctx.beginPath();ctx.arc(x,y,6,0,7);ctx.fillStyle=eigenKleur;ctx.fill();

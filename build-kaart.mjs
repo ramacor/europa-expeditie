@@ -14,6 +14,7 @@ const D = Math.PI/180;
 const r1 = n=>Math.round(n*10)/10;
 
 const NAAM2CODE = { "Northern Cyprus":"CY", "Taiwan":"TW", "Somaliland":"SO" }; // Somaliland bij Somalië (de jure)
+const NE_UITSLUITEN=new Set(["Baykonur Cosmodrome","Brazilian Island","Clipperton Island","Coral Sea Islands","Ashmore and Cartier Islands","Indian Ocean Territories"]); // pacht-/restgebiedjes die anders als gat of zwerfstip in het gastland belanden
 
 /* ---------- hoofdstad-coördinaten uit Natural Earth populated places ---------- */
 // bron: steden.geojson (ne_10m_populated_places); overrides via cap:[lon,lat] in bron-wereld.mjs
@@ -111,6 +112,7 @@ function bouwContinent(cfg){
   const perCode={};
   for(const f of gj.features){
     const p=f.properties;
+    if(NE_UITSLUITEN.has(p.ADMIN))continue;
     let code=p.ISO_A2&&p.ISO_A2!=="-99"?p.ISO_A2:(p.ISO_A2_EH&&p.ISO_A2_EH!=="-99"?p.ISO_A2_EH:null);
     if(NAAM2CODE[p.ADMIN]) code=NAAM2CODE[p.ADMIN];
     if(!code||!wanted.has(code)) continue;

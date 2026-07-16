@@ -13,6 +13,7 @@ const AS=["CN","JP","IN","ID","TH","VN","KR","SA","PK","PH","MY","IR","IQ","AF",
 const PLAY=new Set([...EU,...AS,...WERELD.map(l=>l.id)]);
 const CONT={}; EU.forEach(c=>CONT[c]="EU"); AS.forEach(c=>CONT[c]="AS"); WERELD.forEach(l=>CONT[l.id]=l.cont);
 const NAAM2CODE={ "Northern Cyprus":"CY", "Taiwan":"TW", "Somaliland":"SO" };
+const NE_UITSLUITEN=new Set(["Baykonur Cosmodrome","Brazilian Island","Clipperton Island","Coral Sea Islands","Ashmore and Cartier Islands","Indian Ocean Territories"]); // pacht-/restgebiedjes die anders als gat of zwerfstip in het gastland belanden
 // hoofdstad-coördinaten voor de nieuwe landen uit Natural Earth populated places (+ cap-overrides)
 const KAP={};
 try{
@@ -55,6 +56,7 @@ const gj=JSON.parse(readFileSync(SRC,"utf8"));
 const perCode={}, restRingen=[];
 for(const f of gj.features){
   const p=f.properties;
+  if(NE_UITSLUITEN.has(p.ADMIN))continue;
   let code=p.ISO_A2&&p.ISO_A2!=="-99"?p.ISO_A2:(p.ISO_A2_EH&&p.ISO_A2_EH!=="-99"?p.ISO_A2_EH:null);
   if(NAAM2CODE[p.ADMIN])code=NAAM2CODE[p.ADMIN];
   const speel=code&&PLAY.has(code);
