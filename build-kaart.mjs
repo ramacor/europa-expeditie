@@ -5,6 +5,7 @@ import { topology } from "topojson-server";
 import { presimplify, simplify as vwSimplify } from "topojson-simplify";
 import { feature } from "topojson-client";
 import { WERELD } from "./bron-wereld.mjs";
+import { fixGeo } from "./fix-geo.mjs";
 
 const SRC = "ne10m.geojson";   // hoogste Natural Earth-resolutie (1:10m): nauwkeurige grenzen en kustlijnen
 const VB = { w:1050, h:920, marge:8 };
@@ -95,6 +96,7 @@ function simplify(ring, tol){
 const pad=d=>d.map(ring=>"M"+ring.map(p=>r1(p[0])+" "+r1(p[1])).join("L")+"Z").join("");
 
 const gj = JSON.parse(readFileSync(SRC,"utf8"));
+fixGeo(gj); // Westelijke Sahara één gebied + Frans-Guyana apart (zie fix-geo.mjs)
 const MEREN = JSON.parse(readFileSync("meren.geojson","utf8")); // ne_10m_lakes: waterlaag óver de landen (IJsselmeer, Grote Meren, ...)
 
 /* ---------- per continent ---------- */
@@ -251,7 +253,7 @@ const AS = bouwContinent({
 console.log("AFRIKA:");
 const AF = bouwContinent({
   PLAY:speelIds("AF"),
-  CTX:["ES","PT","IT","GR","MT","CY","TR","SY","LB","IL","PS","JO","SA","YE","OM","IQ","KW","EH"],
+  CTX:["ES","PT","IT","GR","MT","CY","TR","SY","LB","IL","PS","JO","SA","YE","OM","IQ","KW"],
   DOTS:dotsVan("AF"),
   WIN:{ x0:-27, y0:-38, x1:60, y1:38.5 },
   lam0:17, phi1:0,
@@ -275,7 +277,7 @@ const NAK = bouwContinent({
 console.log("ZUID-AMERIKA:");
 const SAK = bouwContinent({
   PLAY:speelIds("SA"),
-  CTX:["PA","CR","NI","FK","FR"], // FR = Frans-Guyana (uitgeknipt uit het Frankrijk-veelvlak)
+  CTX:["PA","CR","NI","FK"],
   DOTS:dotsVan("SA"),
   WIN:{ x0:-95, y0:-57, x1:-30, y1:14 },
   lam0:-60, phi1:-20,

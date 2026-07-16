@@ -8,6 +8,7 @@ const SRC="ne10m.geojson"; // hoogste resolutie (1:10m)
 const HTML="index.html";
 
 import { WERELD } from "./bron-wereld.mjs";
+import { fixGeo } from "./fix-geo.mjs";
 const EU=["IS","IE","GB","PT","ES","FR","NL","BE","LU","DE","DK","NO","SE","FI","PL","CZ","AT","CH","IT","GR","HU","HR","SI","SK","EE","LV","LT","BA","RS","ME","XK","AL","MK","BG","RO","MD","UA","BY","RU","TR","CY","MT","AD","MC","LI","SM","VA"];
 const AS=["CN","JP","IN","ID","TH","VN","KR","SA","PK","PH","MY","IR","IQ","AF","MN","NP","BD","LK","KP","TW","MM","KH","LA","BT","KZ","UZ","TM","KG","TJ","IL","JO","LB","SY","YE","OM","AE","QA","KW","GE","AM","AZ","TL","SG","BH","MV","BN"];
 const PLAY=new Set([...EU,...AS,...WERELD.map(l=>l.id)]);
@@ -52,6 +53,7 @@ const r3=n=>Math.round(n*1000)/1000;
 const round3=ring=>ring.map(([lo,la])=>[r3(lo),r3(la)]); // max-niveau: fijnere afronding, anders trapjes bij diep zoomen
 
 const gj=JSON.parse(readFileSync(SRC,"utf8"));
+fixGeo(gj); // Westelijke Sahara één gebied + Frans-Guyana apart (zie fix-geo.mjs)
 // 1) ringen verzamelen (met area-voorfilter), NOG NIET vereenvoudigen
 const perCode={}, restRingen=[];
 for(const f of gj.features){

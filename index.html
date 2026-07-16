@@ -738,7 +738,7 @@ const DATA_KLAAR=(async()=>{
 </script>
 <script>
 "use strict";
-const VERSIE="47"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="48"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -987,6 +987,9 @@ const LANDEN=[
  {id:"PW",n:"Palau",h:"Ngerulmud",f:"🇵🇼",cont:"OC",lvl:3,card:"🐠🏝️🦈🌊",hint:"Eilandjes met het beroemdste kwallenmeer ter wereld.",fact:"In het Kwallenmeer van Palau zwem je tussen miljoenen kwallen die niet prikken.",w:["alii","Palaus","hallo!"]},
  {id:"NR",n:"Nauru",h:"Yaren",f:"🇳🇷",cont:"OC",lvl:3,card:"🏝️🐦☀️🌊",hint:"Het kleinste eilandstaatje ter wereld.",fact:"Nauru is het kleinste eilandland ter wereld: in 30 minuten rijd je er helemaal omheen.",w:["omo yoran","Nauruaans","goedendag"]},
  {id:"TV",n:"Tuvalu",h:"Funafuti",f:"🇹🇻",cont:"OC",lvl:3,card:"🏝️🌊🐟✉️",hint:"Een van de kleinste en laagste landen op aarde.",fact:"Tuvalu verdient geld met zijn internet-adres: elke website die op .tv eindigt, betaalt aan Tuvalu.",w:["talofa","Tuvaluaans","hallo!"]},
+ /* ---- wereld (fase 2): gegenereerd uit bron-wereld.mjs ---- */
+ {id:"EH",n:"Westelijke Sahara",h:"El Aaiún",f:"🇪🇭",cont:"AF",lvl:3,card:"🏜️🐪🌊⛺",hint:"Langgerekt woestijngebied aan de Atlantische kust, onder Marokko.",fact:"Westelijke Sahara is een bijzonder gebied: het is geen gewoon land — Marokko en de mensen die er wonen zijn het er nog niet over eens van wie het is.",w:["sahra","Arabisch","woestijn"]},
+ {id:"GF",n:"Frans-Guyana",h:"Cayenne",f:"🇬🇫",cont:"SA",lvl:2,card:"🚀🌴🐆🇫🇷",hint:"Frans gebied in Zuid-Amerika, naast Suriname.",fact:"Vanuit Frans-Guyana schieten Europese raketten de ruimte in — het ligt lekker dicht bij de evenaar.",w:["fusée","Frans","raket"]},
 ];
 
 // vaste, onderscheidende kleur per land (ook gebruikt op de globe)
@@ -1119,13 +1122,13 @@ function bouwKaart(){
       el=mk("path");
       el.setAttribute("d",geo.d);
       el.setAttribute("fill",kleur);
-      el.setAttribute("fill-rule","evenodd");
+      el.setAttribute("fill-rule",geo.fr||"evenodd");
       c.bb=geo.bb;c.cx=geo.cx;c.cy=geo.cy;
       gLand.appendChild(el);
     }else{
       if(geo.d){ // échte vorm van het ministaatje onder de stip (zichtbaar bij inzoomen)
         const p2=mk("path");
-        p2.setAttribute("d",geo.d);p2.setAttribute("fill",kleur);p2.setAttribute("fill-rule","evenodd");
+        p2.setAttribute("d",geo.d);p2.setAttribute("fill",kleur);p2.setAttribute("fill-rule",geo.fr||"evenodd");
         p2.setAttribute("class","land");p2.style.pointerEvents="none";
         gLand.appendChild(p2);
       }
@@ -2128,6 +2131,7 @@ const GLOBE_ZEEEN=[ // [naam, lon, lat] — zeenamen op de globe
 ];
 /* fijn globe-niveau: geladen zodra er ingezoomd wordt; render kiest per frame de bron */
 let GLOBE_FIJN=null, globeFijnLaadt=false, GLOBE_MAX=null, globeMaxLaadt=false;
+let GLOBE_LAND=null, globeLandLaadt=false; // fase 3b: kadaster-detail (landmodus-pack) op de bol
 async function laadGlobeFijn(){
   if(GLOBE_FIJN||globeFijnLaadt)return; globeFijnLaadt=true;
   try{
@@ -2139,6 +2143,10 @@ async function laadGlobeFijn(){
 async function laadGlobeMax(){ // diepste niveau (vrijwel bronkwaliteit); niet in de artifact-preview
   if(GLOBE_MAX||globeMaxLaadt)return; globeMaxLaadt=true;
   try{const r=await fetch("./data/core/globe-max.json"); if(r.ok)GLOBE_MAX=await r.json();}catch(e){}
+}
+async function laadGlobeLand(){ // landmodus-detail (PDOK) als bovenste zoomniveau; ontbreekt in de preview → valt terug op max
+  if(GLOBE_LAND||globeLandLaadt)return; globeLandLaadt=true;
+  try{const r=await fetch("./data/landen/nederland-globe.json"); if(r.ok)GLOBE_LAND=await r.json();}catch(e){}
   globeMaxLaadt=false;
 }
 function maakGlobe(canvas, opts){
@@ -2148,8 +2156,11 @@ function maakGlobe(canvas, opts){
   let rot={l:-70,p:22}, W=1,H=1,cx=0,cy=0,R=1, dpr=1, zoom=1, baseR=1;
   let dragging=false,last=null,moved=0,raf=null,levend=true,auto=!rm&&(opts.mode==="verken"||opts.auto);
   let hi=null; // opgelicht land (alleen na een klik)
-  function middelpunt(id){ // lon/lat-midden van een land
-    const ringen=GLOBE.landen[id]; if(ringen){let sx=0,sy=0,n=0;ringen.flat().forEach(([lo,la])=>{sx+=lo;sy+=la;n++;});return [sx/n,sy/n];}
+  function middelpunt(id){ // lon/lat-midden van een land: de grootste ring telt
+    // (overzeese eilandjes — Bonaire bij NL, Guadeloupe bij FR — trekken het gemiddelde anders scheef)
+    const ringen=GLOBE.landen[id];
+    if(ringen){const gr=ringen.reduce((a,b)=>b.length>a.length?b:a);
+      let sx=0,sy=0;for(const[lo,la]of gr){sx+=lo;sy+=la;}return [sx/gr.length,sy/gr.length];}
     if(GLOBE.dots[id])return GLOBE.dots[id]; return null;
   }
   if(opts.startId){const m=middelpunt(opts.startId); if(m){rot.l=-m[0];rot.p=Math.max(-70,Math.min(70,m[1]));}}
@@ -2161,7 +2172,7 @@ function maakGlobe(canvas, opts){
     canvas.width=Math.round(W*dpr); canvas.height=Math.round(H*dpr);
     cx=W/2; cy=H/2; baseR=Math.min(W,H)*0.46; R=baseR*zoom;
   }
-  function setZoom(z){zoom=Math.max(1,Math.min(12,z)); R=baseR*zoom; if(zoom>=1.4)laadGlobeFijn(); if(zoom>=3.2)laadGlobeMax();}
+  function setZoom(z){zoom=Math.max(1,Math.min(24,z)); R=baseR*zoom; if(zoom>=1.4)laadGlobeFijn(); if(zoom>=3.2)laadGlobeMax(); if(zoom>=4.5)laadGlobeLand();} // 24×: diep genoeg om landmodus-detail (NL) echt te zien
   function zicht(lon,lat){const l=(lon+rot.l)*DG,f=lat*DG,f0=rot.p*DG;return Math.sin(f0)*Math.sin(f)+Math.cos(f0)*Math.cos(f)*Math.cos(l);}
   function pr(lon,lat){const l=(lon+rot.l)*DG,f=lat*DG,f0=rot.p*DG;
     return [cx+R*Math.cos(f)*Math.sin(l), cy-R*(Math.cos(f0)*Math.sin(f)-Math.sin(f0)*Math.cos(f)*Math.cos(l))];}
@@ -2179,12 +2190,12 @@ function maakGlobe(canvas, opts){
     }
     return ietsZichtbaar&&pts.length>=3?pts:null;
   }
-  function tekenRingen(ringen,fill,stroke,lw){
+  function tekenRingen(ringen,fill,stroke,lw,fr){
     ctx.beginPath();let iets=false;
     for(const ring of ringen){const pts=padRing(ring);if(!pts)continue;iets=true;
       ctx.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i][0],pts[i][1]);ctx.closePath();}
     if(!iets)return;
-    if(fill){ctx.fillStyle=fill;ctx.fill("evenodd");}
+    if(fill){ctx.fillStyle=fill;ctx.fill(fr||"evenodd");}
     if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||1;ctx.stroke();}
   }
   function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
@@ -2226,10 +2237,11 @@ function maakGlobe(canvas, opts){
     const nu=performance.now();
     for(const id in landenB){
       const c=LAND_VAN[id];if(!c)continue;
-      const ringen=landenB[id].filter(ringOk);
+      const eigen=zoom>=5&&GLOBE_LAND&&GLOBE_LAND[id]; // landmodus-detail vervangt NE volledig
+      const ringen=(eigen||landenB[id]).filter(ringOk);
       if(!ringen.length)continue;
       const fill=opts.kleurFn?opts.kleurFn(c):c.kleur;
-      tekenRingen(ringen, fill, lijn, 0.7);
+      tekenRingen(ringen, fill, lijn, 0.7, eigen?"nonzero":null);
       if(opts.glans&&(fill==="#F1B62B"||fill==="#CBD3DF")){ // veroverde zilver/goud-landen glanzen (pulserende sheen)
         const sh=0.16+0.16*Math.sin(nu/430+(c.idx||0)*0.7);
         if(sh>0.03)tekenRingen(ringen, `rgba(255,255,255,${sh.toFixed(3)})`, null, 0);
@@ -2247,9 +2259,10 @@ function maakGlobe(canvas, opts){
       ctx.fillStyle="rgba(6,10,26,0.5)";ctx.beginPath();ctx.arc(cx,cy,R,0,7);ctx.fill(); // dof waas over de bol
       const c=LAND_VAN[hi];
       const eigenKleur=opts.kleurFn?opts.kleurFn(c):(c?c.kleur:"#fff");
-      const ringen=landenB[hi];
+      const eigenHi=zoom>=5&&GLOBE_LAND&&GLOBE_LAND[hi];
+      const ringen=eigenHi||landenB[hi];
       if(ringen){
-        tekenRingen(ringen, eigenKleur, null, 0);            // volle kleur terug
+        tekenRingen(ringen, eigenKleur, null, 0, eigenHi?"nonzero":null); // volle kleur terug
         tekenRingen(ringen, null, "rgba(0,0,0,0.6)", 5.5);   // donkere halo eronder → altijd zichtbaar
         tekenRingen(ringen, null, "#FFD24A", 2.6);           // heldere gouden rand precies op de grens
       }
@@ -2317,9 +2330,8 @@ function maakGlobe(canvas, opts){
   meet();render();lus();
   const ctrl={
     render, meet(){meet();render();},
-    focus(id){const c=LANDEN.find(x=>x.id===id);const g=(GLOBE.landen[id]&&GLOBE.landen[id][0])||(GLOBE.dots[id]&&[GLOBE.dots[id]]);
-      if(!g)return; let sx=0,sy=0,n=0; (GLOBE.landen[id]?GLOBE.landen[id].flat():[GLOBE.dots[id]]).forEach(([lo,la])=>{sx+=lo;sy+=la;n++;});
-      const tl=-sx/n, tp=Math.max(-70,Math.min(70,sy/n)); animRot(tl,tp);},
+    focus(id){const m=middelpunt(id); if(!m)return;
+      const tl=-m[0], tp=Math.max(-70,Math.min(70,m[1])); animRot(tl,tp);},
     highlight(id){hi=id;render();},
     zoomBy(f){setZoom(zoom*f);render();},
     autoDraai(on){auto=!rm&&on;}, // draaien hervatten (lus tikt altijd door, auto bepaalt of hij roteert)

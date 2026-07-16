@@ -3,9 +3,7 @@
 // Bron steden: GeoNames cities15000 (CC BY 4.0).
 // Gebruik: node build-land.mjs NL   → data/landen/nederland.json
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
-import { topology } from "topojson-server";
-import { presimplify, simplify as vwSimplify } from "topojson-simplify";
-import { feature, merge } from "topojson-client";
+import pc from "polygon-clipping";
 import { execSync } from "node:child_process";
 
 const LAND = process.argv[2] || "NL";
@@ -110,27 +108,104 @@ const tx=(VB.w-(maxX-minX)*s)/2-minX*s, ty=(VB.h-(maxY-minY)*s)/2-minY*s;
 const fit=([x,y])=>[x*s+tx,y*s+ty];
 const projFit=ll=>fit(proj(ll));
 
-// topologie over de gemeenten: gedeelde binnengrenzen vereenvoudigen als één boog → geen haarkiertjes in het landvlak
-const W_LAND=0.02; // Visvalingam px² (≈ tol 0.15px) — vrijwel bronniveau op landschaal
-const feats=geprojFeats.map((polys,i)=>({type:"Feature",id:i,properties:{},
-  geometry:{type:"MultiPolygon",coordinates:polys.map(poly=>poly.map(r=>r.map(fit)))}}));
-const topo=topology({land:{type:"FeatureCollection",features:feats}},1e5);
-const simp=vwSimplify(presimplify(topo),W_LAND);
-// gemeenten samensmelten tot één landvlak: binnengrenzen verdwijnen, de buitenrand houdt vol detail
-const samen=merge(simp,simp.objects.land.geometries);
+// gemeenten samensmelten tot één landvlak via booleaanse union (martinez): binnengrenzen
+// verdwijnen exact (bron-grenzen zijn identiek gedeeld), daarna pas vereenvoudigen — geen artefacten
+const TOL_LAND=0.15; // DP-tolerantie in px (≈50 m op NL-schaal)
+// coördinaten op een fijn raster (0,01 px ≈ 3,5 m): gedeelde grenzen blijven exact gelijk
+// en bijna-samenvallende punten (drijvende-komma-ruis) verdwijnen → robuuste union
+const snap=([x,y])=>[Math.round(x*100)/100,Math.round(y*100)/100];
+const schoonRing=r=>{
+  const uit=[];
+  for(const pt of r.map(snap)){
+    const v=uit[uit.length-1];
+    if(!v||v[0]!==pt[0]||v[1]!==pt[1])uit.push(pt);
+  }
+  if(uit.length>1&&uit[0][0]===uit[uit.length-1][0]&&uit[0][1]===uit[uit.length-1][1])uit.pop();
+  return uit;
+};
+const multipolys=geprojFeats.map(polys=>
+  polys.map(poly=>poly.map(r=>schoonRing(r.map(fit))).filter(r=>r.length>=3)).filter(p=>p.length)
+).filter(mp=>mp.length);
+console.log("union over",multipolys.length,"gemeenten (gefaseerd)...");
+let tussen=[];
+for(let i=0;i<multipolys.length;i+=25){
+  const groep=multipolys.slice(i,i+25);
+  tussen.push(groep.length>1?pc.union(...groep):groep[0]);
+  process.stdout.write(`\r  groep ${Math.min(i+25,multipolys.length)}/${multipolys.length}   `);
+}
+console.log("");
+let unie=tussen[0];
+for(let i=1;i<tussen.length;i++){
+  unie=pc.union(unie,tussen[i]);
+  process.stdout.write(`\r  samenvoegen ${i}/${tussen.length-1}   `);
+}
+console.log("");
+const ringKruist=r=>{
+  const kr=(a,b,c,e)=>{
+    const d1=(e[0]-c[0])*(a[1]-c[1])-(e[1]-c[1])*(a[0]-c[0]);
+    const d2=(e[0]-c[0])*(b[1]-c[1])-(e[1]-c[1])*(b[0]-c[0]);
+    const d3=(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);
+    const d4=(b[0]-a[0])*(e[1]-a[1])-(b[1]-a[1])*(e[0]-a[0]);
+    return d1*d2<0&&d3*d4<0;
+  };
+  for(let i=0;i<r.length;i++){
+    const a=r[i],b=r[(i+1)%r.length];
+    for(let j=i+2;j<r.length;j++){
+      if(i===0&&j===r.length-1)continue;
+      if(kr(a,b,r[j],r[(j+1)%r.length]))return true;
+    }
+  }
+  return false;
+};
+const kruisCheck=(ringen,label)=>{
+  const kr=(a,b,c,e)=>{
+    const d1=(e[0]-c[0])*(a[1]-c[1])-(e[1]-c[1])*(a[0]-c[0]);
+    const d2=(e[0]-c[0])*(b[1]-c[1])-(e[1]-c[1])*(b[0]-c[0]);
+    const d3=(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);
+    const d4=(b[0]-a[0])*(e[1]-a[1])-(b[1]-a[1])*(e[0]-a[0]);
+    return d1*d2<0&&d3*d4<0;
+  };
+  let micro=0,macro=0,vb=null;
+  for(const r of ringen){
+    for(let i=0;i<r.length;i++){
+      const a=r[i],b=r[(i+1)%r.length];
+      for(let j=i+2;j<r.length;j++){
+        if(i===0&&j===r.length-1)continue;
+        const c=r[j],e=r[(j+1)%r.length];
+        if(kr(a,b,c,e)){
+          const sch=Math.max(Math.hypot(b[0]-a[0],b[1]-a[1]),Math.hypot(e[0]-c[0],e[1]-c[1]));
+          if(sch<1)micro++;else{macro++;if(!vb||sch>vb.sch)vb={sch,a};}
+        }
+      }
+    }
+  }
+  console.log(`[${label}] micro:${micro} macro:${macro}`+(vb?` grootste ${vb.sch.toFixed(1)}px bij (${vb.a[0].toFixed(1)},${vb.a[1].toFixed(1)})`:""));
+};
+if(process.env.DEBUG_KRUIS){
+  const rauw=[],simp=[];
+  for(const poly of unie)for(const r of poly){rauw.push(r);const k=simplify(r,TOL_LAND);if(k.length>=3)simp.push(k);}
+  kruisCheck(rauw,"na union");
+  kruisCheck(simp,"na DP-simplify");
+}
 const landRingen=[];
-for(const poly of samen.coordinates){
+for(const poly of unie){
   for(const [i,r] of poly.entries()){
     if(!r||r.length<4)continue;
     if(area(r)<(i===0?0.35:0.25))continue; // mini-spikkels; gaten (plassen) blijven
-    landRingen.push(r);
+    // vereenvoudigen kan in smalle zeegaten sub-pixel-zelfkruisingen maken; die zijn
+    // onschuldig doordat het landvlak met fill-rule nonzero wordt getekend (fr hieronder)
+    const k=simplify(r,TOL_LAND);
+    if(k.length>=3)landRingen.push(k);
   }
 }
 landRingen.sort((a,b)=>area(b)-area(a));
 let xs=[],ys=[];landRingen.flat().forEach(p=>{xs.push(p[0]);ys.push(p[1]);});
-const bb=[Math.min(...xs),Math.min(...ys),Math.max(...xs),Math.max(...ys)].map(r1);
+let bx0=1/0,by0=1/0,bx1=-1/0,by1=-1/0;
+for(const x of xs){if(x<bx0)bx0=x;if(x>bx1)bx1=x;}
+for(const y of ys){if(y<by0)by0=y;if(y>by1)by1=y;}
+const bb=[bx0,by0,bx1,by1].map(r1);
 const [cx,cy]=centroid(landRingen[0]).map(r1);
-const GEO={}; GEO[LAND]={d:pad(landRingen),bb,cx,cy};
+const GEO={}; GEO[LAND]={d:pad(landRingen),bb,cx,cy,fr:"nonzero"};
 
 /* ---------- 2) context (buurlanden, uit Natural Earth) ---------- */
 const NAAM2CODE={ "Northern Cyprus":"CY", "Taiwan":"TW", "Somaliland":"SO" };
@@ -202,6 +277,21 @@ for(const st of kandidaten){
 /* ---------- wegschrijven ---------- */
 const PACK={geo:GEO, grat, ctx:ctxD, zee, vbstart, meren:merenD, steden, naam:CFG.naam};
 writeFileSync(`data/landen/${CFG.bestand}.json`,JSON.stringify(PACK));
+
+/* ---------- globe-overlay: dezelfde ringen terug naar lon/lat (tier-4 op de wereldbol) ---------- */
+const invFit=([px,py])=>[(px-tx)/s,(py-ty)/s];
+const invProj=([X,Yneg])=>{ // inverse LAEA (bolvorm, zelfde lam0/phi1)
+  const Y=-Yneg, rho=Math.hypot(X,Y);
+  if(rho<1e-12)return [CFG.lam0,CFG.phi1];
+  const c=2*Math.asin(Math.min(1,rho/2));
+  const phi=Math.asin(Math.cos(c)*Math.sin(PHI1)+Y*Math.sin(c)*Math.cos(PHI1)/rho);
+  const lam=LAM0+Math.atan2(X*Math.sin(c), rho*Math.cos(c)*Math.cos(PHI1)-Y*Math.sin(c)*Math.sin(PHI1));
+  return [lam/D, phi/D];
+};
+const r4=v=>Math.round(v*1e4)/1e4; // 0,0001° ≈ 11 m — ruim onder de simplify-tolerantie
+const globeRingen=landRingen.map(r=>r.map(p=>invProj(invFit(p)).map(r4)));
+writeFileSync(`data/landen/${CFG.bestand}-globe.json`,JSON.stringify({[LAND]:globeRingen}));
+console.log(`globe-overlay: data/landen/${CFG.bestand}-globe.json (${globeRingen.reduce((n,r)=>n+r.length,0)} punten)`);
 const punten=landRingen.reduce((a,r)=>a+r.length,0);
 console.log(`${CFG.naam}: ${landRingen.length} ringen, ${punten} punten, ${steden.length} steden`);
 console.log(`top-10 steden: ${steden.slice(0,10).map(s=>s.n).join(", ")}`);
