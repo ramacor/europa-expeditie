@@ -4,7 +4,7 @@
     {
       "name": "europa-expeditie",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["/private/tmp/claude-501/-Users-pimramakers-Documents-Claude-Europa-Expeditie/b7d2a351-df26-4d15-b82a-484c736e47b3/scratchpad/serve.mjs"],
+      "runtimeArgs": ["/private/tmp/claude-501/-Users-pimramakers-Documents-Claude-Europa-Expeditie/a002c430-b679-4d62-a1ce-63a47fba6a84/scratchpad/serve.mjs"],
       "port": 8321
     }
   ]

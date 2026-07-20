@@ -383,6 +383,27 @@
     box-shadow:inset 0 0 0 2px rgba(0,0,0,.12)}
   .pasfotovak img{width:100%; height:100%; object-fit:cover}
   .pasbalans{flex:none; width:56px} /* houdt de titel gecentreerd tegenover het fotovak */
+  /* houderspagina: 'Jouw expeditie' als officiële datapagina van het paspoort (guilloche + MRZ-strook) */
+  .pasdata{position:relative; background:var(--pagina); color:var(--inkt); padding:9px 14px 0; overflow:hidden}
+  .pasdata::before{content:""; position:absolute; inset:0; pointer-events:none; /* guilloche-golfjes zoals op een echte datapagina */
+    background:repeating-radial-gradient(circle at 10% -70%, transparent 0 9px, color-mix(in srgb, var(--inkt) 5%, transparent) 9px 10.5px),
+      repeating-radial-gradient(circle at 90% 170%, transparent 0 9px, color-mix(in srgb, var(--inkt) 5%, transparent) 9px 10.5px)}
+  .pasdata::after{content:"🧭"; position:absolute; right:10px; top:38px; font-size:82px; opacity:.09; transform:rotate(14deg); pointer-events:none} /* watermerk */
+  .pasdata>*{position:relative} /* inhoud boven het guilloche-patroon */
+  .pd-kop{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap}
+  .pd-kop small{letter-spacing:2.5px; font-size:9px; color:var(--muted); font-weight:bold; text-transform:uppercase}
+  .pd-kop b{margin-left:auto; font-size:14px; letter-spacing:.4px; color:var(--accent)}
+  .pd-balk{display:flex; gap:3px; margin:6px 0 3px}
+  .pd-balk i{flex:1; height:7px; border-radius:99px; background:color-mix(in srgb, var(--inkt) 14%, transparent)}
+  .pd-balk i.vol{background:var(--gold-grad); box-shadow:0 0 5px rgba(247,201,72,.45)}
+  .pd-volgende{font-size:10.5px; color:var(--muted); font-style:italic}
+  .pd-velden{display:grid; grid-template-columns:repeat(auto-fit,minmax(86px,1fr)); gap:5px 8px; margin-top:8px}
+  .pd-velden small{display:block; font-size:8px; letter-spacing:.4px; color:var(--muted); text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .pd-velden b{font-size:16px; font-variant-numeric:tabular-nums; letter-spacing:.4px}
+  .pd-mrz{margin:9px -14px 0; padding:6px 14px 5px; background:color-mix(in srgb, var(--inkt) 8%, transparent);
+    border-top:1.5px solid color-mix(in srgb, var(--inkt) 22%, transparent);
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:10px; letter-spacing:1.8px; line-height:1.55;
+    white-space:pre; overflow:hidden; opacity:.75}
   .boektabs{display:flex; background:var(--panel2); padding:6px 6px 0; gap:4px}
   .boektab{flex:1; border:none; background:none; color:var(--muted); padding:9px 4px; font-size:13px; font-weight:bold; cursor:pointer; opacity:.75; border-radius:10px 10px 0 0}
   .boektab.actief{opacity:1; background:var(--pagina); color:var(--accent)}
@@ -422,7 +443,9 @@
   .stempel10 .s-vulband{background:currentColor; border-radius:3px; padding:1px 6px}
   .stempel10 .s-vulband i{font-style:normal; color:#F3C044; mix-blend-mode:screen}
   .stempel10 .s-top{font-size:5.5px; letter-spacing:1.6px; white-space:nowrap}
-  .stempel10 .s-land{font-size:10.5px; font-weight:800; letter-spacing:.4px; max-width:95%}
+  .stempel10 .s-land{font-size:10.5px; font-weight:800; letter-spacing:.4px; max-width:95%;
+    color:color-mix(in srgb, currentColor 62%, black); /* landnaam donkerder dan de rest → leesbaar door het verweer heen */
+    text-shadow:0 0 .5px currentColor,0 0 .5px currentColor} /* dikt de letters aan zodat slijtagegaatjes minder wegvreten */
   .stempel10.s-lang .s-land{font-size:7.5px}
   .stempel10 .s-streep{width:68%; border-top:1.5px dotted currentColor; margin:1px 0}
   .stempel10 .s-datum{font-size:8px; letter-spacing:1.2px}
@@ -701,6 +724,13 @@
       <div class="paskop"><small>FINN'S EXPEDITIE</small>REISPASPOORT<small id="pass-houder"></small></div>
       <div class="pasbalans" aria-hidden="true"></div>
       <input type="file" id="pass-foto-input" accept="image/*" hidden>
+    </div>
+    <div class="pasdata" id="pass-data" style="display:none">
+      <div class="pd-kop"><small>🚩 Jouw expeditie · Reisverslag / Travel record</small><b id="pd-level"></b></div>
+      <div class="pd-balk" id="pd-balk" aria-label="Levelvoortgang"></div>
+      <div class="pd-volgende" id="pd-volgende"></div>
+      <div class="pd-velden" id="pd-velden"></div>
+      <div class="pd-mrz" id="pd-mrz" aria-hidden="true"></div>
     </div>
     <div class="boektabs">
       <button class="boektab actief" data-tab="stempels">📔 Stempels</button>
@@ -2398,7 +2428,7 @@ function maakGlobe(canvas, opts){
       let sx=0,sy=0;for(const[lo,la]of gr){sx+=lo;sy+=la;}return [sx/gr.length,sy/gr.length];}
     if(GLOBE.dots[id])return GLOBE.dots[id]; return null;
   }
-  if(opts.startId){const m=middelpunt(opts.startId); if(m){rot.l=-m[0];rot.p=Math.max(-70,Math.min(70,m[1]));}}
+  if(opts.startId){const m=middelpunt(opts.startId); if(m){rot.l=-m[0];rot.p=Math.max(-45,Math.min(45,m[1]*0.45));}} // gedempte startkanteling: evenaar net onder het midden i.p.v. de pool vol in beeld
 
   function meet(){
     const b=canvas.getBoundingClientRect();
@@ -2828,11 +2858,36 @@ $("#pass-foto-input").onchange=ev=>{
   img.onerror=()=>{URL.revokeObjectURL(url);toast("Die foto kon ik niet lezen 😕");};
   img.src=url;
 };
+// houderspagina bovenin het paspoort: 'Jouw expeditie' als officiële datapagina (level, stats, MRZ-strook)
+function passDataSync(p){
+  const el=$("#pass-data");
+  const DEMO=typeof ARTIFACT_DEMO!=="undefined"||location.hostname==="localhost"||location.hostname==="127.0.0.1";
+  let li=null;
+  if(p&&p.rounds)li=levelInfo(p);
+  else if(DEMO){p={naam:"Finn",points:1234,diamonds:12,best:9,speeltijd:47*60000,rounds:24,perfect:2}; // voorbeeld om het ontwerp te beoordelen
+    li={nr:4,naam:LVL_NAMEN[3],volgende:"Nog 8 landen goed voor level 5"};}
+  if(!li){el.style.display="none";return;}
+  el.style.display="block";
+  $("#pd-level").textContent=`Level ${li.nr} · ${li.naam}`;
+  const balk=$("#pd-balk");
+  if(!balk.children.length)for(let i=0;i<10;i++){const s=document.createElement("i");s.title=`Level ${i+1}: ${LVL_NAMEN[i]}`;balk.appendChild(s);}
+  [...balk.children].forEach((s,i)=>s.className=i<li.nr?"vol":"");
+  $("#pd-volgende").textContent=li.volgende;
+  const V=[["🪙",p.points,"Munten / Coins"],["💎",p.diamonds,"Diamanten / Gems"],["🔥",p.best,"Reeks / Streak"],
+    ["⏱️",Math.round((p.speeltijd||0)/60000),"Minuten / Minutes"],["🏋️",p.rounds,"Rondes / Rounds"],["🏆",p.perfect||0,"Perfect"]];
+  $("#pd-velden").innerHTML=V.map(([ico,v,l])=>`<div><small>${l}</small><b>${ico} ${v}</b></div>`).join("");
+  // machineleesbare strook zoals onderaan een echte paspoort-datapagina (puur decoratie, wel met échte cijfers)
+  const M=s=>String(s).toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^A-Z0-9]/g,"<");
+  const r1=(`P<EXP${M(p.naam)}<<${M(li.naam.replace(/^\S+\s/,""))}`).padEnd(40,"<").slice(0,40);
+  const r2=(`MNT${p.points}<DIA${p.diamonds}<RKS${p.best}<RND${p.rounds}<LVL${li.nr}`).padEnd(40,"<").slice(0,40);
+  $("#pd-mrz").textContent=r1+"\n"+r2;
+}
 function toonPaspoort(){
   const p=passSpeler();
   passCont=contSel()[0]||"EU"; // begin bij het gekozen werelddeel
   document.querySelectorAll("#pass-cont button").forEach(b=>b.classList.toggle("sel",b.dataset.pc===passCont));
   $("#pass-houder").textContent=p?`— ${p.naam.toUpperCase()} —`:"";
+  passDataSync(p);
   pasFotoSync();
   // altijd op de Stempels-tab openen (globe pas bij klik op Kaart)
   document.querySelectorAll(".boektab").forEach(x=>x.classList.toggle("actief",x.dataset.tab==="stempels"));
@@ -2887,6 +2942,11 @@ function passRender(){
       d.innerHTML=`<span class="f">${c.f}</span>${esc(c.n)}${n>0?`<br>✔ ${n}×`:""}`;
     }
     g.appendChild(d);
+  });
+  // pas-pas: een landnaam die breder is dan zijn stempel loopt rechts uit het midden → net zo veel kleiner tot hij past
+  g.querySelectorAll(".s-land").forEach(el=>{
+    const w=el.clientWidth, s=el.scrollWidth;
+    if(w>0&&s>w)el.style.fontSize=(parseFloat(getComputedStyle(el).fontSize)*w/s*0.96).toFixed(1)+"px";
   });
   kleurPassKaart(p);
   toonToplijst(p);
