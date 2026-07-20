@@ -361,13 +361,6 @@
   .mp-switch.aan::after{left:22px}
 
   /* ---------- Expeditie-voortgang (levels) ---------- */
-  .lvlbalk{display:flex; gap:4px; margin:10px 0 5px}
-  .lvlbalk i{flex:1; height:15px; border-radius:99px; background:var(--panel2)}
-  .lvlbalk i.vol{background:var(--gold-grad); box-shadow:0 0 6px rgba(247,201,72,.55)}
-  .lvlnamen{font-size:12px; color:var(--muted); display:flex; justify-content:space-between; gap:8px}
-  .expstats{display:grid; grid-template-columns:repeat(auto-fit,minmax(88px,1fr)); gap:8px; margin-top:12px}
-  .expstats div{background:var(--panel2); border-radius:11px; padding:8px 5px; text-align:center; font-size:11px; color:var(--muted)}
-  .expstats b{display:block; font-size:18px; color:var(--ink); font-variant-numeric:tabular-nums}
 
   /* ---------- Paspoortboekje ---------- */
   #s-pass{align-items:center; gap:0;
@@ -590,13 +583,6 @@
   <button class="bigbtn moeilijkbtn" id="b-moeilijk">🎯 Moeilijke ronde — oefen je lastige landen</button>
   <button class="bigbtn stedenbtn" id="b-vormen">🧩 Raak in topVORM met Tobias!</button>
 
-  <div class="card" id="expkader" style="display:none">
-    <h2>🚩 Jouw expeditie</h2>
-    <div id="lvl-naam" style="font-size:19px; font-weight:bold"></div>
-    <div class="lvlbalk" id="lvl-balk"></div>
-    <div class="lvlnamen"><span>Level 1</span><span id="lvl-volgende" style="text-align:center"></span><span>Level 10</span></div>
-    <div class="expstats" id="expstats"></div>
-  </div>
 </div>
 
 <!-- ============ SPELSCHERM ============ -->
@@ -1813,7 +1799,7 @@ $("#t-mini").onclick=()=>{db.settings.mini=!db.settings.mini;if(db.settings.mini
 $("#t-flits").onclick=()=>{db.settings.flits=!db.settings.flits;save();segSync();sndKlik();};
 
 const naamIn=$("#naam");
-function knoppenSync(){const uit=!st.naam;$("#b-start").classList.toggle("wachtop",uit);$("#b-moeilijk").classList.toggle("wachtop",uit);$("#b-vormen").classList.toggle("wachtop",uit);expeditieSync();}
+function knoppenSync(){const uit=!st.naam;$("#b-start").classList.toggle("wachtop",uit);$("#b-moeilijk").classList.toggle("wachtop",uit);$("#b-vormen").classList.toggle("wachtop",uit);}
 function wijsNaarNaam(){ // duidelijk maken dat eerst de voornaam nodig is
   toast("👋 Vul eerst je voornaam in bij 'Wie gaat er spelen?'");
   const veld=$("#naam");
@@ -3020,7 +3006,7 @@ function naarHome(){ // ronde ALTIJD volledig afbreken (ook bliksemronde, feedba
   $("#fb").classList.remove("open");
   st.verken=false;st.q=null;st.vragen=[];st.qi=0;st.stedenronde=false;
   $("#s-game").classList.remove("metmenu");
-  chipsSync();segSync();expeditieSync();toonScherm("#s-start");menuSync("expeditie");
+  chipsSync();segSync();toonScherm("#s-start");menuSync("expeditie");
 }
 $("#b-home").onclick=naarHome;
 // ondermenu
@@ -3068,28 +3054,8 @@ $("#mp-aan").onclick=()=>{ wisselMuziek(); $("#mp-aan").classList.toggle("aan",m
 $("#mp-vol").oninput=()=>{ const v=parseFloat($("#mp-vol").value); zetMuziekVol(v); $("#mp-volval").textContent=Math.round(v*100)+"%"; };
 $("#mp-tracks").addEventListener("change",e=>{ if(e.target.name==="mptrack"){ kiesTrack(e.target.value);
   document.querySelectorAll(".mp-track").forEach(l=>l.classList.toggle("sel",l.querySelector("input").checked)); } });
-// expeditie-voortgang op het beginscherm
-function expeditieSync(){
-  const k=(st.naam||db.last||"").toLowerCase();
-  const p=db.players[k];
-  if(!p||!p.rounds){$("#expkader").style.display="none";return;}
-  $("#expkader").style.display="block";
-  const li=levelInfo(p);
-  $("#lvl-naam").textContent=`Level ${li.nr} · ${li.naam}`;
-  const balk=$("#lvl-balk");
-  if(!balk.children.length)for(let i=0;i<10;i++){const s=document.createElement("i");s.title=`Level ${i+1}: ${LVL_NAMEN[i]}`;balk.appendChild(s);}
-  [...balk.children].forEach((s,i)=>s.className=i<li.nr?"vol":"");
-  $("#lvl-volgende").textContent=li.volgende;
-  $("#expstats").innerHTML=
-    `<div><b>${p.points}</b>🪙 munten</div>`+
-    `<div><b>${p.diamonds}</b>💎 diamanten</div>`+
-    `<div><b>${p.best}</b>🔥 beste reeks</div>`+
-    `<div><b>${Math.round((p.speeltijd||0)/60000)}</b>⏱️ minuten</div>`+
-    `<div><b>${p.rounds}</b>🏋️ rondes</div>`+
-    `<div><b>${p.perfect||0}</b>🏆 perfect</div>`;
-}
 $("#b-nogeens").onclick=()=>{sndKlik();startRonde();};
-$("#b-anders").onclick=()=>{chipsSync();segSync();expeditieSync();toonScherm("#s-start");menuSync("expeditie");};
+$("#b-anders").onclick=()=>{chipsSync();segSync();toonScherm("#s-start");menuSync("expeditie");};
 $("#s-result").addEventListener("click",ev=>{if(ev.target===ev.currentTarget)$("#b-anders").click();}); // naast het overzicht klikken = home
 addEventListener("keydown",ev=>{
   if($("#fb").classList.contains("open")){if(ev.key==="Enter"){ev.preventDefault();$("#b-next").click();}return;}
