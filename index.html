@@ -366,37 +366,38 @@
   #s-pass{align-items:center; gap:0;
     padding:calc(18px + env(safe-area-inset-top,0px)) 12px calc(96px + env(safe-area-inset-bottom,0px))}
   .boekje{width:min(680px,100%); border-radius:18px; overflow:hidden; box-shadow:var(--shadow)}
-  .boekkaft{background:linear-gradient(140deg,var(--panel2),var(--bg)); color:var(--accent); padding:12px 16px 10px;
-    letter-spacing:3px; font-weight:bold; font-size:20px; border-bottom:3px double var(--accent-fill);
-    display:flex; align-items:center; gap:14px}
-  .boekkaft small{display:block; letter-spacing:4px; font-size:10px; opacity:.85; font-weight:normal; color:var(--muted)}
-  .boekkaft .paskop{flex:1; min-width:0; text-align:center}
-  .pasfotovak{flex:none; width:56px; height:74px; border-radius:8px; border:2px solid var(--accent-fill); background:var(--chip);
-    display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; padding:0; font-size:22px;
-    box-shadow:inset 0 0 0 2px rgba(0,0,0,.12)}
+  /* identiteitspagina naar het echte NL-paspoort: pastelverloop, blauwe veldjes met nummertjes,
+     grote rode titel, foto links, MRZ-strook onderaan — bewust licht in beide thema's (papier is papier) */
+  .pasid{position:relative; overflow:hidden; padding:12px 14px 0; color:#1B2437;
+    background:linear-gradient(115deg,#F4D8DF 0%,#E3EFDF 26%,#D9E7F6 52%,#E8F2E6 74%,#F5EDCE 100%)}
+  .pasid::before{content:""; position:absolute; inset:0; pointer-events:none; /* guilloche-golfjes */
+    background:repeating-radial-gradient(circle at 10% -70%, transparent 0 9px, rgba(61,94,158,.07) 9px 10.5px),
+      repeating-radial-gradient(circle at 90% 170%, transparent 0 9px, rgba(196,72,92,.06) 9px 10.5px)}
+  .pasid::after{content:"🧭"; position:absolute; right:12px; top:64px; font-size:88px; opacity:.10; transform:rotate(14deg); pointer-events:none} /* watermerk, als het schaduwfotootje rechts */
+  .pasid>*{position:relative}
+  .pasid-boven{display:flex; gap:14px}
+  .pasid-links{flex:none; display:flex; flex-direction:column; gap:9px; align-items:flex-start}
+  .pasid-soort{font-size:8.5px; font-weight:bold; letter-spacing:2px; color:#3D5E9E; line-height:1.8}
+  .pasfotovak{flex:none; width:76px; height:100px; border-radius:4px; border:1.5px solid #9FB0CC; background:#FDFDFB;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; padding:0; font-size:24px;
+    box-shadow:0 1px 4px rgba(30,50,90,.18)}
   .pasfotovak img{width:100%; height:100%; object-fit:cover}
-  .pasbalans{flex:none; width:56px} /* houdt de titel gecentreerd tegenover het fotovak */
-  /* houderspagina: 'Jouw expeditie' als officiële datapagina van het paspoort (guilloche + MRZ-strook) */
-  .pasdata{position:relative; background:var(--pagina); color:var(--inkt); padding:9px 14px 0; overflow:hidden}
-  .pasdata::before{content:""; position:absolute; inset:0; pointer-events:none; /* guilloche-golfjes zoals op een echte datapagina */
-    background:repeating-radial-gradient(circle at 10% -70%, transparent 0 9px, color-mix(in srgb, var(--inkt) 5%, transparent) 9px 10.5px),
-      repeating-radial-gradient(circle at 90% 170%, transparent 0 9px, color-mix(in srgb, var(--inkt) 5%, transparent) 9px 10.5px)}
-  .pasdata::after{content:"🧭"; position:absolute; right:10px; top:38px; font-size:82px; opacity:.09; transform:rotate(14deg); pointer-events:none} /* watermerk */
-  .pasdata>*{position:relative} /* inhoud boven het guilloche-patroon */
-  .pd-kop{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap}
-  .pd-kop small{letter-spacing:2.5px; font-size:9px; color:var(--muted); font-weight:bold; text-transform:uppercase}
-  .pd-kop b{margin-left:auto; font-size:14px; letter-spacing:.4px; color:var(--accent)}
-  .pd-balk{display:flex; gap:3px; margin:6px 0 3px}
-  .pd-balk i{flex:1; height:7px; border-radius:99px; background:color-mix(in srgb, var(--inkt) 14%, transparent)}
-  .pd-balk i.vol{background:var(--gold-grad); box-shadow:0 0 5px rgba(247,201,72,.45)}
-  .pd-volgende{font-size:10.5px; color:var(--muted); font-style:italic}
-  .pd-velden{display:grid; grid-template-columns:repeat(auto-fit,minmax(86px,1fr)); gap:5px 8px; margin-top:8px}
-  .pd-velden small{display:block; font-size:8px; letter-spacing:.4px; color:var(--muted); text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-  .pd-velden b{font-size:16px; font-variant-numeric:tabular-nums; letter-spacing:.4px}
-  .pd-mrz{margin:9px -14px 0; padding:6px 14px 5px; background:color-mix(in srgb, var(--inkt) 8%, transparent);
-    border-top:1.5px solid color-mix(in srgb, var(--inkt) 22%, transparent);
+  .pasid-rechts{flex:1; min-width:0}
+  .pasid-titel{font-size:19px; font-weight:800; letter-spacing:2.5px; color:#C4485C; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .pasid-sub{font-size:8px; font-weight:bold; letter-spacing:1.8px; color:#3D5E9E; margin:2px 0 9px}
+  .pasid-velden{display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:8px 14px}
+  .pv small{display:block; font-size:6.8px; letter-spacing:.2px; color:#3D5E9E; font-weight:bold; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .pv small i{font-style:normal; font-size:6.5px; opacity:.75; margin-right:2px}
+  .pv b{font-size:13.5px; letter-spacing:.4px; color:#141A28; font-variant-numeric:tabular-nums}
+  .pasid-stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(86px,1fr)); gap:5px 8px; margin-top:10px}
+  .pasid-stats .pv b{font-size:15px}
+  .pd-balk{display:flex; gap:3px; margin:9px 0 3px}
+  .pd-balk i{flex:1; height:7px; border-radius:99px; background:rgba(40,70,120,.16)}
+  .pd-balk i.vol{background:var(--gold-grad); box-shadow:0 0 5px rgba(232,148,10,.5)}
+  .pd-volgende{font-size:10.5px; color:#51617E; font-style:italic}
+  .pd-mrz{margin:9px -14px 0; padding:6px 14px 5px; background:#F2ECCE; border-top:1.5px solid rgba(90,85,50,.3); color:#23252B;
     font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:10px; letter-spacing:1.8px; line-height:1.55;
-    white-space:pre; overflow:hidden; opacity:.75}
+    white-space:pre; overflow:hidden}
   .boektabs{display:flex; background:var(--panel2); padding:6px 6px 0; gap:4px}
   .boektab{flex:1; border:none; background:none; color:var(--muted); padding:9px 4px; font-size:13px; font-weight:bold; cursor:pointer; opacity:.75; border-radius:10px 10px 0 0}
   .boektab.actief{opacity:1; background:var(--pagina); color:var(--accent)}
@@ -702,20 +703,30 @@
 </defs></svg>
 <div class="screen" id="s-pass">
   <div class="boekje">
-    <div class="boekkaft">
-      <button class="pasfotovak" id="pass-fotovak" title="Tik om een pasfoto te maken of te kiezen" aria-label="Pasfoto maken of kiezen">
-        <img id="pass-foto" alt="Pasfoto" style="display:none">
-        <span id="pass-foto-leeg">📷</span>
-      </button>
-      <div class="paskop"><small>FINN'S EXPEDITIE</small>REISPASPOORT<small id="pass-houder"></small></div>
-      <div class="pasbalans" aria-hidden="true"></div>
-      <input type="file" id="pass-foto-input" accept="image/*" hidden>
-    </div>
-    <div class="pasdata" id="pass-data" style="display:none">
-      <div class="pd-kop"><small>🚩 Jouw expeditie · Reisverslag / Travel record</small><b id="pd-level"></b></div>
+    <div class="pasid" id="pass-data">
+      <div class="pasid-boven">
+        <div class="pasid-links">
+          <div class="pasid-soort">PASPOORT<br>PASSPORT<br>PASSEPORT</div>
+          <button class="pasfotovak" id="pass-fotovak" title="Tik om een pasfoto te maken of te kiezen" aria-label="Pasfoto maken of kiezen">
+            <img id="pass-foto" alt="Pasfoto" style="display:none">
+            <span id="pass-foto-leeg">📷</span>
+          </button>
+          <input type="file" id="pass-foto-input" accept="image/*" hidden>
+        </div>
+        <div class="pasid-rechts">
+          <div class="pasid-titel">FINN'S EXPEDITIE</div>
+          <div class="pasid-sub">FINN'S EXPEDITION · EXPÉDITION DE FINN</div>
+          <div class="pasid-velden">
+            <div class="pv"><small><i>1</i> nationaliteit / nationality / nationalité</small><b>🌍 Wereldreiziger</b></div>
+            <div class="pv"><small><i>2</i> voornaam / given name / prénom</small><b id="pid-naam">—</b></div>
+            <div class="pv"><small><i>3</i> level / level / niveau</small><b id="pid-level">—</b></div>
+            <div class="pv"><small><i>4</i> bereikt op / achieved on / atteint le</small><b id="pid-datum">—</b></div>
+          </div>
+        </div>
+      </div>
+      <div class="pasid-stats" id="pd-velden"></div>
       <div class="pd-balk" id="pd-balk" aria-label="Levelvoortgang"></div>
       <div class="pd-volgende" id="pd-volgende"></div>
-      <div class="pd-velden" id="pd-velden"></div>
       <div class="pd-mrz" id="pd-mrz" aria-hidden="true"></div>
     </div>
     <div class="boektabs">
@@ -2837,42 +2848,48 @@ $("#pass-foto-input").onchange=ev=>{
     g2.drawImage(img,(192-img.width*sc)/2,(256-img.height*sc)/2,img.width*sc,img.height*sc);
     let p=passSpeler();
     if(!p&&(st.naam||db.last)){st.naam=st.naam||db.last;p=speler();} // nog geen speler? maak 'm aan bij de eerste pasfoto
-    if(p){p.foto=c.toDataURL("image/jpeg",0.82);save();$("#pass-houder").textContent=`— ${p.naam.toUpperCase()} —`;}
+    if(p){p.foto=c.toDataURL("image/jpeg",0.82);save();}
     else toast("Vul eerst je naam in op het startscherm 😉");
     pasFotoSync();
   };
   img.onerror=()=>{URL.revokeObjectURL(url);toast("Die foto kon ik niet lezen 😕");};
   img.src=url;
 };
-// houderspagina bovenin het paspoort: 'Jouw expeditie' als officiële datapagina (level, stats, MRZ-strook)
+// identiteitspagina bovenin het paspoort, naar het echte NL-paspoort: naam, level, bereikt-op-datum, stats en MRZ
+const MND_NL=["JAN","FEB","MAA","APR","MEI","JUN","JUL","AUG","SEP","OKT","NOV","DEC"];
+const MND_EN=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+function pasDatum(ts){const d=new Date(ts);return `${d.getDate()} ${MND_NL[d.getMonth()]}/${MND_EN[d.getMonth()]} ${d.getFullYear()}`;} // "30 AUG/AUG 2021"-stijl
 function passDataSync(p){
-  const el=$("#pass-data");
   const DEMO=typeof ARTIFACT_DEMO!=="undefined"||location.hostname==="localhost"||location.hostname==="127.0.0.1";
-  let li=null;
-  if(p&&p.rounds)li=levelInfo(p);
-  else if(DEMO){p={naam:"Finn",points:1234,diamonds:12,best:9,speeltijd:47*60000,rounds:24,perfect:2}; // voorbeeld om het ontwerp te beoordelen
-    li={nr:4,naam:LVL_NAMEN[3],volgende:"Nog 8 landen goed voor level 5"};}
-  if(!li){el.style.display="none";return;}
-  el.style.display="block";
-  $("#pd-level").textContent=`Level ${li.nr} · ${li.naam}`;
+  let li=null,datum="—";
+  if(p&&p.rounds){
+    li=levelInfo(p);
+    p.lvlData=p.lvlData||{}; // eerste keer dat dit level gehaald is → vastleggen voor 'bereikt op'
+    if(!p.lvlData[li.nr]){p.lvlData[li.nr]=Date.now();save();}
+    datum=pasDatum(p.lvlData[li.nr]);
+  }else if(DEMO&&!p){p={naam:"Finn",points:1234,diamonds:12,best:9,speeltijd:47*60000,rounds:24,perfect:2}; // voorbeeld om het ontwerp te beoordelen
+    li={nr:4,naam:LVL_NAMEN[3],volgende:"Nog 8 landen goed voor level 5"};datum=pasDatum(new Date(2026,4,12));}
+  $("#pid-naam").textContent=p&&p.naam?p.naam:"—";
+  $("#pid-level").textContent=li?li.naam:"—";
+  $("#pid-datum").textContent=datum;
   const balk=$("#pd-balk");
   if(!balk.children.length)for(let i=0;i<10;i++){const s=document.createElement("i");s.title=`Level ${i+1}: ${LVL_NAMEN[i]}`;balk.appendChild(s);}
-  [...balk.children].forEach((s,i)=>s.className=i<li.nr?"vol":"");
-  $("#pd-volgende").textContent=li.volgende;
-  const V=[["🪙",p.points,"Munten / Coins"],["💎",p.diamonds,"Diamanten / Gems"],["🔥",p.best,"Reeks / Streak"],
-    ["⏱️",Math.round((p.speeltijd||0)/60000),"Minuten / Minutes"],["🏋️",p.rounds,"Rondes / Rounds"],["🏆",p.perfect||0,"Perfect"]];
-  $("#pd-velden").innerHTML=V.map(([ico,v,l])=>`<div><small>${l}</small><b>${ico} ${v}</b></div>`).join("");
+  [...balk.children].forEach((s,i)=>s.className=li&&i<li.nr?"vol":"");
+  $("#pd-volgende").textContent=li?li.volgende:"Speel een ronde om je paspoort te vullen!";
+  const st6=p||{points:0,diamonds:0,best:0,speeltijd:0,rounds:0,perfect:0};
+  const V=[["🪙",st6.points,"munten / coins",5],["💎",st6.diamonds,"diamanten / gems",6],["🔥",st6.best,"reeks / streak",7],
+    ["🏆",st6.perfect||0,"perfect",8],["🏋️",st6.rounds,"rondes / rounds",9],["⏱️",Math.round((st6.speeltijd||0)/60000),"minuten / minutes",10]];
+  $("#pd-velden").innerHTML=V.map(([ico,v,l,n])=>`<div class="pv"><small><i>${n}</i> ${l}</small><b>${ico} ${v}</b></div>`).join("");
   // machineleesbare strook zoals onderaan een echte paspoort-datapagina (puur decoratie, wel met échte cijfers)
   const M=s=>String(s).toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^A-Z0-9]/g,"<");
-  const r1=(`P<EXP${M(p.naam)}<<${M(li.naam.replace(/^\S+\s/,""))}`).padEnd(40,"<").slice(0,40);
-  const r2=(`MNT${p.points}<DIA${p.diamonds}<RKS${p.best}<RND${p.rounds}<LVL${li.nr}`).padEnd(40,"<").slice(0,40);
+  const r1=(`P<EXP${M(p&&p.naam||"EXPEDITIE")}<<${M(li?li.naam.replace(/^\S+\s/,""):"WERELDREIZIGER")}`).padEnd(40,"<").slice(0,40);
+  const r2=li?(`MNT${st6.points}<DIA${st6.diamonds}<RKS${st6.best}<RND${st6.rounds}<LVL${li.nr}`).padEnd(40,"<").slice(0,40):"".padEnd(40,"<");
   $("#pd-mrz").textContent=r1+"\n"+r2;
 }
 function toonPaspoort(){
   const p=passSpeler();
   passCont=contSel()[0]||"EU"; // begin bij het gekozen werelddeel
   document.querySelectorAll("#pass-cont button").forEach(b=>b.classList.toggle("sel",b.dataset.pc===passCont));
-  $("#pass-houder").textContent=p?`— ${p.naam.toUpperCase()} —`:"";
   passDataSync(p);
   pasFotoSync();
   // altijd op de Stempels-tab openen (globe pas bij klik op Kaart)
