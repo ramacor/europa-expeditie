@@ -12,3 +12,9 @@ cities15000.zip
 nl_gemeenten.geojson
 nl_pdok.geojson
 ne10m_iso.geojson
+cgaz_adm0.geojson
+rivieren.geojson
+rivieren-europa.geojson
+rivieren-noord-amerika.geojson
+hoogte-tiles/
+.claude/

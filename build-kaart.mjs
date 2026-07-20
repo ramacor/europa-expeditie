@@ -5,6 +5,9 @@ import { topology } from "topojson-server";
 import { presimplify, simplify as vwSimplify } from "topojson-simplify";
 import { feature } from "topojson-client";
 import { WERELD } from "./bron-wereld.mjs";
+import { bepaalInterneMeren } from "./meer-intern.mjs";
+import { rondHoeken } from "./rond-hoeken.mjs";
+import { laadRivieren } from "./bron-rivieren.mjs";
 import { fixGeo } from "./fix-geo.mjs";
 
 const SRC = "ne10m.geojson";   // hoogste Natural Earth-resolutie (1:10m): nauwkeurige grenzen en kustlijnen
@@ -94,10 +97,38 @@ function simplify(ring, tol){
   return [...idx].sort((p,q)=>p-q).map(k=>ring[k]);
 }
 const pad=d=>d.map(ring=>"M"+ring.map(p=>r1(p[0])+" "+r1(p[1])).join("L")+"Z").join("");
+const padLijn=d=>d.map(l=>"M"+l.map(p=>r1(p[0])+" "+r1(p[1])).join("L")).join(""); // open lijnen (rivieren): géén Z
+function dpLijn(pts,tol){ // Douglas-Peucker voor open lijnen (simplify() is voor ringen)
+  if(pts.length<=2)return pts;
+  const t2=tol*tol, keep=new Set([0,pts.length-1]);
+  const dp=(i,j)=>{let mx=-1,mi=-1;const ax=pts[i][0],ay=pts[i][1],bx=pts[j][0],by=pts[j][1];const dx=bx-ax,dy=by-ay,len2=dx*dx+dy*dy||1e-12;
+    for(let k=i+1;k<j;k++){const t=Math.max(0,Math.min(1,((pts[k][0]-ax)*dx+(pts[k][1]-ay)*dy)/len2));const px=ax+t*dx-pts[k][0],py=ay+t*dy-pts[k][1],d2=px*px+py*py;if(d2>mx){mx=d2;mi=k;}}
+    if(mx>t2){keep.add(mi);dp(i,mi);dp(mi,j);}};
+  dp(0,pts.length-1);
+  return [...keep].sort((a,b)=>a-b).map(k=>pts[k]);
+}
+function clipLijn(pts,WIN){ // knip een open lijn op het venster (Liang-Barsky per segment) → losse stukken
+  const stukken=[]; let cur=null;
+  for(let i=0;i<pts.length-1;i++){
+    const a=pts[i], b=pts[i+1];
+    let t0=0,t1=1; const dx=b[0]-a[0], dy=b[1]-a[1];
+    const knip=(p,q)=>{ if(p===0)return q>=0; const r=q/p; if(p<0){ if(r>t1)return false; if(r>t0)t0=r; } else { if(r<t0)return false; if(r<t1)t1=r; } return true; };
+    if(knip(-dx,a[0]-WIN.x0)&&knip(dx,WIN.x1-a[0])&&knip(-dy,a[1]-WIN.y0)&&knip(dy,WIN.y1-a[1])){
+      const p0=[a[0]+t0*dx,a[1]+t0*dy], p1=[a[0]+t1*dx,a[1]+t1*dy];
+      if(!cur||t0>0){ cur=[p0]; stukken.push(cur); }
+      cur.push(p1);
+      if(t1<1)cur=null;
+    } else cur=null;
+  }
+  return stukken.filter(s=>s.length>=2);
+}
 
 const gj = JSON.parse(readFileSync(SRC,"utf8"));
 fixGeo(gj); // Westelijke Sahara één gebied + Frans-Guyana apart (zie fix-geo.mjs)
 const MEREN = JSON.parse(readFileSync("meren.geojson","utf8")); // ne_10m_lakes: waterlaag óver de landen (IJsselmeer, Grote Meren, ...)
+const INTERNE_MEREN = bepaalInterneMeren(gj, MEREN); // interne meren (raken geen zee) → lichtere waterkleur
+// rivieren: volle resolutie + snapping aan landsgrenzen (zie bron-rivieren.mjs)
+const RIVIEREN=laadRivieren();
 
 /* ---------- per continent ---------- */
 function bouwContinent(cfg){
@@ -160,7 +191,7 @@ function bouwContinent(cfg){
     const g={dot:projFit(DOTS[code]).map(r1)};
     const ringen=(ringFijn[code]||[]).slice().sort((a,b)=>area(b)-area(a));
     const kept=ringen.filter((r,i)=>i===0||area(r)>=0.3);
-    if(kept.length&&area(kept[0])>=0.8)g.d=pad(kept);
+    if(kept.length&&area(kept[0])>=0.8)g.d=pad(kept.map(r=>rondHoeken(r,80,0.25,0.5)));
     return g;
   }
   for(const code of PLAY){
@@ -172,7 +203,7 @@ function bouwContinent(cfg){
     const bb=[Math.min(...xs),Math.min(...ys),Math.max(...xs),Math.max(...ys)].map(r1);
     const [cx,cy]=centroid(kept[0]).map(r1);
     const diag=Math.hypot(bb[2]-bb[0],bb[3]-bb[1]);
-    GEO[code]={d:pad(kept),bb,cx,cy};
+    GEO[code]={d:pad(kept.map(r=>rondHoeken(r,80,0.25,0.5))),bb,cx,cy};
     if(diag<26)GEO[code].halo=1;
   }
   for(const code in DOTS){ if(!GEO[code]) GEO[code]=dotLand(code); }
@@ -182,12 +213,13 @@ function bouwContinent(cfg){
   for(const code of PLAY){
     const ringen=(ringFijn[code]||[]).slice().sort((a,b)=>area(b)-area(a));
     const kept=ringen.filter((r,i)=>i===0||area(r)>=0.1); // ingezoomd wil je álle eilandjes zien (Waddeneilanden!)
-    if(kept.length) FIJN[code]=pad(kept);
+    if(kept.length) FIJN[code]=pad(kept.map(r=>rondHoeken(r,80,0.25,0.5)));
   }
 
-  // meren: als zee-kleurige laag óver de landen; grof + fijn niveau
-  let merenGrof="", merenFijn="";
-  for(const f of MEREN.features){
+  // meren: waterlaag óver de landen; zee-verbonden lagunes in zeekleur, interne meren lichter
+  let merenGrof="", merenFijn="", merenInternGrof="", merenInternFijn="";
+  MEREN.features.forEach((f,fi)=>{
+    const intern=INTERNE_MEREN.has(fi);
     const polys=f.geometry.type==="Polygon"?[f.geometry.coordinates]:f.geometry.coordinates;
     for(const poly of polys){
       const doeRing=raw=>{const rr=wrap?raw.map(([lo,la])=>[norm(lo),la]):raw;const c=clipRing(rr,WIN);return c.length>=3?c.map(proj).map(fit):null;};
@@ -195,8 +227,21 @@ function bouwContinent(cfg){
       const A=area(r);
       // gaten (eilanden/polders ín een meer, zoals Flevoland in het IJsselmeer) horen erbij: evenodd maakt ze weer land
       const gaten=poly.slice(1).map(doeRing).filter(g=>g&&area(g)>=0.15);
-      if(A>=3){ const st=[simplify(r,0.55),...gaten.map(g=>simplify(g,0.55))].filter(k=>k.length>=3); merenGrof+=pad(st); }
-      if(A>=0.4){ const st=[simplify(r,0.1),...gaten.map(g=>simplify(g,0.1))].filter(k=>k.length>=3); merenFijn+=pad(st); }
+      if(A>=3){ const st=[simplify(r,0.55),...gaten.map(g=>simplify(g,0.55))].filter(k=>k.length>=3); const st2=st.map(r=>rondHoeken(r,80,0.25,0.5)); if(intern)merenInternGrof+=pad(st2); else merenGrof+=pad(st2); }
+      if(A>=0.4){ const st=[simplify(r,0.1),...gaten.map(g=>simplify(g,0.1))].filter(k=>k.length>=3); const st3=st.map(r=>rondHoeken(r,80,0.25,0.5)); if(intern)merenInternFijn+=pad(st3); else merenFijn+=pad(st3); }
+    }
+  });
+
+  // rivieren in vijf rang-emmers: de app toont er steeds méér naarmate je verder inzoomt
+  // (helemaal uitgezoomd: geen — zo blijft de kaart rustig)
+  const RIV_BUCKETS=[[3,0.12],[5,0.09],[7,0.07],[9,0.06],[99,0.05]]; // [t/m scalerank, simplificatie] — vol detail bij inzoomen
+  const rivPaden=RIV_BUCKETS.map(()=>"");
+  for(const [rank,lijn] of RIVIEREN){
+    const bi=RIV_BUCKETS.findIndex(([max])=>rank<=max); if(bi<0)continue;
+    const l2=wrap?lijn.map(([lo,la])=>[norm(lo),la]):lijn;
+    for(const stuk of clipLijn(l2,WIN)){
+      const p=stuk.map(proj).map(fit);
+      const s=dpLijn(p,RIV_BUCKETS[bi][1]); if(s.length>=2)rivPaden[bi]+=padLijn([s]);
     }
   }
 
@@ -226,7 +271,7 @@ function bouwContinent(cfg){
       if(signedArea(k)<0)k.reverse(); // consistente draairichting → nonzero vult overlapjes dicht
       kept.push(k);
     }
-    ctxD+=pad(kept);
+    ctxD+=pad(kept.map(r=>rondHoeken(r,80,0.25,0.5)));
   }
   // graticule
   let grat="";
@@ -248,7 +293,9 @@ function bouwContinent(cfg){
 
   const tot=Object.values(GEO).reduce((a,g)=>a+(g.d?g.d.length:0),0);
   console.log(`  ${PLAY.length} landen, ${tot} tekens paden, ${ctxD.length} tekens context, start`,vbstart);
-  return {geo:GEO, grat, ctx:ctxD, zee, vbstart, fijn:FIJN, meren:merenGrof, merenFijn};
+  // projectieparameters mee in het pack: de app kan er bij diepe zoom CGAZ-detail mee bijprojecteren
+  const projParams={lam0, phi1, wrap:!!wrap, s, tx, ty, win:[WIN.x0,WIN.y0,WIN.x1,WIN.y1]};
+  return {geo:GEO, grat, ctx:ctxD, zee, vbstart, fijn:FIJN, meren:merenGrof, merenFijn, merenIntern:merenInternGrof, merenInternFijn, rivieren:rivPaden, proj:projParams};
 }
 
 /* ---------- Europa (ongewijzigde parameters) ---------- */
@@ -321,9 +368,9 @@ const OC = bouwContinent({
 
 /* ---------- datapacks schrijven (daarna: node maak-manifest.mjs) ---------- */
 for(const [naam,K] of [["europa",EU],["azie",AS],["afrika",AF],["noord-amerika",NAK],["zuid-amerika",SAK],["oceanie",OC]]){
-  const {fijn,merenFijn,...basis}=K;
+  const {fijn,merenFijn,merenInternFijn,...basis}=K;
   writeFileSync(`data/continents/${naam}.json`,JSON.stringify(basis));
-  writeFileSync(`data/continents/${naam}-fijn.json`,JSON.stringify({...fijn,_meren:merenFijn}));
+  writeFileSync(`data/continents/${naam}-fijn.json`,JSON.stringify({...fijn,_meren:merenFijn,_merenIntern:merenInternFijn}));
   console.log(`  ${naam}: basis ${JSON.stringify(basis).length} B, fijn ${JSON.stringify(fijn).length} B`);
 }
 console.log("packs geschreven: data/continents/*.json (+ -fijn) — vergeet 'node maak-manifest.mjs' niet");

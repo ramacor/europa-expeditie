@@ -10,31 +10,31 @@
 <link rel="manifest" href="manifest.webmanifest">
 <style>
   :root{
-    --bg:#F2F6FC; --panel:#FFFFFF; --panel2:#E9F0FA; --sea:#D9E8F5; --ink:#182142; --muted:#5B6788;
+    --bg:#F2F6FC; --panel:#FFFFFF; --panel2:#E9F0FA; --sea:#AFD3EE; --sea-l:#CDE7F9; --sea-d:#8FBCE2; --ink:#182142; --muted:#5B6788;
     --accent:#B07C14; --accent-fill:#F5B83D; --teal:#0E9F87; --good:#1FA45D; --bad:#D9435A;
     --map-line:#FFFFFF; --chip:#E4ECF8; --shadow:0 6px 24px rgba(24,33,66,.12);
-    --land-context:#C7D3E4; --pagina:var(--panel); --inkt:var(--ink);
+    --land-context:#C7D3E4; --pagina:var(--panel); --inkt:var(--ink); --rivier:#5E9BD8; --meer:#C6E3F8; --pas-line:#8B96B5;
     --gold-grad:linear-gradient(135deg,#F7C948,#E8940A);
   }
   @media (prefers-color-scheme: dark){
     :root{
-      --bg:#0B1026; --panel:#151C3A; --panel2:#1C2448; --sea:#0D1430; --ink:#EAF0FF; --muted:#93A0C4;
+      --bg:#0B1026; --panel:#151C3A; --panel2:#1C2448; --sea:#1E4C8A; --sea-l:#3168B8; --sea-d:#102A52; --ink:#EAF0FF; --muted:#93A0C4;
       --accent:#FFC94D; --accent-fill:#FFC94D; --teal:#3FE0BE; --good:#4ADE80; --bad:#FF6B7A;
-      --map-line:#0B1026; --chip:#222B55; --shadow:0 8px 28px rgba(0,0,0,.45);
-      --land-context:#2C3766; --pagina:var(--panel); --inkt:var(--ink);
+      --map-line:#454E68; --chip:#222B55; --shadow:0 8px 28px rgba(0,0,0,.45); /* donkergrijze grenzen: vriendelijker dan zwart */
+      --land-context:#2C3766; --pagina:var(--panel); --inkt:var(--ink); --rivier:#85B9EE; --meer:#4A7DBE; --pas-line:#8294BE;
     }
   }
   :root[data-theme="light"]{
-    --bg:#F2F6FC; --panel:#FFFFFF; --panel2:#E9F0FA; --sea:#D9E8F5; --ink:#182142; --muted:#5B6788;
+    --bg:#F2F6FC; --panel:#FFFFFF; --panel2:#E9F0FA; --sea:#AFD3EE; --sea-l:#CDE7F9; --sea-d:#8FBCE2; --ink:#182142; --muted:#5B6788;
     --accent:#B07C14; --accent-fill:#F5B83D; --teal:#0E9F87; --good:#1FA45D; --bad:#D9435A;
     --map-line:#FFFFFF; --chip:#E4ECF8; --shadow:0 6px 24px rgba(24,33,66,.12);
-    --land-context:#C7D3E4; --pagina:var(--panel); --inkt:var(--ink);
+    --land-context:#C7D3E4; --pagina:var(--panel); --inkt:var(--ink); --rivier:#5E9BD8; --meer:#C6E3F8; --pas-line:#8B96B5;
   }
-  :root[data-theme="dark"]{
-    --bg:#0B1026; --panel:#151C3A; --panel2:#1C2448; --sea:#0D1430; --ink:#EAF0FF; --muted:#93A0C4;
+  :root[data-theme="dark"]{ /* identiek houden aan het @media-donkerblok hierboven! */
+    --bg:#0B1026; --panel:#151C3A; --panel2:#1C2448; --sea:#1E4C8A; --sea-l:#3168B8; --sea-d:#102A52; --ink:#EAF0FF; --muted:#93A0C4;
     --accent:#FFC94D; --accent-fill:#FFC94D; --teal:#3FE0BE; --good:#4ADE80; --bad:#FF6B7A;
-    --map-line:#0B1026; --chip:#222B55; --shadow:0 8px 28px rgba(0,0,0,.45);
-    --land-context:#2C3766; --pagina:var(--panel); --inkt:var(--ink);
+    --map-line:#454E68; --chip:#222B55; --shadow:0 8px 28px rgba(0,0,0,.45);
+    --land-context:#2C3766; --pagina:var(--panel); --inkt:var(--ink); --rivier:#85B9EE; --meer:#4A7DBE; --pas-line:#8294BE;
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
@@ -184,9 +184,14 @@
   .iconbtn:hover{outline:2px solid var(--teal)}
   .arena{display:flex; gap:10px; flex:1; min-height:0}
   .mapwrap{
-    flex:1; position:relative; background:var(--sea); border-radius:18px; box-shadow:var(--shadow); overflow:hidden; min-height:300px;
+    flex:1; position:relative; background:linear-gradient(165deg, var(--sea-l), var(--sea) 55%, var(--sea-d)); border-radius:18px; box-shadow:var(--shadow); overflow:hidden; min-height:300px;
   }
   #map{width:100%; height:100%; display:block; touch-action:none; cursor:default}
+  #vorm-overlay{position:absolute; inset:0; z-index:5; display:none; flex-direction:column; align-items:center; justify-content:center;
+    gap:12px; background:linear-gradient(165deg, var(--sea-l), var(--sea) 55%, var(--sea-d))}
+  #vorm-overlay svg{width:min(72%,440px); height:68%; filter:drop-shadow(0 10px 26px rgba(0,0,0,.4)); overflow:visible}
+  #vorm-overlay path{fill:var(--accent-fill); stroke:var(--map-line); stroke-width:1.1; vector-effect:non-scaling-stroke; stroke-linejoin:round}
+  #vorm-overlay .vormtip{color:#FFFFFF; opacity:.8; font-size:14px; font-weight:bold; letter-spacing:1px; text-shadow:0 1px 4px rgba(0,0,0,.5)}
   .zoomui{position:absolute; right:10px; bottom:10px; display:flex; flex-direction:column; gap:6px}
   .zoomui button{width:38px; height:38px; border:none; border-radius:10px; background:var(--panel); box-shadow:var(--shadow); font-size:18px; cursor:pointer}
   /* verken-info als overlay OVER de globe (drukt de globe niet plat) */
@@ -236,7 +241,7 @@
   .dockfoot{margin-top:auto; font-size:13px; color:var(--muted); text-align:center}
 
   /* ---------- Kaart states ---------- */
-  .land{stroke:var(--map-line); stroke-width:1.4; vector-effect:non-scaling-stroke; transition:opacity .25s}
+  .land{stroke:var(--map-line); stroke-width:1.4; stroke-linejoin:round; stroke-linecap:round; vector-effect:non-scaling-stroke; transition:opacity .25s}
   .klikbaar .land{cursor:pointer}
   .klikbaar .land:hover{filter:brightness(1.18) saturate(1.15)}
   .land.dim{opacity:.34}
@@ -258,9 +263,10 @@
   @keyframes spotpulse{0%,100%{stroke-opacity:1}50%{stroke-opacity:.4}}
   .zeetekst{fill:var(--muted); opacity:.55; font-size:17px; font-style:italic; letter-spacing:2px; pointer-events:none}
   .graticule{stroke:var(--muted); stroke-width:.4; opacity:.14; fill:none}
-  .context{fill:var(--land-context); stroke:var(--map-line); stroke-width:.7; vector-effect:non-scaling-stroke; pointer-events:none}
-  .meer{fill:var(--sea); stroke:none; pointer-events:none}
-  @supports (color: color-mix(in srgb, red, blue)){ .meer{fill:color-mix(in srgb, var(--sea) 74%, #4A7DFF 26%)} }
+  .context{fill:var(--land-context); stroke:var(--map-line); stroke-width:.7; stroke-linejoin:round; vector-effect:non-scaling-stroke; pointer-events:none}
+  .meer{fill:var(--sea); stroke:none; pointer-events:none} /* zee-verbonden water (lagunes) in zeekleur */
+  .meerIntern{fill:var(--meer); stroke:none; pointer-events:none} /* interne meren: lichter dan de zee, donkerder dan rivieren */
+  .rivier{fill:none; stroke:var(--rivier); stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; vector-effect:non-scaling-stroke; pointer-events:none} /* lichtblauw — donkere lijnen zijn exclusief voor landgrenzen */
 
   /* ---------- Feedback: strook onderin, kaart blijft zichtbaar ---------- */
   #fb{
@@ -367,9 +373,16 @@
   #s-pass{align-items:center; gap:0;
     padding:calc(18px + env(safe-area-inset-top,0px)) 12px calc(96px + env(safe-area-inset-bottom,0px))}
   .boekje{width:min(680px,100%); border-radius:18px; overflow:hidden; box-shadow:var(--shadow)}
-  .boekkaft{background:linear-gradient(140deg,var(--panel2),var(--bg)); color:var(--accent); padding:14px 20px 12px; text-align:center;
-    letter-spacing:3px; font-weight:bold; font-size:20px; border-bottom:3px double var(--accent-fill)}
+  .boekkaft{background:linear-gradient(140deg,var(--panel2),var(--bg)); color:var(--accent); padding:12px 16px 10px;
+    letter-spacing:3px; font-weight:bold; font-size:20px; border-bottom:3px double var(--accent-fill);
+    display:flex; align-items:center; gap:14px}
   .boekkaft small{display:block; letter-spacing:4px; font-size:10px; opacity:.85; font-weight:normal; color:var(--muted)}
+  .boekkaft .paskop{flex:1; min-width:0; text-align:center}
+  .pasfotovak{flex:none; width:56px; height:74px; border-radius:8px; border:2px solid var(--accent-fill); background:var(--chip);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; padding:0; font-size:22px;
+    box-shadow:inset 0 0 0 2px rgba(0,0,0,.12)}
+  .pasfotovak img{width:100%; height:100%; object-fit:cover}
+  .pasbalans{flex:none; width:56px} /* houdt de titel gecentreerd tegenover het fotovak */
   .boektabs{display:flex; background:var(--panel2); padding:6px 6px 0; gap:4px}
   .boektab{flex:1; border:none; background:none; color:var(--muted); padding:9px 4px; font-size:13px; font-weight:bold; cursor:pointer; opacity:.75; border-radius:10px 10px 0 0}
   .boektab.actief{opacity:1; background:var(--pagina); color:var(--accent)}
@@ -387,9 +400,36 @@
   .pk-goud{fill:#F1B62B; animation:pkgoud 2s ease-in-out infinite}
   @keyframes pkgoud{0%,100%{filter:drop-shadow(0 0 2px rgba(247,201,72,.6))}50%{filter:drop-shadow(0 0 9px rgba(247,201,72,1)) brightness(1.15)}}
   .pklegenda{display:flex; gap:16px; font-size:12px; margin-top:10px; justify-content:center; flex-wrap:wrap}
-  .stempel10{position:absolute; top:-9px; right:-9px; width:36px; height:36px; border-radius:50%; border:2.5px solid var(--bad);
-    color:var(--bad); display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:bold; letter-spacing:0;
-    transform:rotate(14deg); background:var(--pagina); box-shadow:0 1px 4px rgba(0,0,0,.25); line-height:1.1; text-align:center}
+  /* verweerde inktstempels (drie vormen, geïnspireerd op echte visumstempels); plek/draai/kleur per land */
+  .stempel10{position:absolute; left:50%; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    border:2.5px solid currentColor; font-weight:bold; line-height:1.12; text-align:center; pointer-events:none;
+    filter:url(#stempelverweer); opacity:.95; padding:4px 6px; gap:1px}
+  /* de stempel rekt van onder de vlagregel tot nét over de onderrand (top/bottom inline) → tegel altijd gevuld.
+     Zes vormen, naar echte visumstempels: kader+ring, ovaal, rond, gestippeld, band (alleen boven/onder), dubbel kader */
+  .stempel10::before{content:""; position:absolute; inset:3px; border:1.5px solid currentColor; border-radius:inherit}
+  .s-blok{width:92%; border-radius:10px}
+  .s-ovaal{width:95%; border-radius:50%}
+  .s-rond{width:78%; border-radius:50%}
+  .s-dash{width:92%; border-style:dashed; border-width:2.2px; border-radius:8px}
+  .s-band{width:97%; border-left:none; border-right:none; border-radius:0; border-width:3px}
+  .s-dubbel{width:92%; border-radius:8px; border-width:3px}
+  .s-dash::before,.s-band::before{display:none}
+  .s-dubbel::before{inset:4.5px; border-width:1.2px}
+  .s-ticket{width:93%; border-radius:2px; clip-path:polygon(7% 0,93% 0,100% 16%,100% 84%,93% 100%,7% 100%,0 84%,0 16%)} /* afgeschuinde hoeken (Barcelona-stijl) */
+  .s-ticket::before{display:none}
+  .s-skew{width:90%; border-radius:6px; transform-origin:center; --skew:skewX(-5deg)} /* licht geschuind kader */
+  .stempel10 .s-deco{position:absolute; font-weight:normal; opacity:.28; pointer-events:none; line-height:1}
+  .stempel10 .s-vulband{background:currentColor; border-radius:3px; padding:1px 6px}
+  .stempel10 .s-vulband i{font-style:normal; color:#F3C044; mix-blend-mode:screen}
+  .stempel10 .s-top{font-size:5.5px; letter-spacing:1.6px; white-space:nowrap}
+  .stempel10 .s-land{font-size:10.5px; font-weight:800; letter-spacing:.4px; max-width:95%}
+  .stempel10.s-lang .s-land{font-size:7.5px}
+  .stempel10 .s-streep{width:68%; border-top:1.5px dotted currentColor; margin:1px 0}
+  .stempel10 .s-datum{font-size:8px; letter-spacing:1.2px}
+  .stempel10 .s-woord{font-size:6.5px; font-style:italic; font-weight:normal; max-width:95%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .stamp.gestempeld{min-height:104px}
+  .stamp.gestempeld .f{position:absolute; top:4px; left:7px; font-size:30px; line-height:1}
+  .stamp .telling{position:absolute; top:5px; right:7px; font-size:9px; font-weight:bold; opacity:.75}
 
   /* ---------- Vlagvragen & goudstaaf ---------- */
   .choice.vlagkeuze span:last-child{font-size:36px; line-height:1.1}
@@ -495,6 +535,7 @@
         <button data-v="landen">🗺️ Landen</button>
         <button data-v="hoofdsteden">🏛️ Hoofdsteden</button>
         <button data-v="vlaggen">🚩 Vlaggen</button>
+        <button data-v="vormen">🧩 Vormen</button>
         <button data-v="mix">🎲 Mix</button>
       </div>
     </div>
@@ -524,7 +565,7 @@
 
   <button class="bigbtn" id="b-start">🚀 Start de expeditie!</button>
   <button class="bigbtn moeilijkbtn" id="b-moeilijk">🎯 Moeilijke ronde — oefen je lastige landen</button>
-  <button class="bigbtn stedenbtn" id="b-steden">🏙️ Stedenronde — de 50 grootste steden van Nederland</button>
+  <button class="bigbtn stedenbtn" id="b-vormen">🧩 Raak in topVORM met Tobias!</button>
 
   <div class="card" id="expkader" style="display:none">
     <h2>🚩 Jouw expeditie</h2>
@@ -558,6 +599,7 @@
       <div class="zoomui">
         <button id="z-in" aria-label="Inzoomen">＋</button>
         <button id="z-uit" aria-label="Uitzoomen">－</button>
+        <button id="z-rivier" aria-label="Rivieren aan of uit" title="Rivieren aan/uit">💧</button>
       </div>
     </div>
     <div class="dock">
@@ -641,9 +683,25 @@
 </div>
 
 <!-- ============ PASPOORT (boekje met tabbladen) ============ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <filter id="stempelverweer" x="-20%" y="-20%" width="140%" height="140%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.55" numOctaves="3" seed="7" result="ruis"/>
+    <feColorMatrix in="ruis" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 2.4 -0.45" result="slijtage"/>
+    <feComposite in="SourceGraphic" in2="slijtage" operator="in" result="versleten"/>
+    <feDisplacementMap in="versleten" in2="ruis" scale="2.2"/>
+  </filter>
+</defs></svg>
 <div class="screen" id="s-pass">
   <div class="boekje">
-    <div class="boekkaft"><small>FINN'S EXPEDITIE · DE WERELD</small>REISPASPOORT<small id="pass-houder"></small></div>
+    <div class="boekkaft">
+      <button class="pasfotovak" id="pass-fotovak" title="Tik om een pasfoto te maken of te kiezen" aria-label="Pasfoto maken of kiezen">
+        <img id="pass-foto" alt="Pasfoto" style="display:none">
+        <span id="pass-foto-leeg">📷</span>
+      </button>
+      <div class="paskop"><small>FINN'S EXPEDITIE</small>REISPASPOORT<small id="pass-houder"></small></div>
+      <div class="pasbalans" aria-hidden="true"></div>
+      <input type="file" id="pass-foto-input" accept="image/*" hidden>
+    </div>
     <div class="boektabs">
       <button class="boektab actief" data-tab="stempels">📔 Stempels</button>
       <button class="boektab" data-tab="kaart">🗺️ Kaart</button>
@@ -674,6 +732,7 @@
           <button data-lb="l">🗺️ Landen</button>
           <button data-lb="h">🏛️ Hoofdsteden</button>
           <button data-lb="v">🚩 Vlaggen</button>
+          <button data-lb="o">🧩 Vormen</button>
         </div>
         <div id="lb-lijst"></div>
       </div>
@@ -738,7 +797,7 @@ const DATA_KLAAR=(async()=>{
 </script>
 <script>
 "use strict";
-const VERSIE="49"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="50"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -992,8 +1051,26 @@ const LANDEN=[
  {id:"GF",n:"Frans-Guyana",h:"Cayenne",f:"🇬🇫",cont:"SA",lvl:2,card:"🚀🌴🐆🇫🇷",hint:"Frans gebied in Zuid-Amerika, naast Suriname.",fact:"Vanuit Frans-Guyana schieten Europese raketten de ruimte in — het ligt lekker dicht bij de evenaar.",w:["fusée","Frans","raket"]},
 ];
 
-// vaste, onderscheidende kleur per land (ook gebruikt op de globe)
-LANDEN.forEach((c,i)=>{c.idx=i;c.kleur=`hsl(${Math.round((i*137.508+14)%360)} 62% 60%)`;});
+// vaste kleur per land (ook op de globe): zachte pasteltinten via de gulden snede — elk land
+// zijn eigen tint, met de nieuwe regels: buurlanden verschillen duidelijk en reuzen blijven rustig
+// grote landen krijgen een eigen rústige (gedempte) kleur die verder nergens wordt gebruikt —
+// zo overheerst geen enkele kleur het wereldbeeld (Rusland vulde anders de halve globe met geel)
+const GROTE_LANDEN={
+  RU:"#C9BC8F", // zacht zand
+  CA:"#A9B79B", // zacht grijsgroen
+  US:"#9FB6C9", // zacht staalblauw
+  CN:"#C29E74", // zacht caramel
+  BR:"#9CBA8D", // zacht groen
+  AU:"#C79E79", // zacht terracotta
+  IN:"#B4B384", // zacht olijf
+  AR:"#B9AE9A", // zacht taupe
+  KZ:"#9FB0A4", // zacht groengrijs
+  DZ:"#C4A98C", // zacht klei
+  SA:"#BFB098", // zacht woestijnzand
+};
+// correcties voor buurlanden die anders (bijna) dezelfde tint loten (berekend met check-kleuren.mjs)
+const KLEUR_FIX={DE:"hsl(204 62% 60%)",CH:"hsl(2 62% 60%)",PL:"hsl(330 62% 60%)",HU:"hsl(74 62% 60%)",HR:"hsl(160 62% 60%)",LT:"hsl(212 62% 60%)",BG:"hsl(147 62% 60%)",AF:"hsl(122 62% 60%)",CG:"hsl(295 62% 60%)",NE:"hsl(178 62% 60%)",CI:"hsl(7 62% 60%)",MR:"hsl(250 62% 60%)"};
+LANDEN.forEach((c,i)=>{c.idx=i;c.kleur=GROTE_LANDEN[c.id]||KLEUR_FIX[c.id]||`hsl(${Math.round((i*137.508+14)%360)} 62% 60%)`;});
 
 const PEP_GOED=["Superknap, {n}! 🎉","Wauw {n}, jij kent {cont} steeds beter! 🌍","Geweldig gedaan! 🌟","Boem! Goed zo, {n}! 💥","Jij wordt een echte topograaf, {n}! 🗺️","Kampioen! 🏆","Yes! Weer eentje goed! ✨","Knap hoor, {n}! 🚀"];
 const PEP_FOUT=["Bijna, {n}! De volgende keer weet je 'm!","Niet erg — zó leer je het juist! 💪","Oei, nét niet! Onthoud 'm voor de volgende keer 😉","Goed geprobeerd, {n}! Op naar de volgende!"];
@@ -1048,10 +1125,11 @@ function speler(){
   }
   return p;
 }
-function logVan(p,id){p.log=p.log||{};return p.log[id]=p.log[id]||{lg:0,lf:0,hg:0,hf:0,vg:0,vf:0};}
-function catVan(type){return (type==="klikLand"||type==="mcLand")?"l":(type==="klikVlag"||type==="mcVlag")?"v":"h";}
+function logVan(p,id){p.log=p.log||{};const l=p.log[id]=p.log[id]||{lg:0,lf:0,hg:0,hf:0,vg:0,vf:0,og:0,of:0};
+  if(l.og===undefined){l.og=0;l.of=0;} return l;} // og/of: vormvragen (lazy-migratie van oude opslag)
+function catVan(type){return type==="mcVorm"?"o":(type==="klikLand"||type==="mcLand")?"l":(type==="klikVlag"||type==="mcVlag")?"v":"h";}
 // één bron van waarheid: hoe vaak dit land in totaal goed is geraden (som van alle categorieën)
-function totGoed(p,id){const l=p&&p.log&&p.log[id];return l?(l.lg+l.hg+l.vg):0;}
+function totGoed(p,id){const l=p&&p.log&&p.log[id];return l?(l.lg+l.hg+l.vg+(l.og||0)):0;}
 function stopSpeeltijd(){ // tel de verstreken rondetijd bij de speler op
   if(st.rondeStart&&st.naam){const p=speler();p.speeltijd=(p.speeltijd||0)+Date.now()-st.rondeStart;save();}
   st.rondeStart=null;
@@ -1074,7 +1152,7 @@ function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;");}
 const SVGNS="http://www.w3.org/2000/svg";
 const map=$("#map");
 const paden={};
-let meerEl=null; // waterlaag (meren) — wisselt mee met het detailniveau
+let meerEl=null, meerInternEl=null, rivierEls=[]; // waterlaag: meren (zee-verbonden + intern) en rivieren in rang-emmers
 let vb={x:0,y:0,w:1050,h:920};
 const VBMAX={x:0,y:0,w:1050,h:920}; // alles, incl. context-randen
 // actieve kaart wisselt tussen continenten; elk continent heeft eigen projectie in dezelfde 1050×920-ruimte
@@ -1158,6 +1236,17 @@ function bouwKaart(){
   meerEl.setAttribute("d",(KAARTEN[actieveKaart]&&KAARTEN[actieveKaart].meren)||"");
   meerEl.setAttribute("class","meer");meerEl.setAttribute("fill-rule","evenodd");
   gMeer.appendChild(meerEl);
+  meerInternEl=mk("path");
+  meerInternEl.setAttribute("d",(KAARTEN[actieveKaart]&&KAARTEN[actieveKaart].merenIntern)||"");
+  meerInternEl.setAttribute("class","meerIntern");meerInternEl.setAttribute("fill-rule","evenodd");
+  gMeer.appendChild(meerInternEl);
+  rivierEls=[];
+  const rivData=(KAARTEN[actieveKaart]&&KAARTEN[actieveKaart].rivieren)||[];
+  for(const d of (Array.isArray(rivData)?rivData:[rivData])){
+    const el=mk("path"); el.setAttribute("d",d||""); el.setAttribute("class","rivier");
+    gMeer.appendChild(el); rivierEls.push(el);
+  }
+  rivierPas();
   map.appendChild(gMeer);
   map.appendChild(gDots);
   lodFijn=false; // verse paden zijn grof; lodPas wisselt zo nodig terug naar fijn
@@ -1191,12 +1280,69 @@ async function laadFijn(cont){
 function lodZet(fijn){
   lodFijn=fijn;
   const F=FIJN[actieveKaart]||{};
+  const D=(lodDiep&&DIEPD[actieveKaart])||{};
   for(const id in paden){
     const el=paden[id]; if(el.tagName!=="path")continue;
     const g=GEO[id]; if(!g||!g.d)continue;
-    el.setAttribute("d", fijn&&F[id] ? F[id] : g.d);
+    el.setAttribute("d", D[id] ? D[id] : (fijn&&F[id] ? F[id] : g.d));
   }
   if(meerEl)meerEl.setAttribute("d", (fijn&&F._meren!==undefined) ? F._meren : ((KAARTEN[actieveKaart]&&KAARTEN[actieveKaart].meren)||""));
+  if(meerInternEl)meerInternEl.setAttribute("d", (fijn&&F._merenIntern!==undefined) ? F._merenIntern : ((KAARTEN[actieveKaart]&&KAARTEN[actieveKaart].merenIntern)||""));
+}
+function rivierPas(){ // steeds méér rivier-emmers naarmate je verder inzoomt; helemaal uitgezoomd: geen
+  if(!rivierEls.length)return;
+  const vol=(VBFULL&&VBFULL.w)||1050, f=vb.w/vol;
+  const n=db.rivieren!==true?0 : f>0.75?0 : f>0.45?1 : f>0.28?2 : f>0.16?3 : f>0.08?4 : 5; // standaard uit
+  rivierEls.forEach((el,i)=>el.style.display=i<n?"":"none");
+}
+/* derde detailniveau op de platte kaart: bij héél diep inzoomen projecteren we het
+   CGAZ-werelddetail (zelfde packs als de globe) live in de kaartprojectie. */
+let lodDiep=false; const DIEPD={}; // per continent: land-id → geprojecteerde padstring (of null = geen diep-vorm)
+function projKaart(P,lon,lat){ // zelfde Lambert azimuthal equal-area als build-kaart.mjs
+  const D=Math.PI/180, lam=lon*D, phi=lat*D, LAM0=P.lam0*D, PHI1=P.phi1*D;
+  const k=Math.sqrt(2/(1+Math.sin(PHI1)*Math.sin(phi)+Math.cos(PHI1)*Math.cos(phi)*Math.cos(lam-LAM0)));
+  const x=k*Math.cos(phi)*Math.sin(lam-LAM0);
+  const y=-(k*(Math.cos(PHI1)*Math.sin(phi)-Math.sin(PHI1)*Math.cos(phi)*Math.cos(lam-LAM0)));
+  return [x*P.s+P.tx, y*P.s+P.ty];
+}
+function clipRingKaart(ring,W){ // Sutherland-Hodgman op het spelvenster (zelfde als build-kaart)
+  const [X0,Y0,X1,Y1]=W;
+  const lerpX=(a,b,x)=>[x,a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0])];
+  const lerpY=(a,b,y)=>[a[0]+(b[0]-a[0])*(y-a[1])/(b[1]-a[1]),y];
+  const edges=[[p=>p[0]>=X0,(a,b)=>lerpX(a,b,X0)],[p=>p[0]<=X1,(a,b)=>lerpX(a,b,X1)],
+               [p=>p[1]>=Y0,(a,b)=>lerpY(a,b,Y0)],[p=>p[1]<=Y1,(a,b)=>lerpY(a,b,Y1)]];
+  let out=ring;
+  for(const [inside,cross] of edges){
+    const inp=out; out=[];
+    for(let i=0;i<inp.length;i++){
+      const a=inp[i], b=inp[(i+1)%inp.length];
+      if(inside(a)){ out.push(a); if(!inside(b)) out.push(cross(a,b)); }
+      else if(inside(b)) out.push(cross(a,b));
+    }
+    if(out.length<3)return [];
+  }
+  return out;
+}
+function diepKaartVul(){ // projecteer de zichtbare landen (één keer per land, daarna cache)
+  const pack=DIEP_PACKS[actieveKaart], P=KAARTEN[actieveKaart]&&KAARTEN[actieveKaart].proj;
+  if(!pack||!P)return;
+  const D=(DIEPD[actieveKaart] ||= {});
+  let nieuw=0;
+  for(const id in paden){
+    if(id in D)continue;
+    const el=paden[id]; if(el.tagName!=="path")continue;
+    const c=LAND_VAN[id]; if(!c||!c.bb)continue;
+    if(c.bb[2]<vb.x||c.bb[0]>vb.x+vb.w||c.bb[3]<vb.y||c.bb[1]>vb.y+vb.h)continue; // buiten beeld
+    const ringen=pack[id]; if(!ringen){D[id]=null;continue;}
+    let d="";
+    for(let ring of ringen){
+      if(P.wrap)ring=ring.map(([lo,la])=>[lo<0?lo+360:lo,la]); // datumgrens-kaart (Oceanië)
+      const gk=clipRingKaart(ring,P.win); if(gk.length<3)continue;
+      d+="M"+gk.map(pt=>{const q=projKaart(P,pt[0],pt[1]);return q[0].toFixed(2)+" "+q[1].toFixed(2);}).join("L")+"Z";
+    }
+    D[id]=d||null; if(d)nieuw++;
+  }
+  if(nieuw)lodZet(lodFijn);
 }
 function lodPas(){
   if(!KAARTEN||!GEO)return;
@@ -1204,8 +1350,16 @@ function lodPas(){
   if(gs){const r=Math.max(1.6,0.0085*vb.w).toFixed(1);gs.querySelectorAll("circle").forEach(el=>el.setAttribute("r",r));}
   const vol=(VBFULL&&VBFULL.w)||1050;
   const wilFijn = vb.w < vol*(lodFijn?0.66:0.58); // hysterese: niet flapperen op de grens
-  if(wilFijn&&!FIJN[actieveKaart]){laadFijn(actieveKaart);return;}
-  if(wilFijn!==lodFijn)lodZet(wilFijn);
+  const wilDiep = !!DIEP_NAAM[actieveKaart] && vb.w < vol*(lodDiep?0.15:0.13); // diep werelddetail (CGAZ)
+  if(wilFijn&&!FIJN[actieveKaart])laadFijn(actieveKaart);
+  if(wilDiep&&!DIEP_PACKS[actieveKaart])laadDiepPack(actieveKaart).then(n=>{if(n)lodPas();});
+  const diepKlaar=wilDiep&&!!DIEP_PACKS[actieveKaart];
+  const fijnKlaar=wilFijn&&!!FIJN[actieveKaart];
+  const wissel=fijnKlaar!==lodFijn||diepKlaar!==lodDiep;
+  lodDiep=diepKlaar;
+  if(diepKlaar)diepKaartVul(); // projecteert nieuw zichtbare landen en ververst dan zelf
+  if(wissel)lodZet(fijnKlaar);
+  rivierPas(); // rivierdichtheid volgt de zoom
 }
 let animId=null;
 function animVB(doel,dur=450){
@@ -1234,7 +1388,7 @@ function zoomNaarBB(bb,laag=false){
 function zoomNaarLand(c){zoomNaarBB(c.bb);}
 // zoom & pan
 function zoomOp(f,px,py){
-  const nw=Math.min(1400,Math.max(120,vb.w*f));
+  const nw=Math.min(1400,Math.max(12,vb.w*f)); // 12 ≈ 90× — even diep als de globe (CGAZ-detail neemt het over)
   const nh=nw/contRatio();
   const kx=(px-vb.x)/vb.w,ky=(py-vb.y)/vb.h;
   setVB({x:px-kx*nw,y:py-ky*nh,w:nw,h:nh});
@@ -1269,6 +1423,16 @@ map.addEventListener("pointermove",ev=>{
 ["pointerup","pointercancel","pointerleave"].forEach(t=>map.addEventListener(t,ev=>{ptrs.delete(ev.pointerId);panStart=null;if(ptrs.size<2)pinchStart=null;}));
 $("#z-in").onclick=()=>{ if(verkenGlobe)verkenGlobe.zoomBy(1.3); else zoomOp(0.75,vb.x+vb.w/2,vb.y+vb.h/2); };
 $("#z-uit").onclick=()=>{ if(verkenGlobe)verkenGlobe.zoomBy(1/1.3); else zoomOp(1.35,vb.x+vb.w/2,vb.y+vb.h/2); };
+// rivieren aan/uit (💧): geldt voor de platte kaart én de globe, en wordt onthouden
+function rivierKnopSync(){ const b=$("#z-rivier"); if(b){ b.style.opacity=db.rivieren===true?1:0.35; b.setAttribute("aria-pressed",db.rivieren===true); } }
+$("#z-rivier").onclick=()=>{
+  db.rivieren=(db.rivieren!==true); save(); sndKlik();
+  rivierPas();
+  if(verkenGlobe)verkenGlobe.render();
+  if(kaartGlobe)kaartGlobe.render();
+  rivierKnopSync();
+};
+rivierKnopSync();
 
 let spotEl=null;
 function toonSpot(c){
@@ -1288,6 +1452,7 @@ function toonSpot(c){
 function wisSpot(){if(spotEl){spotEl.remove();spotEl=null;}}
 function kaartReset(){
   wisSpot();
+  if(typeof verbergVorm==="function")verbergVorm();
   for(const id in paden)paden[id].classList.remove("dim","target","goed","fout");
   document.querySelectorAll("#gStad circle").forEach(c=>c.classList.remove("dim","target","goed","fout"));
   map.classList.remove("klikbaar");
@@ -1618,7 +1783,7 @@ $("#t-mini").onclick=()=>{db.settings.mini=!db.settings.mini;if(db.settings.mini
 $("#t-flits").onclick=()=>{db.settings.flits=!db.settings.flits;save();segSync();sndKlik();};
 
 const naamIn=$("#naam");
-function knoppenSync(){const uit=!st.naam;$("#b-start").classList.toggle("wachtop",uit);$("#b-moeilijk").classList.toggle("wachtop",uit);$("#b-steden").classList.toggle("wachtop",uit);expeditieSync();}
+function knoppenSync(){const uit=!st.naam;$("#b-start").classList.toggle("wachtop",uit);$("#b-moeilijk").classList.toggle("wachtop",uit);$("#b-vormen").classList.toggle("wachtop",uit);expeditieSync();}
 function wijsNaarNaam(){ // duidelijk maken dat eerst de voornaam nodig is
   toast("👋 Vul eerst je voornaam in bij 'Wie gaat er spelen?'");
   const veld=$("#naam");
@@ -1677,9 +1842,11 @@ function bouwVraag(c,pool){
     if(kaartMag)types.push("klikVlag");
     if(mcMag)types.push("mcVlag");
   }
+  if((s.oefen==="vormen"||(s.oefen==="mix"&&mcMag))&&heeftVorm(c))types.push("mcVorm"); // silhouet raden: altijd meerkeuze
+  if(!types.length)types.push("mcLand"); // vangnet (bv. ministaatje in een vormenronde via de moeilijke ronde)
   const type=rnd(types);
   const q={c,type};
-  if(type==="mcLand"||type==="mcLandVan"){
+  if(type==="mcLand"||type==="mcLandVan"||type==="mcVorm"){
     q.opties=shuffle([c,...afleiders(c,pool,"n")].map(x=>({t:x.n,ok:x.id===c.id})));
   }else if(type==="mcHoofdstad"){
     q.opties=shuffle([c,...afleiders(c,pool,"h")].map(x=>({t:x.h,ok:x.id===c.id})));
@@ -1689,13 +1856,15 @@ function bouwVraag(c,pool){
   return q;
 }
 function maakVragen(){
-  const pool=actievePool();
+  let pool=actievePool();
+  if(db.settings.oefen==="vormen")pool=pool.filter(heeftVorm); // ministaatjes (stipjes) hebben geen raadbare vorm
   const n=Math.min(Number(db.settings.aantal),pool.length);
   return gewogenTrek(pool,n).map(c=>bouwVraag(c,pool));
 }
+function heeftVorm(c){const K=KAARTEN[c.cont],g=K&&K.geo[c.id];return !!(g&&g.d&&!g.dot);}
 function maakMoeilijkeVragen(){ // drill je zwakste landen: veel fout + weinig goed eerst, over ÁLLE gespeelde rondes
   const p=speler(), cs=contSel(), n=Number(db.settings.aantal);
-  const fout=c=>{const l=p.log&&p.log[c.id];return l?(l.lf+l.hf+l.vf):0;};
+  const fout=c=>{const l=p.log&&p.log[c.id];return l?(l.lf+l.hf+l.vf+(l.of||0)):0;};
   const moeite=c=>fout(c)*10-totGoed(p,c.id); // hoog = moeilijk; goed geraden landen zakken naar onder en vallen weg
   // kandidaten: alle geziene landen (ook lastige buiten je niveau) + je niveau-pool om aan te vullen
   const gezien=LANDEN.filter(c=>cs.includes(c.cont)&&heeftKaart(c)&&(totGoed(p,c.id)+fout(c)>0));
@@ -1789,7 +1958,9 @@ async function startStedenRonde(){
   hudSync();toonScherm("#s-game");toonVraag();
   [40,180,450].forEach(t=>setTimeout(herstelKaartVorm,t));
 }
-$("#b-steden").onclick=()=>{sndKlik();startStedenRonde();};
+$("#b-vormen").onclick=()=>{ // vormenronde (silhouetten raden), los van de gekozen oefenstand
+  sndKlik();const vorig=db.settings.oefen;db.settings.oefen="vormen";startRonde();db.settings.oefen=vorig;
+};
 
 function hudSync(){
   const p=speler();
@@ -1895,10 +2066,32 @@ function toonVraag(){
     $("#q-label").textContent="Vlaggen";
     $("#q-text").innerHTML=`Welke vlag hoort bij <b>${c.n}</b>?`;
     lichtOp(c);maakKeuzes(q);
+  }else if(q.type==="mcVorm"){
+    $("#q-label").textContent="Vormenquiz";
+    $("#q-text").innerHTML=`Welk land heeft deze vorm? 🧩`;
+    toonVorm(c);maakKeuzes(q);
   }
   if(db.settings.flits)startTimer();
   if(st.qi>0&&st.qi%4===0&&st.ronde.goed/st.qi>=.5)toast(pep(PEP_TUSSEN));
 }
+// vormenquiz: alléén het silhouet van het land, op een neutraal zeevlak (geen kaart-context die verklapt)
+function toonVorm(c){
+  const K=KAARTEN[c.cont], g=K.geo[c.id];
+  let ov=$("#vorm-overlay");
+  if(!ov){
+    ov=document.createElement("div");ov.id="vorm-overlay";
+    ov.innerHTML='<svg aria-hidden="true"><path/></svg><div class="vormtip">Let goed op de vorm! 🧩</div>';
+    document.querySelector(".mapwrap").appendChild(ov);
+  }
+  const pad=ov.querySelector("path");
+  pad.setAttribute("d",(FIJN[c.cont]&&FIJN[c.cont][c.id])||g.d); // fijn silhouet zodra dat pack binnen is
+  pad.setAttribute("fill-rule","evenodd");
+  const bb=g.bb, m=Math.max(bb[2]-bb[0],bb[3]-bb[1])*0.12+4;
+  ov.querySelector("svg").setAttribute("viewBox",`${bb[0]-m} ${bb[1]-m} ${bb[2]-bb[0]+2*m} ${bb[3]-bb[1]+2*m}`);
+  ov.style.display="flex";
+  laadFijn(c.cont);
+}
+function verbergVorm(){const ov=$("#vorm-overlay");if(ov)ov.style.display="none";}
 function lichtOp(c){
   LANDEN.forEach(x=>{if(x.id!==c.id&&paden[x.id])paden[x.id].classList.add("dim");});
   paden[c.id].classList.add("target");
@@ -1924,6 +2117,7 @@ function klikLand(c){
 function beantwoord(goed,knop,timeout=false,geklikt=null){
   if(st.answered)return;st.answered=true;stopTimer();wisSpot();
   const q=st.q,c=q.c,p=speler();
+  if(q.type==="mcVorm"){verbergVorm();lichtOp(c);} // onthulling: zó ligt het land op de kaart
   const goud=st.qi===st.goldIdx;
   map.classList.remove("klikbaar");
   // kaart-feedback
@@ -1958,6 +2152,7 @@ function beantwoord(goed,knop,timeout=false,geklikt=null){
     if(b.textContent.slice(1)===juisteTekst)b.classList.add("good");
   });
   if(!q.stad)logVan(p,c.id)[catVan(q.type)+(goed?"g":"f")]++; // logging per land én categorie (steden: nog niet)
+  if(!q.stad&&goed&&totGoed(p,c.id)>=10){const lg10=logVan(p,c.id);if(!lg10.d)lg10.d=Date.now();} // datum van de 10e goede → op de paspoortstempel
   const belon=[];
   let stemTekst=null; // gesproken zin (indien afgespeeld) → pop-up-tekst moet hiermee overeenkomen
   if(goed){
@@ -2131,7 +2326,6 @@ const GLOBE_ZEEEN=[ // [naam, lon, lat] — zeenamen op de globe
 ];
 /* fijn globe-niveau: geladen zodra er ingezoomd wordt; render kiest per frame de bron */
 let GLOBE_FIJN=null, globeFijnLaadt=false, GLOBE_MAX=null, globeMaxLaadt=false;
-let GLOBE_LAND=null, globeLandLaadt=false; // fase 3b: kadaster-detail (landmodus-pack) op de bol
 async function laadGlobeFijn(){
   if(GLOBE_FIJN||globeFijnLaadt)return; globeFijnLaadt=true;
   try{
@@ -2140,14 +2334,50 @@ async function laadGlobeFijn(){
   }catch(e){}
   globeFijnLaadt=false;
 }
-async function laadGlobeMax(){ // diepste niveau (vrijwel bronkwaliteit); niet in de artifact-preview
+async function laadGlobeMax(){ // vrijwel bronkwaliteit Natural Earth; niet in de artifact-preview
   if(GLOBE_MAX||globeMaxLaadt)return; globeMaxLaadt=true;
   try{const r=await fetch("./data/core/globe-max.json"); if(r.ok)GLOBE_MAX=await r.json();}catch(e){}
 }
-async function laadGlobeLand(){ // landmodus-detail (PDOK) als bovenste zoomniveau; ontbreekt in de preview → valt terug op max
-  if(GLOBE_LAND||globeLandLaadt)return; globeLandLaadt=true;
-  try{const r=await fetch("./data/landen/nederland-globe.json"); if(r.ok)GLOBE_LAND=await r.json();}catch(e){}
-  globeMaxLaadt=false;
+let HOOGTE=null, hoogteLaadt=false; // reliëf: hoogtebanden [{h, r:[ring,…]}] — subtiele donkere waas over gebergte
+async function laadHoogte(){
+  if(HOOGTE||hoogteLaadt)return false; hoogteLaadt=true;
+  try{
+    if(typeof HOOGTE_INLINE!=="undefined")HOOGTE=HOOGTE_INLINE; // artifact-variant
+    else{const r=await fetch("./data/core/hoogte.json"); if(r.ok)HOOGTE=await r.json();}
+  }catch(e){}
+  hoogteLaadt=false; return !!HOOGTE;
+}
+let RIVIEREN=null, rivierenLaadt=false; // waterlijnen: [scalerank, [[lon,lat],…]] — rank stuurt zichtbaarheid per zoom
+async function laadRivieren(){
+  if(RIVIEREN||rivierenLaadt)return false; rivierenLaadt=true;
+  try{
+    if(typeof RIVIEREN_INLINE!=="undefined")RIVIEREN=RIVIEREN_INLINE; // artifact-variant
+    else{const r=await fetch("./data/core/rivieren.json"); if(r.ok)RIVIEREN=await r.json();}
+  }catch(e){}
+  rivierenLaadt=false; return !!RIVIEREN;
+}
+/* fase 4: diep wereldniveau (geoBoundaries CGAZ) — álle landen op kadaster-achtig detail.
+   Per continent een pack, lazy geladen op kijkrichting. Eén topologie in de build → buurlanden
+   sluiten exact aan, dus geen NE-ondervulling meer nodig (vulling = tekening). */
+let DIEP_INDEX=null, diepIndexLaadt=false, DIEP_LANDEN=null; // DIEP_LANDEN = samengevoegde geladen packs
+const DIEP_PACKS={}, DIEP_LAADT={}, DIEP_NAAM={EU:"europa",AS:"azie",AF:"afrika",NA:"noord-amerika",SA:"zuid-amerika",OC:"oceanie"};
+async function laadDiepIndex(){ // ring-bboxen → welk pack hoort bij welk stukje wereld (ontbreekt in de preview → blijft max)
+  if(DIEP_INDEX||diepIndexLaadt)return; diepIndexLaadt=true;
+  try{const r=await fetch("./data/diep/index.json"); if(r.ok)DIEP_INDEX=await r.json();}catch(e){}
+}
+async function laadDiepPack(cont){
+  if(!DIEP_NAAM[cont]||DIEP_PACKS[cont]||DIEP_LAADT[cont])return false; DIEP_LAADT[cont]=true;
+  let nieuw=false;
+  try{const r=await fetch(`./data/diep/${DIEP_NAAM[cont]}.json`);
+    if(r.ok){DIEP_PACKS[cont]=await r.json();DIEP_LANDEN=Object.assign({},...Object.values(DIEP_PACKS));nieuw=true;}
+  }catch(e){}
+  DIEP_LAADT[cont]=false; return nieuw;
+}
+function diepConts(lon,lat){ // continenten met een land(ring) in de buurt van dit kijkpunt
+  const uit=new Set(), M=0.7;
+  if(DIEP_INDEX)for(const [x0,y0,x1,y1,cont] of DIEP_INDEX)
+    if(lon>=x0-M&&lon<=x1+M&&lat>=y0-M&&lat<=y1+M)uit.add(cont);
+  return uit;
 }
 function maakGlobe(canvas, opts){
   opts=opts||{};
@@ -2158,6 +2388,11 @@ function maakGlobe(canvas, opts){
   let hi=null; // opgelicht land (alleen na een klik)
   function middelpunt(id){ // lon/lat-midden van een land: de grootste ring telt
     // (overzeese eilandjes — Bonaire bij NL, Guadeloupe bij FR — trekken het gemiddelde anders scheef)
+    if(id&&id[0]==="~"){ // benoembaar gebied (Groenland, Aruba, …)
+      const g=(GLOBE.gebieden||[]).find(x=>"~"+x.id===id); if(!g)return null;
+      const gr=g.r.reduce((a,b)=>b.length>a.length?b:a);
+      let sx=0,sy=0;for(const[lo,la]of gr){sx+=lo;sy+=la;}return [sx/gr.length,sy/gr.length];
+    }
     const ringen=GLOBE.landen[id];
     if(ringen){const gr=ringen.reduce((a,b)=>b.length>a.length?b:a);
       let sx=0,sy=0;for(const[lo,la]of gr){sx+=lo;sy+=la;}return [sx/gr.length,sy/gr.length];}
@@ -2172,7 +2407,12 @@ function maakGlobe(canvas, opts){
     canvas.width=Math.round(W*dpr); canvas.height=Math.round(H*dpr);
     cx=W/2; cy=H/2; baseR=Math.min(W,H)*0.46; R=baseR*zoom;
   }
-  function setZoom(z){zoom=Math.max(1,Math.min(96,z)); R=baseR*zoom; if(zoom>=1.4)laadGlobeFijn(); if(zoom>=3.2)laadGlobeMax(); if(zoom>=4.5)laadGlobeLand();} // 96×: landmodus-detail (NL) schermvullend
+  function setZoom(z){zoom=Math.max(1,Math.min(96,z)); R=baseR*zoom; if(zoom>=1.4)laadGlobeFijn(); if(zoom>=3.2)laadGlobeMax(); if(zoom>=4.5)laadDiepIndex().then(diepCheck);} // 96×: diep werelddetail schermvullend
+  function diepCheck(){ // juiste diep-pack(s) ophalen voor het huidige kijkpunt
+    if(zoom<4.5||!DIEP_INDEX)return;
+    const c=invert(cx,cy); if(!c)return;
+    for(const cont of diepConts(c[0],c[1]))laadDiepPack(cont).then(n=>{if(n)renderSnel();});
+  }
   function zicht(lon,lat){const l=(lon+rot.l)*DG,f=lat*DG,f0=rot.p*DG;return Math.sin(f0)*Math.sin(f)+Math.cos(f0)*Math.cos(f)*Math.cos(l);}
   function pr(lon,lat){const l=(lon+rot.l)*DG,f=lat*DG,f0=rot.p*DG;
     return [cx+R*Math.cos(f)*Math.sin(l), cy-R*(Math.cos(f0)*Math.sin(f)-Math.sin(f0)*Math.cos(f)*Math.cos(l))];}
@@ -2199,79 +2439,151 @@ function maakGlobe(canvas, opts){
     if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||1;ctx.stroke();}
   }
   function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+  function padLijn(lijn){ // zichtbare stukken van een open lijn (géén sluiting terug naar het beginpunt)
+    const stukken=[]; let cur=null;
+    for(let i=0;i<lijn.length;i++){
+      const a=lijn[i], va=zicht(a[0],a[1])>=0, b=lijn[i+1];
+      if(va)(cur||=[]).push(pr(a[0],a[1]));
+      if(b!==undefined){const vb=zicht(b[0],b[1])>=0;
+        if(va!==vb){const g=grens(va?a:b,va?b:a);(cur||=[]).push(pr(g[0],g[1]));if(va){stukken.push(cur);cur=null;}}}
+    }
+    if(cur)stukken.push(cur);
+    return stukken.filter(s=>s.length>=2);
+  }
+  function tekenHoogte(ringOk){ // schaduwreliëf: NW-flank licht, ZO-flank schaduw (vervaagt bij diepe zoom: bron is ~2,4 km grof)
+    if(!HOOGTE||opts.hoogte===false)return;
+    const a=zoom<24?1:Math.max(0,(40-zoom)/16);
+    if(a<=0)return;
+    if(HOOGTE.banden){ // heel subtiele hoogtebanden: hoger = ietsje donkerder
+      const alfas=[0.03,0.05,0.08];
+      HOOGTE.banden.forEach((band,i)=>{
+        const rr=band.r.filter(ringOk); if(!rr.length)return;
+        tekenRingen(rr, `rgba(10,16,38,${(alfas[i]*a).toFixed(3)})`, null, 0);
+      });
+    }
+    if(HOOGTE.schaduw)for(const s of HOOGTE.schaduw){ // het eigenlijke reliëf: schaduw- en zonvlakken
+      const rr=s.r.filter(ringOk); if(!rr.length)continue;
+      const kleur=s.v<0?`rgba(8,12,30,${(-s.v*a).toFixed(3)})`:`rgba(255,255,255,${(s.v*a).toFixed(3)})`;
+      tekenRingen(rr, kleur, null, 0);
+    }
+  }
+  function tekenRivieren(zee,ringOk){ // dunne líchtblauwe waterlijnen (donker is voor grenzen); meer rivieren naarmate je dieper inzoomt
+    if(!RIVIEREN||db.rivieren!==true||opts.rivieren===false)return; // standaard uit; 💧-knop zet aan (paspoort-globe nooit)
+    // helemaal uitgezoomd: géén rivieren; daarna trapsgewijs steeds meer (houdt het overzicht rustig)
+    const maxRank=zoom<2.2?-1:zoom<5?3:zoom<9?5:zoom<18?7:zoom<36?9:99;
+    if(maxRank<0)return;
+    ctx.strokeStyle=css("--rivier")||"#85B9EE"; ctx.lineCap="round"; ctx.lineJoin="round";
+    for(const [rank,lijn] of RIVIEREN){
+      if(rank>maxRank||!ringOk(lijn))continue;
+      ctx.lineWidth=rank<=3?1.1:rank<=6?0.9:0.7;
+      for(const stuk of padLijn(lijn)){
+        ctx.beginPath();ctx.moveTo(stuk[0][0],stuk[0][1]);
+        for(let i=1;i<stuk.length;i++)ctx.lineTo(stuk[i][0],stuk[i][1]);
+        ctx.stroke();
+      }
+    }
+  }
+  // sterrenhemel: vaste (deterministische) sterposities per globe — de aarde zweeft in het heelal
+  const sterren=[];{let seed=987654321;const rnd=()=>((seed=(seed*1103515245+12345)&0x7fffffff)/0x7fffffff);
+    for(let i=0;i<170;i++)sterren.push([rnd(),rnd(),rnd()*1.2+0.3,rnd()*0.5+0.2]);}
   function render(data){
     if(!levend)return;
     data=data||GLOBE;
     // ingezoomd én fijn pack binnen → toon het fijne niveau (zelfde detail als de platte kaart)
     const landenB=(zoom>=4.2&&GLOBE_MAX)?GLOBE_MAX:(zoom>=1.6&&GLOBE_FIJN)?GLOBE_FIJN:data.landen;
+    const diepAan=zoom>=7&&DIEP_LANDEN; // diep werelddetail (CGAZ) zodra geladen; per land met terugval op max
     // culling: ringen die zeker buiten beeld of op de achterkant liggen overslaan.
     // per ring éénmalig het lon/lat-kader bepalen; per frame alleen middelpunt testen (goedkoop en veilig ruim)
     const ringOk=ring=>{
       let m=ring._m;
       if(!m){let a=1e9,b=-1e9,c2=1e9,d=-1e9;
         for(const [lo,la] of ring){if(lo<a)a=lo;if(lo>b)b=lo;if(la<c2)c2=la;if(la>d)d=la;}
-        m=ring._m={c:[(a+b)/2,(c2+d)/2],span:Math.max(b-a,d-c2)};}
-      if(m.span>25)return true;                       // grote ringen (Rusland, datumgrens) altijd tekenen
+        m=ring._m={c:[(a+b)/2,(c2+d)/2],span:Math.max(b-a,d-c2),x0:a,y0:c2,x1:b,y1:d};}
+      if(m.span>25){                                  // reuzenringen (Rusland, Canada, datumgrens)
+        if(zoom<7)return true;                        // overzicht: gewoon tekenen (goedkoop genoeg)
+        // diep ingezoomd: alleen tekenen als een randpunt (bijna) in beeld ligt…
+        const stap=Math.max(1,Math.floor(ring.length/96));
+        for(let i=0;i<ring.length;i+=stap){const q=ring[i];
+          if(zicht(q[0],q[1])<-0.02)continue;
+          const [x,y]=pr(q[0],q[1]);
+          if(x>-0.3*W&&x<1.3*W&&y>-0.3*H&&y<1.3*H)return true;}
+        // …of het kijkpunt ín de ring ligt (bv. midden op Rusland: rand uit beeld, vlak moet wel gevuld)
+        const c=invert(cx,cy);
+        return !!(c&&c[0]>=m.x0&&c[0]<=m.x1&&c[1]>=m.y0&&c[1]<=m.y1&&inRing(c[0],c[1],ring));
+      }
       if(zicht(m.c[0],m.c[1])<-0.06)return false;     // volledig op de achterkant van de bol
       const [x,y]=pr(m.c[0],m.c[1]);
       const marge=m.span*DG*R*0.8+0.2*W;              // eigen omvang (ruim) + vaste buffer
       return x>-marge&&x<W+marge&&y>-marge&&y<H+marge;
     };
     ctx.save();ctx.scale(dpr,dpr);ctx.clearRect(0,0,W,H);
+    // ruimte: zwarte hemel met sterren rond de bol
+    ctx.fillStyle="#04070F";ctx.fillRect(0,0,W,H);
+    ctx.fillStyle="#FFFFFF";
+    for(const [sx,sy,sr,sa] of sterren){ctx.globalAlpha=sa;ctx.beginPath();ctx.arc(sx*W,sy*H,sr,0,7);ctx.fill();}
+    ctx.globalAlpha=1;
     // bol clippen + oceaan met bolvormige schaduw
     ctx.save();ctx.beginPath();ctx.arc(cx,cy,R,0,7);ctx.clip();
-    const zee=css("--sea")||"#0D1430";
+    const zee=css("--sea")||"#173865";
     const g=ctx.createRadialGradient(cx-R*0.3,cy-R*0.3,R*0.2,cx,cy,R*1.05);
-    g.addColorStop(0,zee);g.addColorStop(1,"rgba(0,0,0,0.55)");
+    g.addColorStop(0,css("--sea-l")||zee);g.addColorStop(1,"rgba(0,0,0,0.55)"); // lichte glans linksboven → diepblauw aan de rand
     ctx.fillStyle=zee;ctx.beginPath();ctx.arc(cx,cy,R,0,7);ctx.fill();
     ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,R,0,7);ctx.fill();
     // meridianen/parallellen
     ctx.strokeStyle="rgba(255,255,255,0.10)";ctx.lineWidth=0.6;
     for(let lon=-180;lon<180;lon+=30){const pts=[];for(let lat=-80;lat<=80;lat+=4){if(zicht(lon,lat)>=0)pts.push(pr(lon,lat));else if(pts.length){strokeLijn(pts);pts.length=0;}}if(pts.length)strokeLijn(pts);}
     for(let lat=-60;lat<=60;lat+=30){const pts=[];for(let lon=-180;lon<=180;lon+=4){if(zicht(lon,lat)>=0)pts.push(pr(lon,lat));else if(pts.length){strokeLijn(pts);pts.length=0;}}if(pts.length)strokeLijn(pts);}
-    // niet-speelbare landen: neutraal grijs
-    tekenRingen(data.rest, css("--land-context")||"#33406a", "rgba(0,0,0,0.25)", 0.5);
+    // niet-speelbare landen: neutraal grijs (rest = anoniem; gebieden = benoembaar/klikbaar)
+    const ctxKleur=css("--land-context")||"#33406a";
+    tekenRingen(data.rest, ctxKleur, "rgba(0,0,0,0.25)", 0.5);
+    if(data.gebieden)for(const g of data.gebieden){
+      const rr=g.r.filter(ringOk);
+      if(rr.length)tekenRingen(rr, ctxKleur, "rgba(0,0,0,0.25)", 0.5);
+    }
     // speelbare landen: gekleurd (of via kleurFn)
-    const lijn=css("--map-line")||"#0B1026";
+    const lijn=(opts.lijnVar&&css(opts.lijnVar))||css("--map-line")||"#454E68";
+    const lijnW=opts.lijnDikte||0.7;
     ctx.lineJoin="round";
     const nu=performance.now();
-    for(const id in landenB){
+    // land-ids: het diepe niveau kent er een paar méér (bv. Frans-Guyana-varianten) → vereniging bij diep zoomen
+    const bronIds=diepAan?Object.assign({},landenB,DIEP_LANDEN):landenB;
+    for(const id in bronIds){
       const c=LAND_VAN[id];if(!c)continue;
-      const eigen=zoom>=5&&GLOBE_LAND&&GLOBE_LAND[id]; // landmodus-detail bovenop NE
-      const ringen=(eigen||landenB[id]).filter(ringOk);
+      const ringen=((diepAan&&DIEP_LANDEN[id])||landenB[id]||[]).filter(ringOk);
       if(!ringen.length)continue;
       const fill=opts.kleurFn?opts.kleurFn(c):c.kleur;
-      if(eigen){ // NE-vorm als ondervulling: PDOK- en NE-grenzen wijken iets af, dit dicht de naden met de buurlanden
-        const basis=landenB[id].filter(ringOk);
-        if(basis.length)tekenRingen(basis, fill, null, 0);
-      }
-      tekenRingen(ringen, fill, lijn, 0.7, eigen?"nonzero":null);
+      tekenRingen(ringen, fill, lijn, lijnW); // evenodd: gaten (enclaves zoals Baarle) blijven open voor het buurland
       if(opts.glans&&(fill==="#F1B62B"||fill==="#CBD3DF")){ // veroverde zilver/goud-landen glanzen (pulserende sheen)
         const sh=0.16+0.16*Math.sin(nu/430+(c.idx||0)*0.7);
         if(sh>0.03)tekenRingen(ringen, `rgba(255,255,255,${sh.toFixed(3)})`, null, 0);
       }
     }
-    // meren als waterlaag over de landen
-    if(GLOBE.meren){for(const pg of GLOBE.meren){if(ringOk(pg[0])){tekenRingen(pg, zee, null, 0);tekenRingen(pg, "rgba(86,130,255,0.22)", null, 0);}}}
+    tekenHoogte(ringOk); // reliëf over de landkleuren, onder het water
+    // meren en rivieren als waterlaag over de landen (lagunes in zeekleur, interne meren lichter)
+    if(GLOBE.meren){for(const pg of GLOBE.meren){if(ringOk(pg[0]))tekenRingen(pg, zee, null, 0);}}
+    if(GLOBE.merenIntern){const mk2=css("--meer")||"#3A69A6";for(const pg of GLOBE.merenIntern){if(ringOk(pg[0]))tekenRingen(pg, mk2, null, 0);}}
+    tekenRivieren(zee,ringOk);
     // stippen (mini-landen)
-    for(const id in GLOBE.dots){const d=GLOBE.dots[id];if(zicht(d[0],d[1])<0)continue;const c=LAND_VAN[id];
+    for(const id in GLOBE.dots){if(diepAan&&DIEP_LANDEN[id])continue; // diep niveau heeft een echt polygoon voor het ministaatje
+      const d=GLOBE.dots[id];if(zicht(d[0],d[1])<0)continue;const c=LAND_VAN[id];
       const [x,y]=pr(d[0],d[1]);ctx.beginPath();ctx.arc(x,y,4,0,7);
       ctx.fillStyle=opts.kleurFn?opts.kleurFn(c):(c?c.kleur:"#fff");ctx.fill();
       ctx.strokeStyle=lijn;ctx.lineWidth=1;ctx.stroke();}
     // geselecteerd land: rest dof maken, het land helder bovenop met een duidelijke rand
     if(hi){
       ctx.fillStyle="rgba(6,10,26,0.5)";ctx.beginPath();ctx.arc(cx,cy,R,0,7);ctx.fill(); // dof waas over de bol
+      const geb=hi[0]==="~"?(GLOBE.gebieden||[]).find(x=>"~"+x.id===hi):null;
       const c=LAND_VAN[hi];
-      const eigenKleur=opts.kleurFn?opts.kleurFn(c):(c?c.kleur:"#fff");
-      const eigenHi=zoom>=5&&GLOBE_LAND&&GLOBE_LAND[hi];
-      const ringen=eigenHi||landenB[hi];
+      const eigenKleur=geb?ctxKleur:(opts.kleurFn?opts.kleurFn(c):(c?c.kleur:"#fff"));
+      const ringen=geb?geb.r:((diepAan&&DIEP_LANDEN[hi])||landenB[hi]);
       if(ringen){
-        if(eigenHi&&landenB[hi])tekenRingen(landenB[hi], eigenKleur, null, 0); // NE-ondervulling (naden)
-        tekenRingen(ringen, eigenKleur, null, 0, eigenHi?"nonzero":null); // volle kleur terug
+        tekenRingen(ringen, eigenKleur, null, 0); // volle kleur terug (evenodd: enclave-gaten blijven open)
         tekenRingen(ringen, null, "rgba(0,0,0,0.6)", 5.5);   // donkere halo eronder → altijd zichtbaar
         tekenRingen(ringen, null, "#FFD24A", 2.6);           // heldere gouden rand precies op de grens
       }
-      if(GLOBE.meren){for(const pg of GLOBE.meren){if(ringOk(pg[0])){tekenRingen(pg, zee, null, 0);tekenRingen(pg, "rgba(86,130,255,0.22)", null, 0);}}}
+      if(GLOBE.meren){for(const pg of GLOBE.meren){if(ringOk(pg[0]))tekenRingen(pg, zee, null, 0);}}
+      if(GLOBE.merenIntern){const mk2=css("--meer")||"#3A69A6";for(const pg of GLOBE.merenIntern){if(ringOk(pg[0]))tekenRingen(pg, mk2, null, 0);}}
+      tekenRivieren(zee,ringOk);
       const d=GLOBE.dots[hi];
       if(d&&zicht(d[0],d[1])>=0){const [x,y]=pr(d[0],d[1]);
         ctx.beginPath();ctx.arc(x,y,6,0,7);ctx.fillStyle=eigenKleur;ctx.fill();
@@ -2302,7 +2614,7 @@ function maakGlobe(canvas, opts){
   function strokeLijn(pts){ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i][0],pts[i][1]);ctx.stroke();}
 
   let volRaf=null;
-  function renderSnel(){ if(volRaf)return; volRaf=requestAnimationFrame(()=>{volRaf=null;render();}); } // altijd vol detail, max 1× per frame (nooit grofmazig tijdens draaien/pinchen)
+  function renderSnel(){ if(volRaf)return; volRaf=requestAnimationFrame(()=>{volRaf=null;diepCheck();render();}); } // altijd vol detail, max 1× per frame; diepCheck haalt bij pannen het juiste diep-pack op
   function lus(){ if(!levend)return; if(auto&&!dragging&&!hi&&zoom<1.05){rot.l-=0.18;render();} raf=requestAnimationFrame(lus); } // rustig draaien mag in vol detail
   // interactie: slepen = draaien, twee vingers of scrollen = zoomen
   function pos(e){const b=canvas.getBoundingClientRect();return [e.clientX-b.left,e.clientY-b.top];}
@@ -2328,11 +2640,15 @@ function maakGlobe(canvas, opts){
     if(((yi>lat)!==(yj>lat))&&(lon<(xj-xi)*(lat-yi)/(yj-yi)+xi))in_=!in_;}return in_;}
   function raak(p){const ll=invert(p[0],p[1]);if(!ll)return null;
     for(const id in GLOBE.landen){for(const ring of GLOBE.landen[id])if(inRing(ll[0],ll[1],ring))return id;}
+    // benoembare gebieden (Groenland, Aruba, Curaçao, …)
+    if(GLOBE.gebieden)for(const g of GLOBE.gebieden){for(const ring of g.r)if(inRing(ll[0],ll[1],ring))return "~"+g.id;}
     // dichtstbijzijnde stip
     let best=null,bd=6;for(const id in GLOBE.dots){const d=GLOBE.dots[id];const dd=Math.hypot(d[0]-ll[0],d[1]-ll[1]);if(dd<bd){bd=dd;best=id;}}
     return best;}
 
   meet();render();lus();
+  laadRivieren().then(n=>{if(n)renderSnel();}); // waterlijnen erbij zodra binnen
+  if(opts.hoogte!==false)laadHoogte().then(n=>{if(n)renderSnel();}); // reliëf erbij zodra binnen
   const ctrl={
     render, meet(){meet();render();},
     focus(id){const m=middelpunt(id); if(!m)return;
@@ -2376,7 +2692,10 @@ function startVerken(){
   $("#verken-pop").classList.remove("open");
   if(verkenGlobe)verkenGlobe.stop();
   verkenGlobe=maakGlobe(cv,{mode:"verken", startId:CONT_START[contSel()[0]]||"DE",
-    onClick:id=>{const c=LANDEN.find(x=>x.id===id); if(c)verkenInfo(c);}});
+    onClick:id=>{
+      if(typeof id==="string"&&id[0]==="~"){const g=(GLOBE.gebieden||[]).find(x=>"~"+x.id===id); if(g)verkenGebied(g); return;}
+      const c=LANDEN.find(x=>x.id===id); if(c)verkenInfo(c);
+    }});
   requestAnimationFrame(()=>verkenGlobe.meet());
   $("#q-label").textContent="Verkenmodus";
   $("#q-text").textContent="Draai de globe 🌍 en tik op een land om het te leren kennen!";
@@ -2425,6 +2744,18 @@ function verkenInfo(c){
   $("#q-hint").style.display="block";
   $("#q-hint").innerHTML=verkenInfoHtml(c);
 }
+function vlagVan(id){ // vlag-emoji uit een ISO-landcode (🇬🇱, 🇦🇼, …)
+  return [...id.toUpperCase()].map(ch=>String.fromCodePoint(0x1F1E6+ch.charCodeAt(0)-65)).join("");
+}
+function verkenGebied(g){ // benoembaar gebied (Groenland, Aruba, …): naam + waar het bij hoort
+  sndKlik();
+  if(!verkenGlobe)return;
+  verkenGlobe.highlight("~"+g.id); verkenGlobe.focus("~"+g.id);
+  $("#vp-vlag").textContent=vlagVan(g.id);
+  $("#vp-naam").textContent=g.n;
+  $("#vp-body").innerHTML=`<b>Wat is dit voor gebied?</b><br>${esc(g.bij)}<br><br>🗺️ Dit gebied doet niet mee als speelland in het spel.`;
+  $("#verken-pop").classList.add("open"); $("#verken-pop").scrollTop=0;
+}
 $("#vp-sluit").onclick=()=>{ $("#verken-pop").classList.remove("open"); if(verkenGlobe)verkenGlobe.highlight(null); sndKlik(); };
 
 /* ================= HINTS ================= */
@@ -2471,11 +2802,38 @@ $("#w-pastegel").onclick=()=>{sluitWelkom();sndKlik();toonPaspoort();};
 /* ================= PASPOORT ================= */
 function passSpeler(){const naam=st.naam||db.last;return db.players[(naam||"").toLowerCase()];}
 let passCont="EU"; // welk werelddeel toont het paspoort
+// pasfoto: tik op het fotovak → camera of fotobibliotheek; verkleind opgeslagen bij de speler
+function pasFotoSync(){
+  const p=passSpeler(), img=$("#pass-foto"), leeg=$("#pass-foto-leeg");
+  if(p&&p.foto){img.src=p.foto;img.style.display="block";leeg.style.display="none";}
+  else{img.removeAttribute("src");img.style.display="none";leeg.style.display="";}
+}
+$("#pass-fotovak").onclick=()=>{sndKlik();$("#pass-foto-input").click();};
+$("#pass-foto-input").onchange=ev=>{
+  const f=ev.target.files&&ev.target.files[0]; ev.target.value="";
+  if(!f)return;
+  const url=URL.createObjectURL(f), img=new Image();
+  img.onload=()=>{
+    URL.revokeObjectURL(url);
+    // pasfoto-uitsnede (3:4), klein genoeg voor localStorage
+    const c=document.createElement("canvas");c.width=192;c.height=256;
+    const g2=c.getContext("2d"), sc=Math.max(192/img.width,256/img.height);
+    g2.drawImage(img,(192-img.width*sc)/2,(256-img.height*sc)/2,img.width*sc,img.height*sc);
+    let p=passSpeler();
+    if(!p&&(st.naam||db.last)){st.naam=st.naam||db.last;p=speler();} // nog geen speler? maak 'm aan bij de eerste pasfoto
+    if(p){p.foto=c.toDataURL("image/jpeg",0.82);save();$("#pass-houder").textContent=`— ${p.naam.toUpperCase()} —`;}
+    else toast("Vul eerst je naam in op het startscherm 😉");
+    pasFotoSync();
+  };
+  img.onerror=()=>{URL.revokeObjectURL(url);toast("Die foto kon ik niet lezen 😕");};
+  img.src=url;
+};
 function toonPaspoort(){
   const p=passSpeler();
   passCont=contSel()[0]||"EU"; // begin bij het gekozen werelddeel
   document.querySelectorAll("#pass-cont button").forEach(b=>b.classList.toggle("sel",b.dataset.pc===passCont));
   $("#pass-houder").textContent=p?`— ${p.naam.toUpperCase()} —`:"";
+  pasFotoSync();
   // altijd op de Stempels-tab openen (globe pas bij klik op Kaart)
   document.querySelectorAll(".boektab").forEach(x=>x.classList.toggle("actief",x.dataset.tab==="stempels"));
   $("#pass-stempels").style.display="block";$("#pass-kaart").style.display="none";$("#pass-leader").style.display="none";
@@ -2486,11 +2844,48 @@ function passRender(){
   const p=passSpeler();
   $("#pass-sub").textContent=p?`${CONT_NAAM[passCont]} — 3× goed = gouden tegel, 10× goed = paspoortstempel!`:"Speel eerst een ronde om stempels te verzamelen!";
   const g=$("#pass-grid");g.innerHTML="";
+  const DEMO=typeof ARTIFACT_DEMO!=="undefined"||location.hostname==="localhost"||location.hostname==="127.0.0.1"; // preview (artifact of localhost): voorbeeldstempels om het ontwerp te beoordelen
+  const DEMO_LANDEN=new Set(["NL","FR","DE","IT","ES","GR","JP","TH","IN","EG","ZA","MA","US","MX","CA","BR","PE","AR","AU","NZ","ID"]);
+  const MAANDEN=["jan","feb","mrt","apr","mei","jun","jul","aug","sep","okt","nov","dec"];
   LANDEN.filter(c=>c.cont===passCont).forEach(c=>{
-    const n=p?totGoed(p,c.id):0;
+    let n=p?totGoed(p,c.id):0;
+    if(DEMO&&DEMO_LANDEN.has(c.id))n=Math.max(n,12);
     const d=document.createElement("div");
     d.className="stamp"+(n===0?" leeg":"")+(n>=3?" goud":"");
-    d.innerHTML=`<span class="f">${c.f}</span>${esc(c.n)}${n>0?`<br>✔ ${n}×`:""}${n>=10?'<span class="stempel10">★ 10×</span>':""}`;
+    // paspoortstempel (10×): verweerde inktstempel (echte visum-look) op een per-land vaste maar "willekeurige" plek
+    let stempel="";
+    if(n>=10){
+      let h=0;for(const ch of c.id)h=h*31+ch.charCodeAt(0);h=Math.imul(h^h>>>4,2654435761)>>>0; // goed uitgemengde hash: alle bit-keuzes variëren echt
+      const INKT=["#B03A2E","#1F5FA8","#2E6E5E","#6B3FA0","#0F766E","#B4560F"];
+      const kleur=INKT[(h>>>3)%INKT.length], rot=((h>>>2)%25)-12, over=2+((h>>>4)%6), dx=((h>>>6)%13)-6, top=27+((h>>>8)%5);
+      const vorm=["s-rond","s-ovaal","s-blok","s-dash","s-band","s-dubbel","s-ticket","s-skew"][h%8];
+      const KOPPEN=["✈︎ EXPEDITIE ✈︎","★ FINN'S EXPEDITIE ★","→ AANKOMST ←","• WERELDREIZIGER •","✓ TOEGANG OK ✓","✈︎ AANKOMST ✈︎","★ ★ EXPEDITIE ★ ★"];
+      const kop=KOPPEN[(h>>>5)%KOPPEN.length];
+      const lg=p&&p.log&&p.log[c.id];
+      let datum=lg&&lg.d?new Date(lg.d).getDate()+"-"+MAANDEN[new Date(lg.d).getMonth()]:"";
+      if(!datum&&DEMO)datum=(1+h%28)+"-"+MAANDEN[(h>>>3)%12]; // voorbeelddatum in de preview
+      const datumRegel=datum?((h>>>9)%2?`✈︎ ${datum.toUpperCase()}`:datum.toUpperCase()):"";
+      // decoratie: soms een groot doorschijnend symbool achter de tekst (vliegtuig, ster, kompaspunt)
+      const DECO=["","✈︎","★","➤"][(h>>>10)%4];
+      const decoStijl=["","font-size:34px;right:2px;bottom:2px;transform:rotate(-18deg)","font-size:30px;left:3px;bottom:1px;transform:rotate(12deg)","font-size:26px;right:4px;top:4px;transform:rotate(-35deg)"][(h>>>10)%4];
+      const vulband=(h>>>11)%4===0; // 1 op 4: landnaam als gevulde inktband (knockout-letters)
+      const woord=c.w&&c.w[0]?c.w[0]:"";
+      const onder=[woord?`“${esc(woord)}”`:"★ ★ ★","★ ★ ★",esc(c.h.toUpperCase())][(h>>>7)%3]; // woordje, sterren of hoofdstad
+      stempel=`<span class="stempel10 ${vorm}${c.n.length>11?" s-lang":""}" style="color:${kleur};top:${top}%;bottom:-${over}%;transform:translateX(calc(-50% + ${dx}px)) rotate(${rot}deg)${vorm==="s-skew"?" skewX(-5deg)":""}">`
+        +(DECO?`<span class="s-deco" style="${decoStijl}">${DECO}</span>`:"")
+        +`<span class="s-top">${kop}</span>`
+        +(vulband?`<span class="s-land s-vulband"><i>${esc(c.n.toUpperCase())}</i></span>`:`<span class="s-land">${esc(c.n.toUpperCase())}</span>`)
+        +`<span class="s-streep"></span>`
+        +(datumRegel?`<span class="s-datum">${datumRegel}</span>`:"")
+        +`<span class="s-woord">${onder}</span>`
+        +`</span>`;
+    }
+    if(n>=10){ // stempel ís de tegelinhoud: landnaam staat in de stempel zelf (leesbaarheid!)
+      d.classList.add("gestempeld");
+      d.innerHTML=`<span class="f">${c.f}</span><span class="telling">✔ ${n}×</span>${stempel}`;
+    }else{
+      d.innerHTML=`<span class="f">${c.f}</span>${esc(c.n)}${n>0?`<br>✔ ${n}×`:""}`;
+    }
     g.appendChild(d);
   });
   kleurPassKaart(p);
@@ -2549,6 +2944,7 @@ function kleurPassKaart(p){
   if(!kaartGlobe){
     $("#pk-houder").innerHTML='<canvas id="g-kaart" style="width:100%;height:min(58vh,440px);display:block;touch-action:none;cursor:grab"></canvas>';
     kaartGlobe=maakGlobe($("#g-kaart"),{mode:"kaart", auto:true, glans:true, startId:CONT_START[passCont]||"DE",
+      rivieren:false, hoogte:false, lijnVar:"--pas-line", lijnDikte:1.15, // rustig paspoortbeeld: geen rivieren/reliëf, wél duidelijke grenzen
       kleurFn:c=>{const n=kaartSpeler?totGoed(kaartSpeler,c.id):0; return n>=10?"#F1B62B":n>=5?"#CBD3DF":"rgba(120,132,168,0.28)";}});
     requestAnimationFrame(()=>{if(kaartGlobe)kaartGlobe.meet();});
   }else{ kaartGlobe.meet(); }

@@ -9,12 +9,60 @@ const HTML="index.html";
 
 import { WERELD } from "./bron-wereld.mjs";
 import { fixGeo } from "./fix-geo.mjs";
+import { bepaalInterneMeren } from "./meer-intern.mjs";
+import { rondHoeken } from "./rond-hoeken.mjs";
+import { laadRivieren } from "./bron-rivieren.mjs";
 const EU=["IS","IE","GB","PT","ES","FR","NL","BE","LU","DE","DK","NO","SE","FI","PL","CZ","AT","CH","IT","GR","HU","HR","SI","SK","EE","LV","LT","BA","RS","ME","XK","AL","MK","BG","RO","MD","UA","BY","RU","TR","CY","MT","AD","MC","LI","SM","VA"];
 const AS=["CN","JP","IN","ID","TH","VN","KR","SA","PK","PH","MY","IR","IQ","AF","MN","NP","BD","LK","KP","TW","MM","KH","LA","BT","KZ","UZ","TM","KG","TJ","IL","JO","LB","SY","YE","OM","AE","QA","KW","GE","AM","AZ","TL","SG","BH","MV","BN"];
 const PLAY=new Set([...EU,...AS,...WERELD.map(l=>l.id)]);
 const CONT={}; EU.forEach(c=>CONT[c]="EU"); AS.forEach(c=>CONT[c]="AS"); WERELD.forEach(l=>CONT[l.id]=l.cont);
 const NAAM2CODE={ "Northern Cyprus":"CY", "Taiwan":"TW", "Somaliland":"SO" };
 const NE_UITSLUITEN=new Set(["Baykonur Cosmodrome","Brazilian Island","Clipperton Island","Coral Sea Islands","Ashmore and Cartier Islands","Indian Ocean Territories"]); // pacht-/restgebiedjes die anders als gat of zwerfstip in het gastland belanden
+// benoembare gebieden: niet speelbaar, wél klikbaar in verkennen — naam + uitleg waar het bij hoort
+const GEBIED_INFO={
+  GL:["Groenland","Groenland hoort bij Denemarken, maar bestuurt zichzelf grotendeels. Het is het grootste eiland ter wereld."],
+  FO:["Faeröer","De Faeröer horen bij Denemarken, met veel eigen zelfbestuur."],
+  AW:["Aruba","Aruba is een zelfstandig land binnen het Koninkrijk der Nederlanden."],
+  CW:["Curaçao","Curaçao is een zelfstandig land binnen het Koninkrijk der Nederlanden."],
+  SX:["Sint-Maarten","Sint-Maarten (de zuidkant van het eiland) is een land binnen het Koninkrijk der Nederlanden; de noordkant is Frans."],
+  MF:["Saint-Martin","Saint-Martin (de noordkant van het eiland) hoort bij Frankrijk; de zuidkant is van het Koninkrijk der Nederlanden."],
+  BL:["Saint-Barthélemy","Saint-Barthélemy hoort bij Frankrijk."],
+  AQ:["Antarctica","Antarctica is van geen enkel land: heel veel landen spraken samen af om het te beschermen voor onderzoek en natuur."],
+  AX:["Åland","Åland hoort bij Finland; bijna iedereen spreekt er Zweeds."],
+  AS:["Amerikaans-Samoa","Amerikaans-Samoa hoort bij de Verenigde Staten."],
+  AI:["Anguilla","Anguilla hoort bij het Verenigd Koninkrijk."],
+  BM:["Bermuda","Bermuda hoort bij het Verenigd Koninkrijk."],
+  IO:["Brits Indische Oceaanterritorium","Deze eilanden horen bij het Verenigd Koninkrijk."],
+  VG:["Britse Maagdeneilanden","De Britse Maagdeneilanden horen bij het Verenigd Koninkrijk."],
+  KY:["Kaaimaneilanden","De Kaaimaneilanden horen bij het Verenigd Koninkrijk."],
+  CK:["Cookeilanden","De Cookeilanden besturen zichzelf en werken nauw samen met Nieuw-Zeeland."],
+  FK:["Falklandeilanden","De Falklandeilanden horen bij het Verenigd Koninkrijk; Argentinië claimt ze ook."],
+  PF:["Frans-Polynesië","Frans-Polynesië (met o.a. Tahiti) hoort bij Frankrijk."],
+  TF:["Franse Zuidelijke Gebieden","Deze vrijwel onbewoonde eilanden horen bij Frankrijk."],
+  GI:["Gibraltar","Gibraltar is een klein Brits gebied aan de zuidpunt van Spanje."],
+  GU:["Guam","Guam hoort bij de Verenigde Staten."],
+  GG:["Guernsey","Guernsey is een Brits Kroonbezit, vlak bij de Franse kust."],
+  HM:["Heard en McDonaldeilanden","Onbewoonde eilanden van Australië, diep in de zuidelijke oceaan."],
+  HK:["Hongkong","Hongkong is een speciale bestuurlijke regio van China."],
+  IM:["Eiland Man","Het eiland Man is een Brits Kroonbezit, tussen Engeland en Ierland."],
+  JE:["Jersey","Jersey is een Brits Kroonbezit, vlak bij de Franse kust."],
+  MO:["Macau","Macau is een speciale bestuurlijke regio van China."],
+  MS:["Montserrat","Montserrat hoort bij het Verenigd Koninkrijk."],
+  NC:["Nieuw-Caledonië","Nieuw-Caledonië hoort bij Frankrijk."],
+  NU:["Niue","Niue bestuurt zichzelf en werkt nauw samen met Nieuw-Zeeland."],
+  NF:["Norfolkeiland","Norfolk hoort bij Australië."],
+  MP:["Noordelijke Marianen","De Noordelijke Marianen horen bij de Verenigde Staten."],
+  PS:["Palestina","Palestina (de Westelijke Jordaanoever en Gaza) is een betwist gebied."],
+  PN:["Pitcairneilanden","De Pitcairneilanden horen bij het Verenigd Koninkrijk."],
+  PR:["Puerto Rico","Puerto Rico hoort bij de Verenigde Staten."],
+  SH:["Sint-Helena","Sint-Helena hoort bij het Verenigd Koninkrijk."],
+  PM:["Saint-Pierre en Miquelon","Deze eilandjes vlak bij Canada horen bij Frankrijk."],
+  GS:["Zuid-Georgia","Zuid-Georgia en de Zuidelijke Sandwicheilanden horen bij het Verenigd Koninkrijk."],
+  TC:["Turks- en Caicoseilanden","De Turks- en Caicoseilanden horen bij het Verenigd Koninkrijk."],
+  UM:["Afgelegen eilandjes van de VS","Kleine, losse eilandjes van de Verenigde Staten, verspreid over de oceaan."],
+  VI:["Amerikaanse Maagdeneilanden","De Amerikaanse Maagdeneilanden horen bij de Verenigde Staten."],
+  WF:["Wallis en Futuna","Wallis en Futuna horen bij Frankrijk."],
+};
 // hoofdstad-coördinaten voor de nieuwe landen uit Natural Earth populated places (+ cap-overrides)
 const KAP={};
 try{
@@ -55,20 +103,22 @@ const round3=ring=>ring.map(([lo,la])=>[r3(lo),r3(la)]); // max-niveau: fijnere 
 const gj=JSON.parse(readFileSync(SRC,"utf8"));
 fixGeo(gj); // Westelijke Sahara één gebied + Frans-Guyana apart (zie fix-geo.mjs)
 // 1) ringen verzamelen (met area-voorfilter), NOG NIET vereenvoudigen
-const perCode={}, restRingen=[];
+const perCode={}, restRingen=[], perGebied={};
 for(const f of gj.features){
   const p=f.properties;
   if(NE_UITSLUITEN.has(p.ADMIN))continue;
   let code=p.ISO_A2&&p.ISO_A2!=="-99"?p.ISO_A2:(p.ISO_A2_EH&&p.ISO_A2_EH!=="-99"?p.ISO_A2_EH:null);
   if(NAAM2CODE[p.ADMIN])code=NAAM2CODE[p.ADMIN];
   const speel=code&&PLAY.has(code);
+  const gebied=!speel&&code&&GEBIED_INFO[code];
   const polys=f.geometry.type==="Polygon"?[f.geometry.coordinates]:f.geometry.coordinates;
   for(const poly of polys){
     const ring=poly[0];
     if(!ring||ring.length<4)continue;
     const A=area(ring);
-    if(A < (speel?0.0002:0.15))continue;           // kleine eilandjes mee (fijn niveau toont ze; grof filtert na extractie)
+    if(A < (speel?0.0002:gebied?0.0003:0.15))continue; // gebieden: ook kleine eilanden (Aruba, Gibraltar) meenemen
     if(speel)(perCode[code] ||= []).push(ring);
+    else if(gebied)(perGebied[code] ||= []).push(ring);
     else restRingen.push(ring);
   }
 }
@@ -88,19 +138,19 @@ const landen={}, rest=[], landenFijn={};
 for(const f2 of feature(simp,simp.objects.landen).features){
   const ringen=f2.geometry.coordinates.map(pg=>pg[0]).filter(r=>r&&r.length>=4)
     .filter((r,i)=>i===0||area(r)>=0.0008); // grof: piepkleine eilandjes overslaan (fijn toont ze wél)
-  if(ringen.length)landen[f2.id]=ringen.map(round);
+  if(ringen.length)landen[f2.id]=ringen.map(r=>round(rondHoeken(r)));
 }
 for(const f2 of feature(simpF,simpF.objects.landen).features){
   const ringen=f2.geometry.coordinates.map(pg=>pg[0]).filter(r=>r&&r.length>=4);
-  if(ringen.length)landenFijn[f2.id]=ringen.map(round);
+  if(ringen.length)landenFijn[f2.id]=ringen.map(r=>round(rondHoeken(r)));
 }
 const landenMax={};
 for(const f2 of feature(simpM,simpM.objects.landen).features){
   const ringen=f2.geometry.coordinates.map(pg=>pg[0]).filter(r=>r&&r.length>=4);
-  if(ringen.length)landenMax[f2.id]=ringen.map(round3);
+  if(ringen.length)landenMax[f2.id]=ringen.map(r=>round3(rondHoeken(r)));
 }
 for(const pg of feature(simp,simp.objects.rest).geometry.coordinates){
-  const r=pg[0]; if(r&&r.length>=4)rest.push(round(r));
+  const r=pg[0]; if(r&&r.length>=4)rest.push(round(rondHoeken(r)));
 }
 // stippen voor mini-landen zonder (bewaarde) polygoon
 const dots={};
@@ -127,25 +177,39 @@ const STEDEN={
 for(const l of WERELD)if(KAP[l.id]&&!STEDEN[l.id])STEDEN[l.id]=KAP[l.id];
 const ontbreekt=WERELD.filter(l=>!STEDEN[l.id]).map(l=>l.id);
 if(ontbreekt.length)console.error("GEEN hoofdstad-coördinaat voor:",ontbreekt.join(","));
-// meren als waterlaag op de globe (grotere meren; fijn afgerond voor diep zoomen)
+// meren als waterlaag op de globe (grotere meren; fijn afgerond voor diep zoomen).
+// Interne meren (raken nergens de zee: Kaspische Zee, Baikal, …) krijgen een eigen, lichtere waterkleur.
 const MEREN=JSON.parse(readFileSync("meren.geojson","utf8"));
-const meren=[]; // per meer: [buitenring, ...gaten] — gaten (bv. Flevoland) blijven land dankzij evenodd
-for(const f of MEREN.features){
+const interneMeren=bepaalInterneMeren(gj,MEREN);
+const meren=[], merenIntern=[]; // per meer: [buitenring, ...gaten] — gaten (bv. Flevoland) blijven land dankzij evenodd
+MEREN.features.forEach((f,fi)=>{
   const polys=f.geometry.type==="Polygon"?[f.geometry.coordinates]:f.geometry.coordinates;
   for(const poly of polys){
     const ring=poly[0]; if(!ring||ring.length<4)continue;
     if(area(ring)<0.02)continue;
     const s2=simplify(ring,0.01); if(s2.length<3)continue;
-    const pg=[round3(s2)];
+    const pg=[round3(rondHoeken(s2))];
     for(const gat of poly.slice(1)){
       if(!gat||gat.length<4||area(gat)<0.004)continue;
-      const g2=simplify(gat,0.01); if(g2.length>=3)pg.push(round3(g2));
+      const g2=simplify(gat,0.01); if(g2.length>=3)pg.push(round3(rondHoeken(g2)));
     }
-    meren.push(pg);
+    (interneMeren.has(fi)?merenIntern:meren).push(pg);
   }
+});
+console.log(`meren: ${meren.length} zee-verbonden + ${merenIntern.length} intern, ${[...meren,...merenIntern].flat().reduce((a,r)=>a+r.length,0)} punten`);
+// rivieren: volle resolutie + snapping aan landsgrenzen (zie bron-rivieren.mjs)
+const rivieren=laadRivieren();
+// benoembare gebieden: eigen (vereenvoudigde) ringen — los van de topologie, want ze grenzen zelden aan speelland
+const gebieden=[];
+for(const code in perGebied){
+  const info=GEBIED_INFO[code];
+  const ringen=perGebied[code].map(r=>simplify(r, code==="AQ"?0.05:0.008)).filter(r=>r.length>=3).map(r=>round(rondHoeken(r)));
+  if(ringen.length)gebieden.push({id:code, n:info[0], bij:info[1], r:ringen});
 }
-console.log(`meren: ${meren.length} meren, ${meren.flat().reduce((a,r)=>a+r.length,0)} punten, ${meren.filter(p=>p.length>1).length} met gaten`);
-const GLOBE={cont:CONT, landen, dots, rest, steden:STEDEN, meren};
+gebieden.sort((a,b)=>a.n.localeCompare(b.n));
+const gebPunten=gebieden.reduce((a,g)=>a+g.r.reduce((x,r)=>x+r.length,0),0);
+console.log(`gebieden: ${gebieden.length} benoembaar (${Object.keys(GEBIED_INFO).length} gedefinieerd), ${gebPunten} punten`);
+const GLOBE={cont:CONT, landen, dots, rest, steden:STEDEN, meren, merenIntern, gebieden};
 const tel=Object.keys(landen).length;
 const punten=Object.values(landen).flat().reduce((a,r)=>a+r.length,0)+rest.reduce((a,r)=>a+r.length,0);
 console.log(`speelbaar: ${tel} landen + ${Object.keys(dots).length} stippen, rest: ${rest.length} ringen, punten totaal: ${punten}`);
@@ -154,6 +218,8 @@ console.log(`speelbaar: ${tel} landen + ${Object.keys(dots).length} stippen, res
 writeFileSync("data/core/globe.json",JSON.stringify(GLOBE));
 writeFileSync("data/core/globe-fijn.json",JSON.stringify(landenFijn));
 writeFileSync("data/core/globe-max.json",JSON.stringify(landenMax));
+writeFileSync("data/core/rivieren.json",JSON.stringify(rivieren));
+console.log(`rivieren: ${rivieren.length} lijnen, ${rivieren.reduce((a,l)=>a+l[1].length,0)} punten`);
 const puntenF=Object.values(landenFijn).flat().reduce((a,r)=>a+r.length,0);
 const puntenM=Object.values(landenMax).flat().reduce((a,r)=>a+r.length,0);
 console.log(`fijn: ${puntenF} punten | max: ${puntenM} punten`);

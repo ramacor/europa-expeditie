@@ -13,7 +13,8 @@ function loop(dir) {
     if (!naam.endsWith(".json") || naam === "manifest.json" || naam === "licenses.json") continue;
     const buf = readFileSync(pad);
     const rel = pad.slice(DATA.length + 1).replaceAll("\\", "/");
-    packs[rel] = { hash: createHash("sha256").update(buf).digest("hex").slice(0, 12), bytes: buf.length };
+    const lazy = rel.startsWith("diep/"); // diep-packs zijn groot: niet precachen, wel bewaren zodra opgehaald
+    packs[rel] = { hash: createHash("sha256").update(buf).digest("hex").slice(0, 12), bytes: buf.length, ...(lazy ? { lazy: true } : {}) };
   }
 }
 loop(DATA);

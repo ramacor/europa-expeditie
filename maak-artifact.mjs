@@ -12,7 +12,10 @@ const GLOBE=${pak("core/globe.json")};
 let EXTRA=Object.assign({},${pak("content/nl/europa.json")},${pak("content/nl/azie.json")});
 const FIJN_INLINE={EU:${pak("continents/europa-fijn.json")},AS:${pak("continents/azie-fijn.json")},AF:${pak("continents/afrika-fijn.json")},NA:${pak("continents/noord-amerika-fijn.json")},SA:${pak("continents/zuid-amerika-fijn.json")},OC:${pak("continents/oceanie-fijn.json")}};
 const GLOBE_FIJN_INLINE=${pak("core/globe-fijn.json")};
+const RIVIEREN_INLINE=${pak("core/rivieren.json")};
+const HOOGTE_INLINE=${pak("core/hoogte.json")};
 const LANDMODUS_INLINE=${pak("landen/nederland.json")};
+const ARTIFACT_DEMO=true; // preview: toon voorbeeldstempels in het paspoort om het ontwerp te beoordelen
 const DATA_KLAAR=Promise.resolve();
 </${"script"}>
 `;

@@ -4,6 +4,16 @@
   "url": "https://www.naturalearthdata.com",
   "licentie": "publiek domein"
  },
+ "kaartgrenzen diep detail": {
+  "bron": "geoBoundaries CGAZ (Runfola e.a.)",
+  "url": "https://www.geoboundaries.org",
+  "licentie": "CC BY 4.0"
+ },
+ "hoogtedata": {
+  "bron": "Terrain Tiles (AWS Open Data; NASA SRTM, USGS GMTED2010, NOAA ETOPO1)",
+  "url": "https://registry.opendata.aws/terrain-tiles/",
+  "licentie": "publiek domein"
+ },
  "steden (gepland)": {
   "bron": "GeoNames",
   "url": "https://www.geonames.org",

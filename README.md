@@ -38,9 +38,15 @@ GitHub Pages werkt de site binnen ± een minuut bij. De beginscherm-app op de iP
 curl -sL -o ne10m.geojson  "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_admin_0_countries.geojson"
 curl -sL -o steden.geojson "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_populated_places.geojson"
 curl -sL -o meren.geojson  "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_lakes.geojson"
+curl -sL -o rivieren.geojson "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_rivers_lake_centerlines.geojson"
+curl -sL -o rivieren-europa.geojson "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_rivers_europe.geojson"
+curl -sL -o rivieren-noord-amerika.geojson "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_rivers_north_america.geojson"
+curl -sL -o cgaz_adm0.geojson "https://media.githubusercontent.com/media/wmgeolab/geoBoundaries/main/releaseData/CGAZ/geoBoundariesCGAZ_ADM0.geojson"  # 401 MB — diep grensdetail
 npm install              # topojson-buildgereedschap (eenmalig)
 node build-kaart.mjs     # platte kaarten per continent → data/continents/
-node build-globe.mjs     # 3D-globe (3 detailniveaus) → data/core/
+node build-globe.mjs     # 3D-globe (3 detailniveaus + rivieren) → data/core/
+node --max-old-space-size=18000 build-diep.mjs --w=2e-6  # diep werelddetail (geoBoundaries CGAZ) → data/diep/
+node --max-old-space-size=8000 build-hoogte.mjs  # hoogtebanden/reliëf (Terrain Tiles, download ~256 tegels) → data/core/hoogte.json
 node maak-manifest.mjs   # manifest bijwerken
 node maak-artifact.mjs   # preview-variant bijwerken
 ```

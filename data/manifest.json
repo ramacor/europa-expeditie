@@ -10,68 +10,107 @@
    "bytes": 94234
   },
   "continents/afrika-fijn.json": {
-   "hash": "4eff74b48b64",
-   "bytes": 382353
+   "hash": "41497b1c65e2",
+   "bytes": 410716
   },
   "continents/afrika.json": {
-   "hash": "5fe50bc9f43b",
-   "bytes": 254164
+   "hash": "c5e5b4da10bd",
+   "bytes": 561888
   },
   "continents/azie-fijn.json": {
-   "hash": "93712758d744",
-   "bytes": 684920
+   "hash": "4e5b0f5b4858",
+   "bytes": 750367
   },
   "continents/azie.json": {
-   "hash": "3040f37648e2",
-   "bytes": 298736
+   "hash": "c0b30d8673ce",
+   "bytes": 833130
   },
   "continents/europa-fijn.json": {
-   "hash": "19a3b015f058",
-   "bytes": 714349
+   "hash": "abee4d499d5f",
+   "bytes": 788213
   },
   "continents/europa.json": {
-   "hash": "7736188858cd",
-   "bytes": 273269
+   "hash": "4d08bdcccb8a",
+   "bytes": 915684
   },
   "continents/noord-amerika-fijn.json": {
-   "hash": "61228ed97f64",
-   "bytes": 781360
+   "hash": "86602d52beb3",
+   "bytes": 905218
   },
   "continents/noord-amerika.json": {
-   "hash": "720fe8843853",
-   "bytes": 216214
+   "hash": "6a0e5cf16d46",
+   "bytes": 1178208
   },
   "continents/oceanie-fijn.json": {
-   "hash": "c25dcc34ced4",
-   "bytes": 173256
+   "hash": "d4a75228c94f",
+   "bytes": 192705
   },
   "continents/oceanie.json": {
-   "hash": "507f039bd9cb",
-   "bytes": 114925
+   "hash": "1b087942b061",
+   "bytes": 181466
   },
   "continents/zuid-amerika-fijn.json": {
-   "hash": "523dabc02b19",
-   "bytes": 337401
+   "hash": "dee3987af26d",
+   "bytes": 368385
   },
   "continents/zuid-amerika.json": {
-   "hash": "f80c68144529",
-   "bytes": 142389
+   "hash": "c14b93bdbd03",
+   "bytes": 360492
   },
   "core/globe-fijn.json": {
-   "hash": "c399d6e281be",
-   "bytes": 1399412
+   "hash": "26f3ade68047",
+   "bytes": 1632715
   },
   "core/globe-max.json": {
-   "hash": "edd7f780433a",
-   "bytes": 5052581
+   "hash": "23938f69305f",
+   "bytes": 5500265
   },
   "core/globe.json": {
-   "hash": "5f1c099b5465",
-   "bytes": 1135809
+   "hash": "70e11d5d6362",
+   "bytes": 1602340
   },
-  "landen/nederland-globe.json": {
-   "hash": "f036b1dfdf34",
-   "bytes": 218372
+  "core/hoogte.json": {
+   "hash": "ac714f7ce7c0",
+   "bytes": 2139235
+  },
+  "core/rivieren.json": {
+   "hash": "f204ff7721a1",
+   "bytes": 8331156
+  },
+  "diep/afrika.json": {
+   "hash": "82f7bbcfc1ca",
+   "bytes": 4743090,
+   "lazy": true
+  },
+  "diep/azie.json": {
+   "hash": "77eb130d55d5",
+   "bytes": 9194453,
+   "lazy": true
+  },
+  "diep/europa.json": {
+   "hash": "ada561442df4",
+   "bytes": 10842445,
+   "lazy": true
+  },
+  "diep/index.json": {
+   "hash": "e7aacb8771ec",
+   "bytes": 115199,
+   "lazy": true
+  },
+  "diep/noord-amerika.json": {
+   "hash": "f99af433cb42",
+   "bytes": 5811993,
+   "lazy": true
+  },
+  "diep/oceanie.json": {
+   "hash": "77a3ae64ad50",
+   "bytes": 2282884,
+   "lazy": true
+  },
+  "diep/zuid-amerika.json": {
+   "hash": "1e21faf9974e",
+   "bytes": 3207680,
+   "lazy": true
   },
   "landen/nederland.json": {
    "hash": "785bbc92fa8f",

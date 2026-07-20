@@ -1,6 +1,6 @@
 // Europa Expeditie — offline spelen. Netwerk eerst (altijd de nieuwste versie),
 // cache als terugval zonder internet. Verhoog het app-versienummer (CACHE) bij een update.
-const CACHE = "europa-expeditie-v49";   // app-schil (klein) — wordt bij elke update opnieuw geladen
+const CACHE = "europa-expeditie-v50";   // app-schil (klein) — wordt bij elke update opnieuw geladen
 const MEDIA = "europa-media-v3";        // geluid + muziek — blijft staan bij app-updates (v3: stemclips z20-z30 vervangen + z31-z50 nieuw)
 const DATA  = "europa-data-v1";         // datapacks (kaarten/globe/content) — blijft staan; netwerk-eerst houdt ze vers
 const APP = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-512.png"];
@@ -11,11 +11,14 @@ const abs = u => new URL(u, self.location.href).href;
 const isMedia = url => /\.(mp3|m4a|ogg|wav)$/i.test(new URL(url).pathname);
 const isData = url => new URL(url).pathname.includes("/data/");
 
-// packlijst uit het manifest (best-effort; bij falen vangt de fetch-handler het later op)
-async function dataBestanden() {
+// packlijst uit het manifest (best-effort; bij falen vangt de fetch-handler het later op).
+// alleenPrecache=true laat de lazy packs (diep-detail, tientallen MB's) weg: die worden pas
+// gecachet zodra er echt op ingezoomd wordt; de activate-schoonmaak bewaart ze wél.
+async function dataBestanden(alleenPrecache) {
   try {
     const mf = await (await fetch("./data/manifest.json", { cache: "no-cache" })).json();
-    return ["./data/manifest.json", "./data/licenses.json", ...Object.keys(mf.packs).map(p => "./data/" + p)];
+    const packs = Object.entries(mf.packs).filter(([, p]) => !(alleenPrecache && p.lazy)).map(([p]) => "./data/" + p);
+    return ["./data/manifest.json", "./data/licenses.json", ...packs];
   } catch (e) { return []; }
 }
 
@@ -26,7 +29,7 @@ self.addEventListener("install", e => {
     caches.open(MEDIA).then(c =>
       Promise.allSettled(MEDIA_FILES.map(async u => { if (!(await c.match(u))) await c.add(u); }))
     ),
-    dataBestanden().then(files => caches.open(DATA).then(c =>
+    dataBestanden(true).then(files => caches.open(DATA).then(c =>
       Promise.allSettled(files.map(async u => { if (!(await c.match(u))) await c.add(u); }))
     ))
   ]).then(() => self.skipWaiting()));
