@@ -2252,7 +2252,7 @@ function annuleerFoto(){
   if(st.fotoTimer){clearTimeout(st.fotoTimer);st.fotoTimer=null;}
   $("#fotogroot").classList.remove("open");
 }
-$("#fotogroot").addEventListener("click",ev=>{if(ev.target.tagName!=="A")annuleerFoto();});
+$("#fotogroot").addEventListener("click",ev=>{if(ev.target.tagName!=="A")$("#b-next").click();}); // tik op de foto = meteen door naar de volgende vraag (geen extra 'Volgende' nodig)
 function toonFeedback(goed,belon,timeout,geklikt,stemTekst){
   const q=st.q,c=q.c;
   $("#f-emoji").textContent=goed?rnd(["🎉","🌟","🚀","🥳","💪","🧭"]):(timeout?"⏰":"😅");
