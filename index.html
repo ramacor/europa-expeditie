@@ -386,8 +386,8 @@
   .boekje{width:min(680px,100%); border-radius:18px; overflow:hidden; box-shadow:var(--shadow)}
   /* identiteitspagina naar het echte NL-paspoort: pastelverloop, blauwe veldjes met nummertjes,
      grote rode titel, foto links — bewust licht in beide thema's (papier is papier) */
-  .pasid{position:relative; overflow:hidden; padding:12px 14px 12px; color:#1B2437;
-    background:linear-gradient(115deg,#F4D8DF 0%,#E3EFDF 26%,#D9E7F6 52%,#E8F2E6 74%,#F5EDCE 100%)}
+  .pasblok{background:linear-gradient(115deg,#F4D8DF 0%,#E3EFDF 26%,#D9E7F6 52%,#E8F2E6 74%,#F5EDCE 100%)} /* pastelverloop loopt door tot achter de tabjes */
+  .pasid{position:relative; overflow:hidden; padding:12px 14px 12px; color:#1B2437}
   .pasid::before{content:""; position:absolute; inset:0; pointer-events:none; /* guilloche-golfjes */
     background:repeating-radial-gradient(circle at 10% -70%, transparent 0 9px, rgba(61,94,158,.07) 9px 10.5px),
       repeating-radial-gradient(circle at 90% 170%, transparent 0 9px, rgba(196,72,92,.06) 9px 10.5px)}
@@ -413,8 +413,8 @@
   .pd-balk i{flex:1; height:7px; border-radius:99px; background:rgba(40,70,120,.16)}
   .pd-balk i.vol{background:var(--gold-grad); box-shadow:0 0 5px rgba(232,148,10,.5)}
   .pd-volgende{font-size:10.5px; color:#51617E; font-style:italic}
-  .boektabs{display:flex; background:var(--panel2); padding:6px 6px 0; gap:4px}
-  .boektab{flex:1; border:none; background:none; color:var(--muted); padding:9px 4px; font-size:13px; font-weight:bold; cursor:pointer; opacity:.75; border-radius:10px 10px 0 0}
+  .boektabs{display:flex; background:none; padding:8px 8px 0; gap:5px} /* pastel van .pasblok schijnt erdoorheen → contouren van de tabjes zichtbaar */
+  .boektab{flex:1; border:none; background:var(--panel2); color:var(--muted); padding:9px 4px; font-size:13px; font-weight:bold; cursor:pointer; border-radius:10px 10px 0 0}
   .boektab.actief{opacity:1; background:var(--pagina); color:var(--accent)}
   .boekpagina{background:var(--pagina); color:var(--inkt); padding:16px; min-height:320px}
   .boekpagina .sub{color:var(--inkt); opacity:.75; font-size:13px; margin-bottom:12px}
@@ -721,6 +721,7 @@
 </defs></svg>
 <div class="screen" id="s-pass">
   <div class="boekje">
+    <div class="pasblok">
     <div class="pasid" id="pass-data">
       <svg class="pasid-kompas" viewBox="0 0 240 240" aria-hidden="true"><!-- windroos-blauwdruk, naar de getekende kompasroos -->
         <defs>
@@ -778,6 +779,7 @@
       <button class="boektab actief" data-tab="stempels">📔 Stempels</button>
       <button class="boektab" data-tab="kaart">🗺️ Kaart</button>
       <button class="boektab" data-tab="leader">🏅 Toplijst</button>
+    </div>
     </div>
     <div class="boekpagina">
       <div class="lbwissel" id="pass-cont" style="margin-bottom:12px">
