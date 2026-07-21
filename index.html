@@ -86,6 +86,24 @@
   }
   .seg button.sel{border-color:var(--teal); background:var(--chip); font-weight:bold}
   .seg button.grijs{opacity:.35; pointer-events:none} /* categorie niet beschikbaar voor dit werelddeel */
+  /* continentkeuze: lijstje links, klikbaar wereldkaartje rechts (arcering = selectie) */
+  .contkeuze{display:flex; gap:10px; align-items:stretch}
+  .contkeuze .contlijst{flex:none; width:138px; flex-direction:column; flex-wrap:nowrap; gap:5px}
+  .contkeuze .contlijst button{min-width:0; font-size:12.5px; padding:8px 8px; text-align:left}
+  .contkaart{--zee:color-mix(in srgb, var(--meer) 30%, var(--panel2)); flex:1; min-width:0; background:var(--zee); border-radius:12px; overflow:hidden; display:flex; align-items:center}
+  .contkaart svg{width:100%; height:auto; display:block}
+  .contkaart g[data-cont]{cursor:pointer}
+  /* continent = silhouet: .rand tekent (ook interne) grenzen, de dekkende .vlak erbovenop laat alleen de buitenrand over */
+  .contkaart g[data-cont] .rand{fill:none; stroke:color-mix(in srgb, var(--ink) 60%, var(--zee)); stroke-width:2.4}
+  .contkaart g[data-cont] .vlak{fill:color-mix(in srgb, var(--ink) 24%, var(--zee)); stroke:color-mix(in srgb, var(--ink) 24%, var(--zee)); stroke-width:.6; transition:fill .15s}
+  .contkaart g[data-cont]:hover .vlak{fill:color-mix(in srgb, var(--ink) 36%, var(--zee)); stroke:color-mix(in srgb, var(--ink) 36%, var(--zee))}
+  .contkaart g[data-cont].sel .rand{stroke:var(--teal); stroke-width:3}
+  .contkaart g[data-cont].sel .vlak{fill:color-mix(in srgb, var(--teal) 55%, var(--zee)); stroke:color-mix(in srgb, var(--teal) 55%, var(--zee))}
+  @media (max-width:520px){ /* smalle telefoons: lijstje boven, kaart eronder */
+    .contkeuze{flex-direction:column}
+    .contkeuze .contlijst{width:auto; flex-direction:row; flex-wrap:wrap}
+    .contkeuze .contlijst button{flex:1; min-width:90px; text-align:center}
+  }
   .togglerow{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:7px 2px; font-size:15px}
   .tog{width:46px; height:26px; border-radius:999px; background:var(--panel2); border:2px solid var(--chip); position:relative; cursor:pointer; flex:none}
   .tog::after{content:""; position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%; background:var(--muted); transition:transform .15s, background .15s}
@@ -511,8 +529,8 @@
 <!-- ============ STARTSCHERM ============ -->
 <div class="screen active" id="s-start">
   <div class="topknoppen">
-    <button id="b-muziek" title="Muziek aan/uit">🎵 Muziek</button>
-    <button id="b-thema" title="Wissel tussen licht en donker">🌙 Donker</button>
+    <button id="b-muziek" title="Geluid en muziek" aria-label="Geluid en muziek">🔊</button>
+    <button id="b-thema" title="Wissel tussen licht en donker" aria-label="Wissel tussen licht en donker">🌙</button>
   </div>
   <div class="hero">
     <span class="globe">🌍</span>
@@ -535,13 +553,16 @@
   <div class="card">
     <h2>⚙️ Stel je ronde in</h2>
     <div class="optrow"><label>Welk werelddeel? (kies er een of meer)</label>
-      <div class="seg segmulti" data-multi="continents">
-        <button data-v="EU">🇪🇺 Europa</button>
-        <button data-v="AS">🌏 Azië</button>
-        <button data-v="AF">🦁 Afrika</button>
-        <button data-v="NA">🗽 N-Amerika</button>
-        <button data-v="SA">🦜 Z-Amerika</button>
-        <button data-v="OC">🏝️ Oceanië</button>
+      <div class="contkeuze">
+        <div class="seg segmulti contlijst" data-multi="continents">
+          <button data-v="EU">🇪🇺 Europa</button>
+          <button data-v="AS">🌏 Azië</button>
+          <button data-v="AF">🦁 Afrika</button>
+          <button data-v="NA">🗽 N-Amerika</button>
+          <button data-v="SA">🦜 Z-Amerika</button>
+          <button data-v="OC">🏝️ Oceanië</button>
+        </div>
+        <div class="contkaart" id="contkaart" role="group" aria-label="Wereldkaart: tik een werelddeel aan of uit"></div>
       </div>
     </div>
     <div class="optrow"><label>Wat wil je oefenen?</label>
@@ -574,7 +595,7 @@
       </div>
     </div>
     <div class="togglerow"><span>🏰 Ook ministaatjes (Monaco, Vaticaan…)</span><button class="tog" id="t-mini" aria-label="Ministaatjes aan of uit"></button></div>
-    <div class="togglerow"><span>⚡ Bliksemronde (5 sec per vraag)</span><button class="tog" id="t-flits" aria-label="Bliksemronde aan of uit"></button></div>
+    <div class="togglerow"><span>⚡ Bliksemronde (3 sec per vraag)</span><button class="tog" id="t-flits" aria-label="Bliksemronde aan of uit"></button></div>
   </div>
 
   <button class="bigbtn" id="b-start">🚀 Start de expeditie!</button>
@@ -1670,7 +1691,7 @@ addEventListener("blur", muziekStil);
 addEventListener("focus", muziekHervat);
 function geluidKnopSync(){ // één geluid-knop op start (tekst) én in de HUD (icoon: 🔇 als álles uit)
   const allesUit = db.effecten===false && db.stem===false && db.muziek===false;
-  const b=$("#b-muziek"); if(b)b.textContent="🔊 Geluid";
+  const b=$("#b-muziek"); if(b)b.textContent="🔊";
   const h=$("#b-mute"); if(h)h.textContent=allesUit?"🔇":"🔊";
 }
 function wisselMuziek(){ db.muziek=(db.muziek===false); save(); muziekPas(); geluidKnopSync(); }
@@ -1829,6 +1850,47 @@ function segSync(){
   });
   $("#t-mini").classList.toggle("on",db.settings.mini);
   $("#t-flits").classList.toggle("on",db.settings.flits);
+  kiesKaartSync();
+}
+// mini-wereldkaart naast het continentlijstje: klik op een werelddeel = aan/uit, arcering volgt de keuze
+function bouwKiesKaart(){
+  const houder=$("#contkaart"); if(!houder||!GLOBE||houder.dataset.klaar)return;
+  const CONT_VAN={}; LANDEN.forEach(c=>CONT_VAN[c.id]=c.cont);
+  const LAmax=84,LAmin=-56,W=360,DG2=Math.PI/180; // zonder Antarctica
+  const MENG=0.5; // 50% mercator-meng: natuurlijke vormen, en bewust wat zee boven en onder in het kader
+  const meng=la=>(1-MENG)*la+MENG*Math.log(Math.tan(Math.PI/4+la*DG2/2))/DG2;
+  const H=Math.round(meng(LAmax)-meng(LAmin));
+  const X=lon=>(lon+180)/360*W, Y=lat=>meng(LAmax)-meng(lat);
+  const groot=r=>{let lo1=1e9,lo2=-1e9,la1=1e9,la2=-1e9;for(const[lo,la]of r){if(lo<lo1)lo1=lo;if(lo>lo2)lo2=lo;if(la<la1)la1=la;if(la>la2)la2=la;}
+    return lo2-lo1>=0.8||la2-la1>=0.8;}; // mini-eilandjes weglaten: met de dikke randlijn worden het anders zwevende vlekjes
+  const pad=ringen=>ringen.filter(groot).map(r=>"M"+r.map(([lo,la])=>X(lo).toFixed(1)+" "+Y(la).toFixed(1)).join("L")+"Z").join("");
+  const per={EU:"",AS:"",AF:"",NA:"",SA:"",OC:""};
+  for(const id in GLOBE.landen){const ct=CONT_VAN[id]||GLOBE.cont[id]; if(per[ct]!==undefined)per[ct]+=pad(GLOBE.landen[id]);}
+  // benoembare gebieden (Groenland enz.): kleuren mee met het werelddeel van het dichtstbijzijnde land
+  const midden=ringen=>{const r=ringen.reduce((a,b)=>b.length>a.length?b:a);let sx=0,sy=0;for(const[lo,la]of r){sx+=lo;sy+=la;}return[sx/r.length,sy/r.length];};
+  const landMid=Object.keys(GLOBE.landen).filter(id=>CONT_VAN[id]).map(id=>({ct:CONT_VAN[id],m:midden(GLOBE.landen[id])}));
+  const VAST={GL:"NA"}; // Groenland ligt geografisch in Noord-Amerika (dichtstbijzijnde land zou IJsland zijn)
+  for(const g of GLOBE.gebieden||[]){
+    const m=midden(g.r); if(m[1]<LAmin)continue; // Antarctica valt buiten beeld
+    let best=VAST[g.id],ba=Infinity;
+    if(!best){for(const l of landMid){const d=(l.m[0]-m[0])**2+(l.m[1]-m[1])**2; if(d<ba){ba=d;best=l.ct;}}
+      if(ba>400)continue;} // heel afgelegen eilandjes (Kerguelen enz.) horen visueel bij geen enkel continent
+    per[best]+=pad(g.r);
+  }
+  houder.innerHTML=`<svg viewBox="0 0 ${W} ${H}" aria-hidden="true">
+    ${Object.keys(per).map(ct=>`<g data-cont="${ct}"><title>${CONT_NAAM[ct]}</title><path class="rand" d="${per[ct]}"/><path class="vlak" d="${per[ct]}"/></g>`).join("")}
+  </svg>`;
+  houder.querySelectorAll("g[data-cont]").forEach(g=>{ // klik op de kaart = zelfde als klik op het lijstje (licht ook daar op)
+    g.addEventListener("click",()=>{const b=document.querySelector('.segmulti[data-multi="continents"] button[data-v="'+g.dataset.cont+'"]'); if(b)b.click();});
+  });
+  houder.dataset.klaar="1";
+  kiesKaartSync();
+}
+function kiesKaartSync(){
+  const cs=contSel(), svg=document.querySelector("#contkaart svg"); if(!svg)return;
+  const gs=[...svg.querySelectorAll("g[data-cont]")];
+  gs.forEach(g=>g.classList.toggle("sel",cs.includes(g.dataset.cont)));
+  gs.filter(g=>g.classList.contains("sel")).forEach(g=>svg.appendChild(g)); // gekozen continenten bovenop: hun rand blijft zichtbaar waar continenten aan elkaar grenzen
 }
 $("#t-mini").onclick=()=>{db.settings.mini=!db.settings.mini;if(db.settings.mini)db.settings.niveau="2";save();segSync();sndKlik();}; // mini aan → expertmodus
 $("#t-flits").onclick=()=>{db.settings.flits=!db.settings.flits;save();segSync();sndKlik();};
@@ -2038,16 +2100,16 @@ function voortgangSync(){
 }
 function stopTimer(){if(st.timerId){clearInterval(st.timerId);st.timerId=null;}$("#q-timer").style.display="none";}
 function startTimer(){
-  const DUUR=5000;st.timerEind=Date.now()+DUUR;st.laatsteTik=0;
+  const DUUR=3000;st.timerEind=Date.now()+DUUR;st.laatsteTik=0;
   $("#q-timer").style.display="block";$("#q-timerfill").style.width="100%";
   st.timerId=setInterval(()=>{
     const rest=st.timerEind-Date.now();
-    $("#q-timerfill").style.width=Math.max(0,rest/5000*100)+"%";
+    $("#q-timerfill").style.width=Math.max(0,rest/DUUR*100)+"%";
     // tikkend klokje dat steeds sneller gaat naarmate de tijd opraakt
-    const tikTempo=rest>3000?1000:rest>1500?500:250;
+    const tikTempo=rest>DUUR*.6?1000:rest>DUUR*.3?500:250;
     if(Date.now()-st.laatsteTik>=tikTempo){
       st.laatsteTik=Date.now();
-      toon(rest>1500?1150:1500,.035,"square",.07);
+      toon(rest>DUUR*.3?1150:1500,.035,"square",.07);
     }
     if(rest<=0){stopTimer();if(!st.answered)beantwoord(false,null,true);}
   },50);
@@ -3059,7 +3121,7 @@ function themaSync(){
   if(db.thema)document.documentElement.dataset.theme=db.thema==="donker"?"dark":"light";
   else delete document.documentElement.dataset.theme;
   const donker=db.thema?db.thema==="donker":matchMedia("(prefers-color-scheme: dark)").matches;
-  $("#b-thema").textContent=donker?"☀️ Licht":"🌙 Donker";
+  $("#b-thema").textContent=donker?"☀️":"🌙";
 }
 $("#b-thema").onclick=()=>{
   const donker=db.thema?db.thema==="donker":matchMedia("(prefers-color-scheme: dark)").matches;
@@ -3107,6 +3169,7 @@ addEventListener("keydown",ev=>{
 async function startApp(){
 GEO=KAARTEN.EU.geo;GRATICULE=KAARTEN.EU.grat;CONTEXT=KAARTEN.EU.ctx;ZEELABELS=KAARTEN.EU.zee;VBFULL=KAARTEN.EU.vbstart||VBMAX;
 bouwKaart();
+bouwKiesKaart(); // wereldkaartje bij de continentkeuze (heeft GLOBE-data nodig)
 // draaiende wereldbol boven de titel: emoji-cyclus 🌍→🌎→🌏 geeft de indruk van ronddraaien (CSS 'stuiter' doet de bounce)
 (function(){const bol=$("#herobol");if(!bol||matchMedia("(prefers-reduced-motion: reduce)").matches)return;
   const bollen=["🌍","🌎","🌏"];let i=0;const start=$("#s-start");
