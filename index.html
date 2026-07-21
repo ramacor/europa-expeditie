@@ -117,6 +117,25 @@
   .bigbtn:not(:disabled):hover{transform:translateY(-1px)}
   .moeilijkbtn{background:linear-gradient(135deg,#FF9A5C,#E5484D); color:#3F0D08; font-size:17px; padding:14px}
   .stedenbtn{background:linear-gradient(135deg,#6BA6FF,#3FE0BE); color:#04203A; font-size:17px; padding:14px}
+  /* landenpuzzel-tegel: hoofdknop + keuze voor het aantal stukken */
+  .puzzelbtn{background:linear-gradient(135deg,#C77DFF,#7C5CFF); color:#26094A; font-size:17px; padding:14px;
+    display:flex; flex-direction:column; align-items:center; gap:9px; text-align:center}
+  .puzzelbtn .pz-keuze{display:flex; align-items:center; gap:8px; font-size:13px; font-weight:bold; opacity:.95}
+  /* aantalkeuze als échte puzzelstukjes: het cijfer staat ín het stukje */
+  .puzzelbtn .pz-seg{gap:2px}
+  .puzzelbtn .pz-seg button{position:relative; flex:none; min-width:0; width:52px; height:52px; padding:0; border:none;
+    background:none; border-radius:0; display:flex; align-items:center; justify-content:center; cursor:pointer}
+  .puzzelbtn .pz-seg .pzvorm{position:absolute; width:100%; height:100%; left:0; top:0}
+  .puzzelbtn .pz-seg .pzvorm path{fill:rgba(255,255,255,.34); stroke:rgba(38,9,74,.45); stroke-width:3.5;
+    stroke-linejoin:round; transition:fill .15s}
+  .puzzelbtn .pz-seg button:hover .pzvorm path{fill:rgba(255,255,255,.6)}
+  .puzzelbtn .pz-seg button i{position:relative; font-style:normal; font-size:13px; font-weight:bold; color:#26094A; line-height:1}
+  .puzzelbtn .pz-seg button.sel .pzvorm path{fill:#26094A; stroke:#26094A}
+  .puzzelbtn .pz-seg button.sel i{color:#fff}
+  /* De vorm is puntsymmetrisch (nokjes boven/onder, uitsparingen links/rechts): het vrije middenvlak valt
+     samen met het midden van het vakje. Daardoor liggen alle stukjes én cijfers op precies dezelfde hoogte,
+     ook het middelste dat een kwartslag gedraaid staat. */
+  .puzzelbtn .pz-seg button:nth-child(2) .pzvorm{transform:rotate(90deg)}
   /* stedenronde: stad-stippen */
   .stad{fill:#FFFFFF; stroke:rgba(0,0,0,.65); stroke-width:1.3; cursor:pointer; vector-effect:non-scaling-stroke}
   .stad.dim{opacity:.22}
@@ -231,10 +250,6 @@
   .dock .qlabel{font-size:12px; letter-spacing:1px; text-transform:uppercase; color:var(--muted)}
   .dock .qtext{font-size:21px; font-weight:bold; line-height:1.25; text-wrap:balance}
   .dock .qtext .flag{font-size:26px}
-  .goldbanner{
-    display:none; background:var(--gold-grad); color:#3A2A00; border-radius:11px; padding:8px 12px; font-weight:bold; font-size:14px; text-align:center;
-    animation:goldpulse 1.2s ease-in-out infinite;
-  }
   @keyframes goldpulse{0%,100%{box-shadow:0 0 0 rgba(247,201,72,.0)}50%{box-shadow:0 0 18px rgba(247,201,72,.75)}}
   .choices{display:flex; flex-direction:column; gap:8px}
   .choice{
@@ -285,6 +300,57 @@
   .meer{fill:var(--sea); stroke:none; pointer-events:none} /* zee-verbonden water (lagunes) in zeekleur */
   .meerIntern{fill:var(--meer); stroke:none; pointer-events:none} /* interne meren: lichter dan de zee, donkerder dan rivieren */
   .rivier{fill:none; stroke:var(--rivier); stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; vector-effect:non-scaling-stroke; pointer-events:none} /* lichtblauw — donkere lijnen zijn exclusief voor landgrenzen */
+
+  /* ---------- Landenpuzzel ---------- */
+  /* nog-niet-gelegde landen versmelten met de context tot één naamloos landvlak: geen grens die de
+     plek verraadt. Alleen hulplanden en gelegde stukken hebben kleur; de kustlijn is je houvast. */
+  #map.puzzelmodus .land.pz-neutraal{fill:var(--land-context); stroke:var(--land-context); stroke-width:1.4}
+  #map.puzzelmodus .context{stroke:var(--land-context)}
+  #map.puzzelmodus #gDots{display:none} /* ministaatjes-stippen zouden plekken verklappen */
+  #map.puzzelmodus .land.pz-neutraal.bijna{stroke:var(--accent-fill); stroke-width:2.4;
+    filter:drop-shadow(0 0 7px var(--accent-fill))} /* stuk hangt goed: gloed = laat maar los! */
+  .land.snapplof{animation:snapflits .55s ease-out}
+  @keyframes snapflits{0%{filter:brightness(2.4) drop-shadow(0 0 16px #fff)}100%{filter:brightness(1)}}
+  /* donker thema dimt #gLand normaal als groep; in puzzelmodus dimmen we per gekleurd land, zodat het
+     neutrale vlak exact dezelfde tint houdt als de context — een tintverschil zou de grens alsnog aftekenen */
+  :root[data-theme="dark"] #map.puzzelmodus #gLand{filter:none}
+  :root[data-theme="dark"] #map.puzzelmodus #gLand .land:not(.pz-neutraal){filter:brightness(.82) saturate(.95)}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) #map.puzzelmodus #gLand{filter:none}
+    :root:not([data-theme="light"]) #map.puzzelmodus #gLand .land:not(.pz-neutraal){filter:brightness(.82) saturate(.95)}
+  }
+  .pz-tray{display:none; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:8px}
+  .pz-stuk{background:var(--panel2); border:2px solid var(--chip); border-radius:12px; padding:7px;
+    cursor:grab; touch-action:none; display:flex; flex-direction:column; gap:4px; align-items:center; justify-content:center; min-height:76px}
+  .pz-stuk:hover{border-color:var(--teal)}
+  .pz-tag{font-size:12px; font-weight:bold; line-height:1.15; text-align:center; text-wrap:balance}
+  .pz-stuk.gelegd{opacity:.6; cursor:default; border-style:dashed; border-color:var(--good)}
+  .pz-stuk.gelegd:hover{border-color:var(--good)}
+  .pz-stuk.gelegd .pz-tag{color:var(--good)}
+  .pz-stuk.hintstuk{border-color:var(--accent-fill); animation:goldpulse 1.2s infinite}
+  /* landnaam op de kaart, zodra een stuk vastklikt — donkere letter met witte rand leest op elke landkleur.
+     Blijft maar kort staan: daarna is de kaart weer schoon (de naam blijft wél in het bakje staan). */
+  .pz-naam{fill:#101828; stroke:#FFFFFF; paint-order:stroke; stroke-linejoin:round; font-weight:bold;
+    text-anchor:middle; dominant-baseline:middle; pointer-events:none;
+    transform-box:fill-box; transform-origin:center; animation:pznaamin .45s cubic-bezier(.3,1.5,.6,1) both}
+  @keyframes pznaamin{from{opacity:0; transform:scale(.55)}}
+  .pz-naam.weg{animation:pznaamuit .45s ease-in forwards}
+  @keyframes pznaamuit{to{opacity:0}}
+  .pz-gelegd{color:var(--good)}
+  .pz-stuk svg{width:100%; height:64px; pointer-events:none; overflow:visible}
+  .pz-stuk svg path{stroke:var(--map-line); stroke-width:1.1; vector-effect:non-scaling-stroke; stroke-linejoin:round}
+  .pz-stuk.mee{opacity:.22; cursor:default}     /* stuk is opgepakt: vage schim blijft in het bakje */
+  .pz-stuk.mis{animation:wiebel .5s ease}
+  #pz-drag{position:fixed; inset:0; width:100%; height:100%; z-index:80; pointer-events:none; display:none; overflow:visible}
+  #pz-drag .schaal{transition:transform .18s ease} /* groei van bakjes-formaat naar kaartformaat */
+  #pz-drag path{stroke:var(--map-line); stroke-width:1.2; vector-effect:non-scaling-stroke; stroke-linejoin:round;
+    filter:drop-shadow(0 12px 22px rgba(0,0,0,.5))}
+  #pz-drag.bijna path{filter:drop-shadow(0 0 13px var(--accent-fill)) drop-shadow(0 10px 20px rgba(0,0,0,.4))}
+  /* zelfde donker-thema-demping als de kaartlanden, anders knalt het losse stuk eruit */
+  :root[data-theme="dark"] #pz-drag, :root[data-theme="dark"] .pz-stuk svg{filter:brightness(.82) saturate(.95)}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) #pz-drag, :root:not([data-theme="light"]) .pz-stuk svg{filter:brightness(.82) saturate(.95)}
+  }
 
   /* ---------- Feedback: strook onderin, kaart blijft zichtbaar ---------- */
   #fb{
@@ -409,7 +475,12 @@
   .pv b{font-size:13.5px; letter-spacing:.4px; color:#141A28; font-variant-numeric:tabular-nums}
   .pasid-stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(86px,1fr)); gap:5px 8px; margin-top:10px}
   .pasid-stats .pv b{font-size:15px}
+  .pd-cups{display:flex; gap:13px; margin-top:2px}
+  .pd-cups .cup{display:flex; flex-direction:column; align-items:center; font-size:26px; line-height:1.15; opacity:.22; filter:grayscale(1)} /* nog te winnen: grijs */
+  .pd-cups .cup.aan{opacity:1; filter:none; text-shadow:0 0 9px rgba(247,201,72,.65)}
+  .pd-cups .cup small{font-size:8px; font-weight:bold; letter-spacing:.5px; color:#3D5E9E}
   .pd-balk{display:flex; gap:3px; margin:9px 0 3px}
+  .pd-subbalk{font-size:13px; letter-spacing:3px; line-height:1; margin:1px 0 3px} /* de 5 substappen (sterren) van het huidige level */
   .pd-balk i{flex:1; height:7px; border-radius:99px; background:rgba(40,70,120,.16)}
   .pd-balk i.vol{background:var(--gold-grad); box-shadow:0 0 5px rgba(232,148,10,.5)}
   .pd-volgende{font-size:10.5px; color:#51617E; font-style:italic}
@@ -463,10 +534,8 @@
   .stamp.gestempeld .f{position:absolute; top:4px; left:7px; font-size:30px; line-height:1}
   .stamp .telling{position:absolute; top:5px; right:7px; font-size:9px; font-weight:bold; opacity:.75}
 
-  /* ---------- Vlagvragen & goudstaaf ---------- */
+  /* ---------- Vlagvragen ---------- */
   .choice.vlagkeuze span:last-child{font-size:36px; line-height:1.1}
-  .goudstaaf{display:inline-block; width:26px; height:13px; background:var(--gold-grad); border-radius:2px;
-    clip-path:polygon(14% 0,86% 0,100% 100%,0 100%); vertical-align:-1px; box-shadow:inset 0 2px 2px rgba(255,255,255,.55)}
   .passcard{background:var(--panel); border-radius:20px; box-shadow:var(--shadow); width:min(620px,100%); max-height:85vh; overflow-y:auto; padding:20px}
   .passcard h2{margin:0 0 4px}
   .passcard .sub{color:var(--muted); font-size:14px; margin-bottom:14px}
@@ -537,10 +606,10 @@
     <h1>Finn's Expeditie</h1>
     <p>Ontdek de landen, hoofdsteden en vlaggen van de hele wereld. Verdien muntjes, spaar diamanten en word een echte wereldkampioen topografie!</p>
     <div class="rules">
-      <span>✅ goed = 🪙</span>
+      <span>✅ goed = 5 🪙</span>
+      <span>🎯⚡ moeilijk of bliksem = 10 🪙</span>
       <span>💎 5 goed = diamant</span>
       <span>🔥 3 op rij = bonus</span>
-      <span>🧭 Kompas vraag = 🪙🪙</span>
     </div>
   </div>
 
@@ -601,6 +670,16 @@
   <button class="bigbtn" id="b-start">🚀 Start de expeditie!</button>
   <button class="bigbtn moeilijkbtn" id="b-moeilijk">🎯 Moeilijke ronde — oefen je lastige landen</button>
   <button class="bigbtn stedenbtn" id="b-vormen">🧩 Raak in topVORM met Tobias!</button>
+  <div class="bigbtn puzzelbtn" id="b-puzzel" role="button" tabindex="0">
+    <span>🗺️ Landenpuzzel — sleep elk land op z'n plek!</span>
+    <span class="pz-keuze">Puzzelstukken:
+      <span class="seg pz-seg" data-set="puzzelN">
+        <button data-v="4" aria-label="4 puzzelstukken"><svg class="pzvorm" viewBox="0 0 100 100" aria-hidden="true"><path d="M10,20 H38 C32,6 68,6 62,20 H90 V38 C78,32 78,68 90,62 V80 H62 C68,94 32,94 38,80 H10 V62 C22,68 22,32 10,38 V20 Z"/></svg><i>4</i></button>
+        <button data-v="6" aria-label="6 puzzelstukken"><svg class="pzvorm" viewBox="0 0 100 100" aria-hidden="true"><path d="M10,20 H38 C32,6 68,6 62,20 H90 V38 C78,32 78,68 90,62 V80 H62 C68,94 32,94 38,80 H10 V62 C22,68 22,32 10,38 V20 Z"/></svg><i>6</i></button>
+        <button data-v="8" aria-label="8 puzzelstukken"><svg class="pzvorm" viewBox="0 0 100 100" aria-hidden="true"><path d="M10,20 H38 C32,6 68,6 62,20 H90 V38 C78,32 78,68 90,62 V80 H62 C68,94 32,94 38,80 H10 V62 C22,68 22,32 10,38 V20 Z"/></svg><i>8</i></button>
+      </span>
+    </span>
+  </div>
 
 </div>
 
@@ -632,11 +711,11 @@
     </div>
     <div class="dock">
       <span class="qlabel" id="q-label">Vraag</span>
-      <div class="goldbanner" id="q-gold"><span class="goudstaaf"></span> GOUDEN VRAAG — dubbele muntjes!</div>
       <div class="qtext" id="q-text">…</div>
       <div class="timerbar" id="q-timer"><i id="q-timerfill"></i></div>
       <div class="klikuitleg" id="q-klik" style="display:none">👆 Klik het juiste land aan op de kaart!</div>
       <div class="choices" id="q-choices"></div>
+      <div class="pz-tray" id="pz-tray"></div>
       <button class="hintbtn" id="b-hint">💡 Hint (nog 2)</button>
       <div class="hintbox" id="q-hint"></div>
       <div class="dockfoot" id="q-voet"></div>
@@ -772,7 +851,9 @@
         </div>
       </div>
       <div class="pasid-stats" id="pd-velden"></div>
+      <div class="pv" style="margin-top:8px"><small><i>11</i> continent-cups / trophies</small><div class="pd-cups" id="pd-cups"></div></div>
       <div class="pd-balk" id="pd-balk" aria-label="Levelvoortgang"></div>
+      <div class="pd-subbalk" id="pd-subbalk" aria-label="Substappen binnen dit level"></div>
       <div class="pd-volgende" id="pd-volgende"></div>
     </div>
     <div class="boektabs">
@@ -1149,25 +1230,34 @@ LANDEN.forEach((c,i)=>{c.idx=i;c.kleur=GROTE_LANDEN[c.id]||KLEUR_FIX[c.id]||`hsl
 const PEP_GOED=["Superknap, {n}! 🎉","Wauw {n}, jij kent {cont} steeds beter! 🌍","Geweldig gedaan! 🌟","Boem! Goed zo, {n}! 💥","Jij wordt een echte topograaf, {n}! 🗺️","Kampioen! 🏆","Yes! Weer eentje goed! ✨","Knap hoor, {n}! 🚀"];
 const PEP_FOUT=["Bijna, {n}! De volgende keer weet je 'm!","Niet erg — zó leer je het juist! 💪","Oei, nét niet! Onthoud 'm voor de volgende keer 😉","Goed geprobeerd, {n}! Op naar de volgende!"];
 const PEP_TUSSEN=["Je doet het super, {n}! 🙌","Hou vol, ontdekkingsreiziger! 🧭","De diamanten wachten op je! 💎","Wat een reis, {n}! ✈️"];
-// 10 levels op basis van hoeveel landen je goed hebt geraden (L8 = alle ≥1×, L9 = alle ≥5×, L10 = alle ≥10×)
-const LVL_NAMEN=["🎒 Toerist","🚌 Dagjesmens","🥾 Backpacker","🧭 Padvinder","🗺️ Kaartlezer","🚂 Reisleider","✈️ Wereldreiziger","⛵ Ontdekkingsreiziger","🔭 Topograaf","👑 Legende van Europa"];
-const LVL_DREMPELS=[0,5,12,20,28,36,43];
+// 20 levels × 5 sublevels = 100 stappen, gelijkmatig verdeeld over alle landen van de wereld:
+// elk land telt tot maximaal 10× goed mee (eindeloos herhalen van één land telt dus niet door).
+// De hele wereld 10× goed = level 20 vol. Weging: level 1-5 verhoudingsgewijs makkelijker (×0,5),
+// level 16-20 zwaarder (×1,5), daartussen neutraal — zo komen de eerste succesjes snel.
+// Namen zijn voorlopig (10 rangen, elk 2 levels breed) — definitieve benaming volgt nog.
+const LVL_NAMEN=["🎒 Toerist","🚌 Dagjesmens","🥾 Backpacker","🧭 Padvinder","🗺️ Kaartlezer","🚂 Reisleider","✈️ Wereldreiziger","⛵ Ontdekkingsreiziger","🔭 Topograaf","👑 Legende van de Wereld"];
+let LVL_TRAP=null; // cumulatieve drempel per substap (100 stuks), in 'goede antwoorden'-eenheden
+function lvlTrappen(){
+  if(LVL_TRAP)return LVL_TRAP;
+  const T=LANDEN.filter(heeftKaart).length*10; // totale voortgang als álles 10× goed is
+  const w=[];for(let l=1;l<=20;l++){const g=l<=5?0.5:l>=16?1.5:1;for(let s=0;s<5;s++)w.push(g);}
+  const som=w.reduce((a,b)=>a+b,0);
+  LVL_TRAP=[];let acc=0;for(const g of w){acc+=g*T/som;LVL_TRAP.push(acc);}
+  return LVL_TRAP;
+}
+function levelVoortgang(p){let v=0;for(const c of LANDEN){if(heeftKaart(c))v+=Math.min(10,totGoed(p,c.id));}return v;}
 function levelInfo(p){
-  const cs=contSel();
-  const alle=LANDEN.filter(c=>cs.includes(c.cont)&&heeftKaart(c));
-  const tel=min=>alle.filter(c=>totGoed(p,c.id)>=min).length;
-  const m1=tel(1),m5=tel(5),m10=tel(10),tot=alle.length;
-  let nr,volgende;
-  if(m10>=tot){nr=10;volgende="Hoger kan niet — Legende van Europa! 🏆";}
-  else if(m5>=tot){nr=9;volgende=`Nog ${tot-m10} land${tot-m10===1?"":"en"} 10× goed voor level 10`;}
-  else if(m1>=tot){nr=8;volgende=`Nog ${tot-m5} land${tot-m5===1?"":"en"} 5× goed voor level 9`;}
-  else{
-    nr=1;
-    for(let i=LVL_DREMPELS.length-1;i>=0;i--){if(m1>=LVL_DREMPELS[i]){nr=i+1;break;}}
-    const doel=nr<7?LVL_DREMPELS[nr]:tot;
-    volgende=`Nog ${doel-m1} land${doel-m1===1?"":"en"} goed voor level ${nr+1}`;
-  }
-  return {nr,naam:LVL_NAMEN[nr-1],volgende};
+  const tr=lvlTrappen(), v=levelVoortgang(p);
+  let stap=0; while(stap<100&&v>=tr[stap]-1e-9)stap++; // aantal afgeronde substappen (0-100)
+  const klaar=stap>=100;
+  const nr=klaar?20:Math.floor(stap/5)+1, sub=klaar?5:stap%5+1; // huidig level en substap (ster) daarbinnen
+  const naam=LVL_NAMEN[Math.min(9,Math.floor((nr-1)/2))];
+  const vorige=stap>0?tr[stap-1]:0, doel=klaar?null:tr[stap];
+  const rest=doel?Math.max(1,Math.ceil(doel-v)):0;
+  const frac=klaar?1:(stap+(v-vorige)/(doel-vorige))/100; // totale voortgang 0-1 (voor balkjes)
+  const volgende=klaar?"Alles gehaald — Legende van de Wereld! 👑"
+    :(sub===5?`Nog ${rest} goede antwoorden tot level ${nr+1}`:`Nog ${rest} goede antwoorden tot je volgende ⭐`);
+  return {nr,sub,naam,volgende,stap,frac,klaar};
 }
 
 /* ================= STATE & OPSLAG ================= */
@@ -1177,6 +1267,7 @@ function load(){
   let d;try{d=JSON.parse(localStorage.getItem(DBKEY));}catch(e){}
   if(!d||!d.players)d={players:{},last:"",settings:{continents:["EU"],oefen:"landen",stijl:"kaart",aantal:"10",niveau:"1",mini:false,flits:false},muted:false,thema:"donker"}; // eerste keer spelen: Europa, landen, aanwijzen op kaart, 10 vragen, ontdekker, donker thema
   if(!d.settings.continents)d.settings.continents=["EU"]; // continent-keuze (default Europa)
+  if(!d.settings.puzzelN)d.settings.puzzelN="6"; // aantal stukken in de landenpuzzel
   if(d.stem===undefined)d.stem=true; // gesproken aanmoedigingen: standaard aan
   if(d.muziek===undefined)d.muziek=true; // achtergrondmuziek: standaard aan
   if(d.effecten===undefined)d.effecten=(d.muted===true?false:true); // geluidseffecten (voorheen de globale mute)
@@ -1187,7 +1278,7 @@ function load(){
 function save(){try{localStorage.setItem(DBKEY,JSON.stringify(db));}catch(e){}}
 function speler(){
   const k=st.naam.toLowerCase();
-  if(!db.players[k])db.players[k]={naam:st.naam,diamonds:0,points:0,best:0,rounds:0,goedTotaal:0,speeltijd:0,pass:{},log:{}};
+  if(!db.players[k])db.players[k]={naam:st.naam,diamonds:0,points:0,xp:0,best:0,rounds:0,goedTotaal:0,speeltijd:0,pass:{},log:{},econ3:true};
   const p=db.players[k];
   if(!p.log){ // migratie: oude tellers omzetten naar de nieuwe logging per categorie
     p.log={};
@@ -1197,7 +1288,12 @@ function speler(){
   if(!p.econ2){ // muntjes worden nu een doorlopende score; diamant = 1 per 5 goede vragen (los van bonussen)
     p.points=(p.diamonds||0)*5+(p.points||0); p.diaProg=0; p.econ2=true;
   }
+  econ3(p);
   return p;
+}
+function econ3(p){ // puntensysteem v3: 5 punten per goed antwoord (was 1) — bestaande munten mee opgeschaald, xp = levelteller
+  if(p.econ3)return p;
+  p.points=(p.points||0)*5; p.xp=p.points; delete p.lvlData; p.econ3=true; return p;
 }
 function logVan(p,id){p.log=p.log||{};const l=p.log[id]=p.log[id]||{lg:0,lf:0,hg:0,hf:0,vg:0,vf:0,og:0,of:0};
   if(l.og===undefined){l.og=0;l.of=0;} return l;} // og/of: vormvragen (lazy-migratie van oude opslag)
@@ -1210,7 +1306,7 @@ function stopSpeeltijd(){ // tel de verstreken rondetijd bij de speler op
 }
 
 const st={naam:"",vragen:[],qi:0,q:null,answered:false,hints:0,streak:0,verken:false,
-  ronde:{goed:0,punt:0,best:0,diam:0,stempels:[]},goldIdx:-1,timerId:null,timerEind:0};
+  ronde:{goed:0,punt:0,best:0,diam:0,stempels:[]},moeilijk:false,timerId:null,timerEind:0};
 
 /* ================= HULPJES ================= */
 const $=s=>document.querySelector(s);
@@ -1433,6 +1529,7 @@ function lodPas(){
   lodDiep=diepKlaar;
   if(diepKlaar)diepKaartVul(); // projecteert nieuw zichtbare landen en ververst dan zelf
   if(wissel)lodZet(fijnKlaar);
+  if(typeof pzNaamPas==="function")pzNaamPas(); // puzzelnamen even groot houden bij zoomen
   rivierPas(); // rivierdichtheid volgt de zoom
 }
 let animId=null;
@@ -1527,7 +1624,8 @@ function wisSpot(){if(spotEl){spotEl.remove();spotEl=null;}}
 function kaartReset(){
   wisSpot();
   if(typeof verbergVorm==="function")verbergVorm();
-  for(const id in paden)paden[id].classList.remove("dim","target","goed","fout");
+  if(typeof pzOpruim==="function")pzOpruim();
+  for(const id in paden)paden[id].classList.remove("dim","target","goed","fout","pz-neutraal","bijna","snapplof");
   document.querySelectorAll("#gStad circle").forEach(c=>c.classList.remove("dim","target","goed","fout"));
   map.classList.remove("klikbaar");
 }
@@ -1898,7 +1996,7 @@ $("#t-mini").onclick=()=>{db.settings.mini=!db.settings.mini;if(db.settings.mini
 $("#t-flits").onclick=()=>{db.settings.flits=!db.settings.flits;save();segSync();sndKlik();};
 
 const naamIn=$("#naam");
-function knoppenSync(){const uit=!st.naam;$("#b-start").classList.toggle("wachtop",uit);$("#b-moeilijk").classList.toggle("wachtop",uit);$("#b-vormen").classList.toggle("wachtop",uit);}
+function knoppenSync(){const uit=!st.naam;$("#b-start").classList.toggle("wachtop",uit);$("#b-moeilijk").classList.toggle("wachtop",uit);$("#b-vormen").classList.toggle("wachtop",uit);$("#b-puzzel").classList.toggle("wachtop",uit);}
 function wijsNaarNaam(){ // duidelijk maken dat eerst de voornaam nodig is
   toast("👋 Vul eerst je voornaam in bij 'Wie gaat er spelen?'");
   const veld=$("#naam");
@@ -1997,10 +2095,10 @@ function startRonde(moeilijk=false){
   st.vragen=moeilijk?maakMoeilijkeVragen():maakVragen();
   if(!st.vragen.length){toast("Geen vragen mogelijk met deze instellingen 🤔");return;}
   menuSync(null);$("#s-game").classList.remove("metmenu");toonPlatteKaart();
-  st.qi=0;st.streak=0;st.verken=false;st.rondeStart=Date.now();st.stedenronde=false;
+  st.qi=0;st.streak=0;st.verken=false;st.rondeStart=Date.now();st.stedenronde=false;st.wasPuzzel=false;
+  st.moeilijk=moeilijk; // moeilijke ronde = dubbele punten
   st.stemNaGoed=true; // eerste goede antwoord van de ronde krijgt altijd een gesproken aanmoediging
   st.ronde={goed:0,punt:0,best:0,diam:0,stempels:[],uitslagen:[]};
-  st.goldIdx=Math.floor(Math.random()*st.vragen.length);
   $("#hud-naam").textContent=p.naam;
   $("#hud-ava").textContent=p.naam[0].toUpperCase();
   hudSync();
@@ -2012,6 +2110,15 @@ function startRonde(moeilijk=false){
 // zodra de platte kaart zijn echte grootte krijgt (ronde-start, oriëntatiewissel): viewBox naar de container-vorm rekken → vult altijd, geen lege banden
 function herstelKaartVorm(entries){
   if(st.verken||!$("#s-game").classList.contains("active"))return;
+  if(st.puzzel&&st.puzzel.regio){ // puzzel: hou de héle regio passend — breedte-behoudend bijsnijden zou stukken buiten beeld zetten
+    if(typeof pzDrag!=="undefined"&&pzDrag)return; // niet onder een sleepbeweging door verschuiven
+    const av=st.puzzel.autoVB;
+    if(av&&(Math.abs(vb.w-av.w)>av.w*0.06||Math.abs(vb.x-av.x)>av.w*0.06||Math.abs(vb.y-av.y)>av.h*0.06))return; // speler zoomt/pant zelf (of de intocht-animatie loopt nog)
+    const doel=vulAspect(st.puzzel.regio);
+    st.puzzel.autoVB=doel;
+    if(Math.abs(doel.w-vb.w)>1||Math.abs(doel.h-vb.h)>1)animVB(doel,260);
+    return;
+  }
   let r=contRatio(); // gebruik bij voorkeur de grootte uit de observer-entry (betrouwbaarder dan een losse meting)
   const cr=entries&&entries[0]&&entries[0].contentRect;
   if(cr&&cr.width>4&&cr.height>4)r=cr.width/cr.height;
@@ -2065,9 +2172,8 @@ async function startStedenRonde(){
     return q;
   });
   menuSync(null);$("#s-game").classList.remove("metmenu");toonPlatteKaart();
-  st.qi=0;st.streak=0;st.verken=false;st.rondeStart=Date.now();st.stemNaGoed=true;st.stedenronde=true;
+  st.qi=0;st.streak=0;st.verken=false;st.rondeStart=Date.now();st.stemNaGoed=true;st.stedenronde=true;st.moeilijk=false;st.wasPuzzel=false;
   st.ronde={goed:0,punt:0,best:0,diam:0,stempels:[],uitslagen:[]};
-  st.goldIdx=Math.floor(Math.random()*st.vragen.length);
   const p=speler();
   $("#hud-naam").textContent=p.naam;$("#hud-ava").textContent=p.naam[0].toUpperCase();
   hudSync();toonScherm("#s-game");toonVraag();
@@ -2076,6 +2182,460 @@ async function startStedenRonde(){
 $("#b-vormen").onclick=()=>{ // vormenronde (silhouetten raden), los van de gekozen oefenstand
   sndKlik();const vorig=db.settings.oefen;db.settings.oefen="vormen";startRonde();db.settings.oefen=vorig;
 };
+
+/* ============ LANDENPUZZEL (stukken naar de kaart slepen) ============ */
+// Gemeten: 90% pixel-overlap laat bij Frankrijk maar ~8 schermpixels speling toe (Nederland: ~2) — veel
+// te precies voor 8-12 jaar. 75% ≈ 15% verschuiving en voelt als de bedoelde "90% is goed"-marge;
+// de minimum-speling vangt de kleinste landen op, waar zelfs 75% onder de vingerdikte duikt.
+const PZ_DREMPEL=0.75;   // minimale overlap met de juiste plek om vast te klikken
+const PZ_MINSPELING=6;   // verschuiving (kaarteenheden) die áltijd goed is, hoe klein het land ook is
+const PZ_MINMAAT=24;     // kleinste hoofdvorm (kaarteenheden) die nog lekker sleept; piepkleine landen vallen af
+const PZ_KUSTMIN=12;     // zichtbare kust (kaarteenheden) die genoeg houvast geeft: België (13.8) en Slovenië (14.7)
+                         // halen het nét, Bosnië (10.2, alleen Neum) niet; echte binnenlanden meten exact 0
+let pzDrag=null;       // actieve sleepbeweging
+
+// hoofdvorm van een land: de grootste deelring. Portugal-met-Azoren zou anders een minibakje
+// met een sliertje opleveren; het bakje, het vastpak-anker en de overlapmeting draaien om de hoofdvorm.
+function pzKern(g){
+  if(g.kern)return g.kern;
+  let best=null,bestOpp=-1;
+  for(const sub of g.d.split("M")){
+    if(!sub)continue;
+    const n=sub.match(/-?[\d.]+/g);if(!n)continue;
+    let x1=1e9,y1=1e9,x2=-1e9,y2=-1e9;
+    for(let i=0;i+1<n.length;i+=2){const x=+n[i],y=+n[i+1];
+      if(x<x1)x1=x;if(x>x2)x2=x;if(y<y1)y1=y;if(y>y2)y2=y;}
+    const opp=(x2-x1)*(y2-y1);
+    if(opp>bestOpp){bestOpp=opp;best=[x1,y1,x2,y2];}
+  }
+  return g.kern=best||g.bb;
+}
+// hoeveel van het stuk ligt op de juiste plek? Pixeltelling: vorm op de echte plek als masker,
+// dezelfde vorm verschoven eroverheen — het restant is de overlap. (dx,dy) in kaarteenheden.
+let pzCv=null,pzCtx=null;
+function pzOverlap(g,dx,dy){
+  if(!isFinite(dx)||!isFinite(dy))return 0; // canvas negeert een niet-eindige transform stilletjes → zou vals "raak" geven
+  const kb=pzKern(g),kw=kb[2]-kb[0],kh=kb[3]-kb[1];
+  const m=Math.max(kw,kh)*0.3;                       // marge zodat een verschoven vorm niet buiten beeld valt
+  const s=150/Math.max(kw,kh);
+  const W=Math.ceil((kw+2*m)*s),H=Math.ceil((kh+2*m)*s);
+  if(!pzCv){pzCv=document.createElement("canvas");pzCtx=pzCv.getContext("2d",{willReadFrequently:true});}
+  const P=new Path2D(g.d),fr=g.fr||"evenodd";
+  const tel=()=>{const px=pzCtx.getImageData(0,0,W,H).data;let n=0;for(let i=3;i<px.length;i+=4)if(px[i]>60)n++;return n;};
+  pzCv.width=W;pzCv.height=H;                        // maatzetting wist het canvas meteen
+  pzCtx.setTransform(s,0,0,s,(m-kb[0])*s,(m-kb[1])*s);
+  pzCtx.fill(P,fr);
+  const A=tel();
+  pzCv.width=W;
+  pzCtx.setTransform(s,0,0,s,(m-kb[0])*s,(m-kb[1])*s);
+  pzCtx.fill(P,fr);
+  pzCtx.globalCompositeOperation="source-in";
+  pzCtx.setTransform(s,0,0,s,(m-kb[0]+dx)*s,(m-kb[1]+dy)*s);
+  pzCtx.fill(P,fr);
+  pzCtx.globalCompositeOperation="source-over";
+  return A?tel()/A:0;
+}
+// topologie per continent: buurlanden via exact gedeelde grenspunten (de packs delen bogen), plus
+// Path2D-vlakken van alle landen voor de kust-watertest. Eén keer opgebouwd, daarna cache.
+const PZ_TOPO={};
+function pzTopo(cont){
+  if(PZ_TOPO[cont])return PZ_TOPO[cont];
+  const K=KAARTEN[cont];
+  const paren=d=>d.match(/-?[\d.]+ -?[\d.]+/g)||[];
+  const per={},paths=[];
+  for(const c of LANDEN){
+    if(c.cont!==cont)continue;
+    const g=K.geo[c.id]; if(!g||!g.d)continue;
+    paths.push({id:c.id,P:new Path2D(g.d),fr:g.fr||"evenodd",
+      bb:g.bb||(g.dot?[g.dot[0]-8,g.dot[1]-8,g.dot[0]+8,g.dot[1]+8]:[0,0,1050,920])});
+    if(!g.dot)per[c.id]=[...new Set(paren(g.d))]; // stipjes doen als puzzelland niet mee
+  }
+  const bij={};
+  for(const id in per)for(const p of per[id])(bij[p]=bij[p]||[]).push(id);
+  const buren={};
+  for(const id in per){
+    const teller={};
+    for(const p of per[id])for(const b of bij[p])if(b!==id)teller[b]=(teller[b]||0)+1;
+    buren[id]=Object.keys(teller).filter(b=>teller[b]>=6); // ≥6 gedeelde punten = echte grens, geen drielandenpunt
+  }
+  return PZ_TOPO[cont]={buren,paths,ctxP:K.ctx?new Path2D(K.ctx):null,kust:{}};
+}
+// zichtbare kustlengte van een land: per omtrekpunt een stapje naar buiten — ligt daar géén ander
+// landvlak en geen context, dan is het water. Meet wat de speler op de kaart écht ziet: valse "vrije"
+// punten door net-niet-passende bogen belanden ín het buurland en tellen dus niet mee, en zichtbaar
+// uitgesneden meren (Bodensee, Titicaca) tellen terecht wél als houvast.
+function pzKustLen(cont,id){
+  const T=pzTopo(cont);
+  if(id in T.kust)return T.kust[id];
+  const g=KAARTEN[cont].geo[id];
+  if(!g||!g.d)return T.kust[id]=0;
+  if(!pzCv){pzCv=document.createElement("canvas");pzCtx=pzCv.getContext("2d",{willReadFrequently:true});}
+  pzCtx.setTransform(1,0,0,1,0,0); // identiek stelsel: pad- en testcoördinaten zijn kaarteenheden
+  const eigen=new Path2D(g.d),eigenFr=g.fr||"evenodd",STAP=1.3;
+  let len=0;
+  for(const sub of g.d.split("M")){
+    const pts=(sub.match(/-?[\d.]+ -?[\d.]+/g)||[]).map(p=>p.split(" ").map(Number));
+    const n=pts.length; if(n<3)continue;
+    const water=new Array(n).fill(false);
+    for(let i=0;i<n;i++){
+      const a=pts[(i-1+n)%n],b=pts[(i+1)%n],p=pts[i];
+      const tx=b[0]-a[0],ty=b[1]-a[1],tl=Math.hypot(tx,ty)||1;
+      let q=[p[0]-ty/tl*STAP,p[1]+tx/tl*STAP];
+      if(pzCtx.isPointInPath(eigen,q[0],q[1],eigenFr))q=[p[0]+ty/tl*STAP,p[1]-tx/tl*STAP]; // andere kant is buiten
+      if(pzCtx.isPointInPath(eigen,q[0],q[1],eigenFr))continue;      // sliert: geen duidelijke buitenkant
+      if(q[0]<6||q[1]<6||q[0]>1044||q[1]>914)continue;               // kaartrand is geen zichtbare kust
+      water[i]=!T.paths.some(o=>o.id!==id&&q[0]>=o.bb[0]-2&&q[0]<=o.bb[2]+2&&q[1]>=o.bb[1]-2&&q[1]<=o.bb[3]+2
+          &&pzCtx.isPointInPath(o.P,q[0],q[1],o.fr))
+        &&!(T.ctxP&&pzCtx.isPointInPath(T.ctxP,q[0],q[1],"nonzero"));
+    }
+    for(let i=0;i<n;i++){const j=(i+1)%n;
+      if(water[i]||water[j]){const L=Math.hypot(pts[j][0]-pts[i][0],pts[j][1]-pts[i][1]);if(L<50)len+=L;}
+    }
+  }
+  return T.kust[id]=len;
+}
+// hulplanden: binnenlanden (zonder zichtbare kust) hebben iets nodig om tegenaan te leggen.
+// Greedy: kies telkens het buurland dat de meeste nog onbedekte binnenland-stukken raakt — zo
+// dekt één Oostenrijk in één keer Hongarije, Slowakije én Slovenië (minimaal aantal hulplanden).
+function pzHulplanden(cont,stukken){
+  const T=pzTopo(cont);
+  const stukSet=new Set(stukken.map(c=>c.id));
+  const hulp=new Set();
+  let open=stukken.filter(c=>pzKustLen(cont,c.id)<PZ_KUSTMIN).map(c=>c.id);
+  while(open.length){
+    const teller={};
+    for(const id of open)for(const b of T.buren[id]||[])if(!stukSet.has(b))teller[b]=(teller[b]||0)+1;
+    let best=null,bestN=0;
+    for(const b in teller)if(teller[b]>bestN){bestN=teller[b];best=b;}
+    if(!best)break; // geen speelbaar buurland over (zeldzaam): dan maar zonder anker
+    hulp.add(best);
+    open=open.filter(id=>!(T.buren[id]||[]).includes(best));
+  }
+  return [...hulp].map(id=>LAND_VAN[id]).filter(Boolean);
+}
+function pzRegio(cont,landen){ // kader om stukken + hulplanden: je speelt een stukje werelddeel, niet alles
+  const K=KAARTEN[cont],VB=K.vbstart||VBMAX;
+  let x1=1e9,y1=1e9,x2=-1e9,y2=-1e9;
+  for(const c of landen){const kb=pzKern(K.geo[c.id]);
+    x1=Math.min(x1,kb[0]);y1=Math.min(y1,kb[1]);x2=Math.max(x2,kb[2]);y2=Math.max(y2,kb[3]);}
+  if(x1>x2)return VB;
+  const m=Math.max(x2-x1,y2-y1)*0.14+16;x1-=m;y1-=m;x2+=m;y2+=m;
+  const MINW=250; // niet extreem inzoomen: er moet omgeving (kustlijn!) zichtbaar blijven
+  if(x2-x1<MINW){const c=(x1+x2)/2;x1=c-MINW/2;x2=c+MINW/2;}
+  if(y2-y1<MINW){const c=(y1+y2)/2;y1=c-MINW/2;y2=c+MINW/2;}
+  return {x:x1,y:y1,w:x2-x1,h:y2-y1};
+}
+function pzStukken(){ // kies een werelddeel + een regionale kring van landen die stukken worden
+  const conts=contSel().filter(k=>KAARTEN[k]);
+  const cont=rnd(conts.length?conts:["EU"]);
+  const pool=actievePool().filter(c=>c.cont===cont&&heeftVorm(c));
+  const K=KAARTEN[cont];
+  const maat=c=>{const kb=pzKern(K.geo[c.id]);return Math.max(kb[2]-kb[0],kb[3]-kb[1]);};
+  const n=Math.min(Number(db.settings.puzzelN)||6,pool.length);
+  let kand=pool.filter(c=>maat(c)>=PZ_MINMAAT);
+  if(kand.length<n)kand=pool.slice().sort((a,b)=>maat(b)-maat(a)).slice(0,n); // te weinig grote: grootste eerst aanvullen
+  if(kand.length<2)return {cont,gekozen:kand,hulp:[],regio:K.vbstart||VBMAX};
+  // regionaal cluster: start bij een gewogen gekozen land en groei met steeds het dichtstbijzijnde
+  // erbij — zo wordt het echt West-Europa, de Balkan of Midden-Amerika, nooit een losse hagel.
+  // Afwisseling: minstens de helft van de stukken zat níét in de vorige puzzelronde — het startland
+  // is bij voorkeur vers, en herhalers mogen alleen aanvullen zolang het quotum dat toelaat.
+  const vorige=new Set(speler().pzVorige||[]);
+  let oudOver=n-Math.ceil(n/2); // zoveel herhalers uit de vorige ronde mogen er maximaal bij
+  const mid=c=>{const kb=pzKern(K.geo[c.id]);return [(kb[0]+kb[2])/2,(kb[1]+kb[3])/2];};
+  const vers=kand.filter(c=>!vorige.has(c.id));
+  const gekozen=[gewogenTrek(vers.length?vers:kand,1)[0]];
+  if(vorige.has(gekozen[0].id))oudOver--;
+  const rest=kand.filter(c=>c!==gekozen[0]);
+  while(gekozen.length<n&&rest.length){
+    const totCluster=c=>{const A=mid(c);
+      return Math.min(...gekozen.map(g=>{const B=mid(g);return (A[0]-B[0])**2+(A[1]-B[1])**2;}));};
+    rest.sort((a,b)=>totCluster(a)-totCluster(b));
+    const mag=c=>oudOver>0||!vorige.has(c.id);
+    let i1=rest.findIndex(mag); if(i1<0)i1=0; // álles is herhaler én quotum op: pool te klein voor de regel
+    let i2=-1; for(let j=i1+1;j<rest.length;j++)if(mag(rest[j])){i2=j;break;}
+    const pak=rest.splice(Math.random()<0.7||i2<0?i1:i2,1)[0]; // dichtstbijzijnde toegestane, af en toe de nummer 2
+    if(vorige.has(pak.id))oudOver--;
+    gekozen.push(pak);
+  }
+  const hulp=pzHulplanden(cont,gekozen);
+  return {cont,gekozen,hulp,regio:pzRegio(cont,[...gekozen,...hulp])};
+}
+function startPuzzel(){
+  if(!st.naam){wijsNaarNaam();return;}
+  db.last=st.naam;save();
+  const {cont,gekozen,hulp,regio}=pzStukken();
+  if(gekozen.length<2){toast("Te weinig landen voor een puzzel met deze instellingen 🤔");return;}
+  const p=speler();
+  menuSync(null);$("#s-game").classList.remove("metmenu");toonPlatteKaart();
+  setKaart(cont);
+  kaartReset();stopTimer(); // ruimt óók een eventuele vorige puzzel op — dus vóór het klaarzetten
+  st.qi=0;st.streak=0;st.verken=false;st.rondeStart=Date.now();st.stedenronde=false;st.moeilijk=false;
+  st.wasPuzzel=true;st.stemNaGoed=true;st.q=null;st.answered=false;st.hints=0;
+  st.vragen=gekozen.map(c=>({type:"puzzel",c}));
+  st.ronde={goed:0,punt:0,best:0,diam:0,stempels:[],uitslagen:[]};
+  st.puzzel={cont,stukken:gekozen.map(c=>({c,klaar:false,gemist:false})),hulp,regio};
+  p.pzVorige=gekozen.map(c=>c.id);save(); // onthoud deze ronde: volgende puzzel moet ≥ helft verse landen hebben
+  // alles versmelt tot één naamloos landvlak — alleen de hulplanden houden kleur als houvast
+  map.classList.add("puzzelmodus");
+  const zichtbaar=new Set(hulp.map(c=>c.id));
+  document.querySelectorAll("#gLand .land").forEach(el=>{
+    if(!el.dataset.id||!zichtbaar.has(el.dataset.id))el.classList.add("pz-neutraal");
+  });
+  bouwTray();
+  $("#hud-naam").textContent=p.naam;$("#hud-ava").textContent=p.naam[0].toUpperCase();
+  hudSync();
+  $("#hud-vraag").textContent=`Puzzel · ${CONT_NAAM[cont]}`;
+  voortgangSync();
+  $("#q-label").textContent=`Landenpuzzel · ${CONT_NAAM[cont]}`;
+  $("#q-hint").style.display="none";$("#q-hint").innerHTML="";
+  $("#b-hint").style.display="";$("#b-hint").disabled=false;$("#b-hint").textContent="💡 Hint (nog 2)";
+  $("#q-choices").innerHTML="";$("#q-klik").style.display="none";
+  pzTekst();pzVoet();
+  toonScherm("#s-game");
+  st.puzzel.autoVB=vulAspect(regio); // niet het hele werelddeel, maar de regio van deze puzzel
+  animVB(st.puzzel.autoVB);
+  [180,600,1100].forEach(t=>setTimeout(herstelKaartVorm,t)); // late layout-metingen: regio opnieuw passen
+}
+function pzTekst(net){ // `net` = zojuist goed gelegd land
+  const over=st.puzzel?st.puzzel.stukken.filter(s=>!s.klaar).length:0;
+  const kop=net?`<span class="pz-gelegd">✅ ${net.f} <b>${esc(net.n)}</b> ligt goed!</span><br>`:"";
+  const rest=over?(net?`Nog <b>${over}</b> ${over===1?"stuk":"stukken"} 🧩`
+      :`Sleep de puzzelstukken naar de juiste plek op de kaart! Nog <b>${over}</b> ${over===1?"stuk":"stukken"} 🧩`)
+    :"Alle stukken liggen op hun plek! 🎉";
+  $("#q-text").innerHTML=kop+rest;
+}
+function pzVoet(){const nog=5-((speler().diaProg)||0);$("#q-voet").textContent=`💎 nog ${nog} goed${nog===1?"":"e"} tot je volgende diamant`;}
+function bouwTray(){
+  const tray=$("#pz-tray");tray.innerHTML="";tray.style.display="grid";
+  const K=KAARTEN[st.puzzel.cont];
+  st.puzzel.stukken.forEach(s=>{
+    const g=K.geo[s.c.id],kb=pzKern(g);
+    const m=Math.max(kb[2]-kb[0],kb[3]-kb[1])*0.07+2;
+    const el=document.createElement("div");el.className="pz-stuk";el.title="Sleep mij naar de kaart!";
+    el.innerHTML=`<svg viewBox="${kb[0]-m} ${kb[1]-m} ${kb[2]-kb[0]+2*m} ${kb[3]-kb[1]+2*m}" aria-hidden="true">`
+      +`<path d="${g.d}" fill="${s.c.kleur}" fill-rule="${g.fr||"evenodd"}"/></svg>`
+      +`<div class="pz-tag" hidden></div>`; // naam: zichtbaar na plaatsing, of eerder via de hint
+    el.addEventListener("pointerdown",ev=>pakStuk(ev,s,el));
+    s.el=el;tray.appendChild(el);
+  });
+}
+function pzTraySync(){ // namen en gelegd-status in het bakje bijwerken
+  if(!st.puzzel)return;
+  st.puzzel.stukken.forEach(s=>{
+    if(!s.el)return;
+    s.el.classList.toggle("gelegd",s.klaar);
+    s.el.title=s.klaar?`${s.c.n} ligt goed!`:"Sleep mij naar de kaart!";
+    const tag=s.el.querySelector(".pz-tag");
+    if(!tag)return;
+    tag.hidden=!(s.klaar||st.puzzel.namenUit);
+    tag.textContent=(s.klaar?"✓ ":"")+s.c.n;
+  });
+}
+// landnaam op de kaart: popt op bij het vastklikken en vervaagt daarna weer (de kaart blijft schoon)
+const PZ_NAAMTIJD=1800; // hoe lang de naam blijft staan (ms), daarna een halve seconde uitvloeien
+function pzNaamLabel(c){
+  const kb=pzKern(KAARTEN[st.puzzel.cont].geo[c.id]);
+  let laag=document.getElementById("gPzNaam");
+  if(!laag){laag=document.createElementNS(SVGNS,"g");laag.id="gPzNaam";map.appendChild(laag);} // ná gLand: altijd bovenop
+  const t=document.createElementNS(SVGNS,"text");
+  t.setAttribute("class","pz-naam");
+  t.dataset.x=((kb[0]+kb[2])/2).toFixed(1); // eigen plek van het land; de y mag uitwijken bij gedrang
+  t.dataset.y=((kb[1]+kb[3])/2).toFixed(1);
+  t.setAttribute("x",t.dataset.x);
+  t.setAttribute("y",t.dataset.y);
+  t.textContent=c.n;
+  laag.appendChild(t);
+  pzNaamPas();
+  // met "beperkte beweging" duren de fades vrijwel 0, maar de naam blijft even lang leesbaar staan
+  setTimeout(()=>{t.classList.add("weg");setTimeout(()=>t.remove(),500);},PZ_NAAMTIJD);
+}
+function pzNaamPas(){ // even grote letters op elk zoomniveau (font-size in kaarteenheden) + geen labels over elkaar
+  const laag=document.getElementById("gPzNaam"); if(!laag)return;
+  const fs=vb.w*0.024;
+  const els=[...laag.querySelectorAll("text")];
+  els.forEach(t=>{t.setAttribute("font-size",fs.toFixed(1));t.setAttribute("stroke-width",(fs*0.26).toFixed(2));});
+  // maten pas ná het zetten van font-size opmeten, dan van boven naar beneden inpassen
+  const info=els.map(t=>{
+    let w=0;try{w=t.getComputedTextLength();}catch(e){}
+    return {t,x:+t.dataset.x,y0:+t.dataset.y,w:(w||t.textContent.length*fs*0.55)+fs*0.3,h:fs*1.15};
+  }).sort((a,b)=>a.y0-b.y0);
+  const gezet=[];
+  for(const L of info){
+    let y=L.y0;
+    for(let k=0;k<7;k++){ // om en om nét onder of boven de eigen plek, tot het vrij ligt
+      y=k?L.y0+(k%2?1:-1)*Math.ceil(k/2)*L.h:L.y0;
+      if(!gezet.some(P=>Math.abs(P.x-L.x)<(P.w+L.w)/2&&Math.abs(P.y-y)<(P.h+L.h)/2))break;
+    }
+    L.y=y;gezet.push(L);
+    L.t.setAttribute("y",y.toFixed(1));
+  }
+}
+function pzOverlaySvg(){
+  let ov=document.getElementById("pz-drag");
+  if(!ov){ov=document.createElementNS(SVGNS,"svg");ov.id="pz-drag";ov.setAttribute("aria-hidden","true");document.body.appendChild(ov);}
+  return ov;
+}
+function pzOverlayWeg(){const ov=document.getElementById("pz-drag");if(ov){ov.style.display="none";ov.classList.remove("bijna");ov.innerHTML="";}}
+function pakStuk(ev,s,el){
+  if(s.klaar||pzDrag||!st.puzzel)return;
+  ev.preventDefault();
+  const g=KAARTEN[st.puzzel.cont].geo[s.c.id],kb=pzKern(g);
+  const ax=(kb[0]+kb[2])/2,ay=(kb[1]+kb[3])/2; // anker: midden van de hoofdvorm, dáár houd je het stuk vast
+  const mr=map.getBoundingClientRect();
+  const k=mr.width/vb.w;                        // px per kaarteenheid bij het huidige zoomniveau
+  const kt=Math.min(60/(kb[3]-kb[1]),110/(kb[2]-kb[0]),k); // startgrootte ≈ zoals in het bakje
+  const lift=ev.pointerType==="touch"?34:0;     // op touch iets boven de vinger, anders zie je het stuk niet
+  const ov=pzOverlaySvg();ov.innerHTML="";
+  const volg=document.createElementNS(SVGNS,"g"),schaal=document.createElementNS(SVGNS,"g"),pad=document.createElementNS(SVGNS,"path");
+  pad.setAttribute("d",g.d);pad.setAttribute("fill",s.c.kleur);pad.setAttribute("fill-rule",g.fr||"evenodd");
+  pad.setAttribute("transform",`translate(${-ax} ${-ay})`);
+  schaal.classList.add("schaal");schaal.appendChild(pad);volg.appendChild(schaal);ov.appendChild(volg);
+  schaal.style.transform=`scale(${kt})`;
+  volg.style.transform=`translate(${ev.clientX}px,${ev.clientY-lift}px)`;
+  ov.style.display="block";
+  el.classList.add("mee");
+  try{el.setPointerCapture(ev.pointerId);}catch(e){}
+  pzDrag={stuk:s,el,g,ax,ay,ptr:ev.pointerId,k,kt,lift,volg,schaal,x:ev.clientX,y:ev.clientY-lift,checkT:0};
+  requestAnimationFrame(()=>{if(pzDrag&&pzDrag.schaal===schaal)schaal.style.transform=`scale(${k})`;}); // groeien naar kaartformaat
+  sndKlik();
+}
+function pzKaartXY(px,py){ // schermpositie → kaartcoördinaten (+ ligt het punt op de kaart?)
+  const mr=map.getBoundingClientRect();
+  if(mr.width<4||mr.height<4)return [0,0,false]; // kaart (nog) niet uitgemeten: nooit "op de kaart"
+  return [vb.x+(px-mr.left)/mr.width*vb.w, vb.y+(py-mr.top)/mr.height*vb.h,
+    px>=mr.left&&px<=mr.right&&py>=mr.top&&py<=mr.bottom];
+}
+function pzRaak(d,mx,my){ // ligt het stuk goed genoeg? overlap-drempel óf (voor kleine landen) bijna op het anker
+  const dx=mx-d.ax,dy=my-d.ay;
+  return Math.hypot(dx,dy)<=PZ_MINSPELING||pzOverlap(d.g,dx,dy)>=PZ_DREMPEL;
+}
+function pzCheckBijna(){ // gloed op stuk + gat zodra loslaten raak zou zijn
+  const d=pzDrag;d.checkT=performance.now();
+  const [mx,my,binnen]=pzKaartXY(d.x,d.y);
+  const raak=binnen&&pzRaak(d,mx,my);
+  pzOverlaySvg().classList.toggle("bijna",raak);
+  paden[d.stuk.c.id].classList.toggle("bijna",raak);
+}
+addEventListener("pointermove",ev=>{
+  if(!pzDrag||ev.pointerId!==pzDrag.ptr)return;
+  pzDrag.x=ev.clientX;pzDrag.y=ev.clientY-pzDrag.lift;
+  pzDrag.volg.style.transform=`translate(${pzDrag.x}px,${pzDrag.y}px)`;
+  if(performance.now()-pzDrag.checkT>90)pzCheckBijna();
+  else{clearTimeout(pzDrag.checkTm);pzDrag.checkTm=setTimeout(()=>{if(pzDrag)pzCheckBijna();},100);} // ook checken als je stilhoudt
+});
+addEventListener("pointerup",ev=>{
+  const d=pzDrag;if(!d||ev.pointerId!==d.ptr)return;
+  const [mx,my,binnen]=pzKaartXY(d.x,d.y);
+  if(binnen&&pzRaak(d,mx,my))klikVast(d);
+  else if(binnen)misPoging(d);
+  else stukTerug(false); // naast de kaart losgelaten = gewoon terugleggen, telt niet als poging
+});
+addEventListener("pointercancel",ev=>{if(pzDrag&&ev.pointerId===pzDrag.ptr)stukTerug(false);});
+const sndSnap=()=>{toon(2400,.03,"square",.12);toon(160,.07,"square",.22,.01);toon(880,.09,"triangle",.14,.06);toon(1760,.22,"sine",.1,.1);};
+function klikVast(d){ // raak! stuk schuift naar z'n exacte plek en klikt vast
+  const s=d.stuk,g=d.g;
+  const mr=map.getBoundingClientRect();
+  const px=mr.left+(d.ax-vb.x)/vb.w*mr.width, py=mr.top+(d.ay-vb.y)/vb.h*mr.height;
+  s.klaar=true;pzDrag=null;
+  pzOverlaySvg().classList.remove("bijna");
+  d.volg.style.transition="transform .13s ease";
+  d.volg.style.transform=`translate(${px}px,${py}px)`;
+  setTimeout(()=>{
+    pzOverlayWeg();
+    const padEl=paden[s.c.id];
+    padEl.classList.remove("pz-neutraal","bijna");padEl.classList.add("snapplof");
+    setTimeout(()=>padEl.classList.remove("snapplof"),650);
+    if(s.el)s.el.classList.remove("hintstuk");
+    if(st.puzzel&&st.puzzel.spotId===s.c.id){wisSpot();st.puzzel.spotId=null;} // hintcirkel heeft z'n werk gedaan
+    pzNaamLabel(s.c);pzTraySync(); // dít land is het: naam op de kaart én in het bakje
+    sndSnap();knal(px,py,26);
+    pzPunten(s,px,py);
+  },140);
+}
+function misPoging(d){ // op de kaart losgelaten, maar niet op de juiste plek
+  const s=d.stuk;
+  if(!s.gemist){ // alleen de eerste misser telt als fout (streak, log en moeilijke-ronde-lijst)
+    s.gemist=true;
+    const p=speler();logVan(p,s.c.id).of++;p.fouten=p.fouten||{};p.fouten[s.c.id]=(p.fouten[s.c.id]||0)+1;
+    st.streak=0;save();hudSync();
+    sndFout();
+  }else{toon(300,.08,"sine",.1);toon(240,.14,"sine",.09,.08);}
+  toast(rnd(["Bijna! Probeer het nog eens 💪","Nét niet — kijk goed naar de vorm! 🔍","Andere plek proberen? Jij kunt dit! 🌟"]),1600);
+  stukTerug(true);
+}
+function stukTerug(wiebel){ // stuk vliegt terug naar het bakje en krimpt weer
+  const d=pzDrag;if(!d)return;pzDrag=null;
+  pzOverlaySvg().classList.remove("bijna");
+  paden[d.stuk.c.id].classList.remove("bijna");
+  const r=d.el.getBoundingClientRect();
+  d.volg.style.transition="transform .3s ease";
+  d.volg.style.transform=`translate(${r.left+r.width/2}px,${r.top+r.height/2}px)`;
+  d.schaal.style.transform=`scale(${d.kt})`;
+  setTimeout(()=>{
+    pzOverlayWeg();
+    d.el.classList.remove("mee");
+    if(wiebel){d.el.classList.add("mis");setTimeout(()=>d.el.classList.remove("mis"),550);}
+  },310);
+}
+function pzPunten(s,px,py){ // zelfde economie als een gewone vraag: eerste poging raak = goed
+  const p=speler(),c=s.c,eerste=!s.gemist;
+  if(eerste){
+    const l=logVan(p,c.id);l.og++;
+    if(totGoed(p,c.id)>=10&&!l.d)l.d=Date.now(); // datum van de 10e goede → op de paspoortstempel
+    st.ronde.goed++;st.streak++;
+    if(st.streak>st.ronde.best)st.ronde.best=st.streak;
+    if(st.streak>p.best)p.best=st.streak;
+    let pts=5;
+    if(st.streak>0&&st.streak%3===0){pts+=5;setTimeout(()=>{vlamEffect();sndVlam();},650);}
+    st.ronde.punt+=pts;p.points+=pts;p.xp=(p.xp||0)+pts;p.goedTotaal++;
+    const eerder=p.pass[c.id]||0;p.pass[c.id]=eerder+1;if(eerder===0)st.ronde.stempels.push(c);
+    let diamant=false;
+    p.diaProg=(p.diaProg||0)+1;
+    if(p.diaProg>=5){p.diaProg=0;p.diamonds++;st.ronde.diam++;diamant=true;setTimeout(toonDiamant,900);}
+    st.ronde.uitslagen[st.qi]={goed:true,diamant};
+    for(let i=0;i<3;i++)vliegMunt(px,py,i*160);
+    if(st.stemNaGoed){speelStem();st.stemNaGoed=false;}else st.stemNaGoed=true;
+  }else{ // na missers alsnog gelegd: 2 troostmuntjes, geen streak/diamant
+    st.ronde.punt+=2;p.points+=2;p.xp=(p.xp||0)+2;
+    st.ronde.uitslagen[st.qi]={goed:false,diamant:false};
+    vliegMunt(px,py,0);
+  }
+  st.qi++;
+  pzTekst(c);pzVoet();
+  save();hudSync();voortgangSync();
+  if(st.puzzel.stukken.every(x=>x.klaar))setTimeout(eindRonde,1100);
+}
+function pzHint(){ // 2 hints: eerst de namen bij de stukken, daarna een gouden cirkel om één plek
+  if(!st.puzzel||st.hints>=2)return;
+  const over=st.puzzel.stukken.filter(s=>!s.klaar);
+  if(!over.length)return;
+  st.hints++;sndKlik();
+  const box=$("#q-hint");box.style.display="block";
+  if(st.hints===1){
+    st.puzzel.namenUit=true;pzTraySync();
+    box.innerHTML="🏷️ De namen staan nu bij de puzzelstukken in het bakje!";
+    $("#b-hint").textContent="💡 Nog een hint (nog 1)";
+  }else{
+    const s=over[0];
+    toonSpot(s.c);st.puzzel.spotId=s.c.id;
+    if(s.el)s.el.classList.add("hintstuk");
+    box.innerHTML+=`<br><br>🎯 <b>${esc(s.c.n)}</b> hoort in de gouden cirkel!`;
+    $("#b-hint").disabled=true;$("#b-hint").textContent="💡 Hints op";
+  }
+}
+function pzOpruim(){ // puzzel-UI weghalen (via kaartReset: bij home, rondestart en resultaat)
+  if(pzDrag){pzDrag.el.classList.remove("mee");pzDrag=null;}
+  pzOverlayWeg();
+  const laag=document.getElementById("gPzNaam");if(laag)laag.remove();
+  map.classList.remove("puzzelmodus");
+  document.querySelectorAll("#gLand .land.pz-neutraal,#gLand .land.bijna")
+    .forEach(el=>el.classList.remove("pz-neutraal","bijna"));
+  const tray=$("#pz-tray");if(tray){tray.style.display="none";tray.innerHTML="";}
+  st.puzzel=null;
+}
+$("#b-puzzel").addEventListener("click",()=>{sndKlik();startPuzzel();});
+$("#b-puzzel").addEventListener("keydown",ev=>{if(ev.target===ev.currentTarget&&(ev.key==="Enter"||ev.key===" ")){ev.preventDefault();sndKlik();startPuzzel();}});
+document.querySelector("#b-puzzel .pz-seg").addEventListener("click",ev=>ev.stopPropagation()); // aantal kiezen ≠ starten
 
 function hudSync(){
   const p=speler();
@@ -2123,7 +2683,6 @@ function toonVraag(){
   kaartReset();stopTimer();
   $("#hud-vraag").textContent=`Vraag ${st.qi+1}/${st.vragen.length}`;
   voortgangSync();
-  $("#q-gold").style.display=st.qi===st.goldIdx?"block":"none";
   $("#q-hint").style.display="none";$("#q-hint").innerHTML="";
   $("#b-hint").style.display="";$("#b-hint").disabled=false;$("#b-hint").textContent="💡 Hint (nog 2)";
   $("#q-choices").innerHTML="";
@@ -2233,7 +2792,6 @@ function beantwoord(goed,knop,timeout=false,geklikt=null){
   if(st.answered)return;st.answered=true;stopTimer();wisSpot();
   const q=st.q,c=q.c,p=speler();
   if(q.type==="mcVorm"){verbergVorm();lichtOp(c);} // onthulling: zó ligt het land op de kaart
-  const goud=st.qi===st.goldIdx;
   map.classList.remove("klikbaar");
   // kaart-feedback
   if(q.stad){
@@ -2274,10 +2832,10 @@ function beantwoord(goed,knop,timeout=false,geklikt=null){
     st.ronde.goed++;st.streak++;
     if(st.streak>st.ronde.best)st.ronde.best=st.streak;
     if(st.streak>p.best)p.best=st.streak;
-    let pts=goud?2:1;
-    belon.push(goud?'<span class="goudstaaf"></span> Gouden vraag: +2 muntjes':"🪙 +1 muntje");
-    if(st.streak>0&&st.streak%3===0){pts+=1;belon.push("🔥 3 op een rij: bonusmuntje!");setTimeout(()=>{vlamEffect();sndVlam();},650);}
-    st.ronde.punt+=pts;p.points+=pts;p.goedTotaal++; // muntjes stapelen door, worden nooit opgesoupeerd
+    let pts=(st.moeilijk||db.settings.flits)?10:5; // 5 per goed antwoord; moeilijke ronde of bliksemronde = 10
+    belon.push(`🪙 +${pts} muntjes`);
+    if(st.streak>0&&st.streak%3===0){pts+=5;belon.push("🔥 3 op een rij: +5 bonus!");setTimeout(()=>{vlamEffect();sndVlam();},650);}
+    st.ronde.punt+=pts;p.points+=pts;p.xp=(p.xp||0)+pts;p.goedTotaal++; // muntjes stapelen door, worden nooit opgesoupeerd; xp telt mee voor het level
     if(!q.stad){
       const eerder=p.pass[c.id]||0;
       p.pass[c.id]=eerder+1;
@@ -2296,7 +2854,8 @@ function beantwoord(goed,knop,timeout=false,geklikt=null){
     else { st.stemNaGoed=true; }
     // muntjes vliegen vanaf het goede land naar de teller
     const lr=(q.stad&&stadEl(q.stad)?stadEl(q.stad):paden[c.id]).getBoundingClientRect();
-    for(let i=0;i<pts;i++)vliegMunt(lr.left+lr.width/2,lr.top+lr.height/2,i*180);
+    const nMunt=pts>=10?5:3; // visueel: 3 muntjes bij 5 punten, 5 bij 10+ (niet één per punt — te druk)
+    for(let i=0;i<nMunt;i++)vliegMunt(lr.left+lr.width/2,lr.top+lr.height/2,i*180);
     const r=$("#map").getBoundingClientRect();
     knal(r.left+r.width/2,r.top+r.height/2,70);
   }else{
@@ -2414,10 +2973,10 @@ function eindRonde(){
   $("#r-punt").textContent=st.ronde.punt;
   $("#r-streak").textContent=st.ronde.best;
   $("#r-totdiam").textContent=p.diamonds;
-  // level (10 niveaus op basis van geraden landen)
+  // level (20 niveaus × 5 substappen, op basis van geleerde landen)
   const li=levelInfo(p);
-  $("#r-level").textContent=`Level ${li.nr} · ${li.naam}`;
-  $("#r-levelfill").style.width=(li.nr*10)+"%";
+  $("#r-level").textContent=`Level ${li.nr} · ${li.naam} ${"⭐".repeat(li.sub)}${"☆".repeat(5-li.sub)}`;
+  $("#r-levelfill").style.width=(li.frac*100)+"%";
   $("#r-levelnext").textContent=li.volgende;
   const stamps=$("#r-stamps");stamps.innerHTML="";
   if(st.ronde.stempels.length){
@@ -2815,7 +3374,7 @@ function startVerken(){
   $("#q-label").textContent="Verkenmodus";
   $("#q-text").textContent="Draai de globe 🌍 en tik op een land om het te leren kennen!";
   $("#q-choices").innerHTML="";$("#q-klik").style.display="none";
-  $("#q-gold").style.display="none";$("#q-hint").style.display="none";
+  $("#q-hint").style.display="none";
   $("#b-hint").style.display="none"; // geen hint-knop in verkenmodus
   $("#q-voet").textContent="";       // geen 'klaar met verkennen'-regel → meer ruimte voor de globe
   hudSyncVeilig();
@@ -2875,6 +3434,7 @@ $("#vp-sluit").onclick=()=>{ $("#verken-pop").classList.remove("open"); if(verke
 
 /* ================= HINTS ================= */
 $("#b-hint").onclick=()=>{
+  if(st.puzzel){pzHint();return;}
   if(st.verken||!st.q||st.answered)return;
   const q=st.q,c=q.c;
   st.hints++;sndKlik();
@@ -2915,7 +3475,7 @@ $("#m-welkom").addEventListener("click",ev=>{if(ev.target===ev.currentTarget)slu
 $("#w-pastegel").onclick=()=>{sluitWelkom();sndKlik();toonPaspoort();};
 
 /* ================= PASPOORT ================= */
-function passSpeler(){const naam=st.naam||db.last;return db.players[(naam||"").toLowerCase()];}
+function passSpeler(){const naam=st.naam||db.last;const p=db.players[(naam||"").toLowerCase()];return p?econ3(p):p;}
 let passCont="EU"; // welk werelddeel toont het paspoort
 // pasfoto: tik op het fotovak → camera of fotobibliotheek; verkleind opgeslagen bij de speler
 function pasFotoSync(){
@@ -2949,25 +3509,36 @@ const MND_EN=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV",
 function pasDatum(ts){const d=new Date(ts);return `${d.getDate()} ${MND_NL[d.getMonth()]}/${MND_EN[d.getMonth()]} ${d.getFullYear()}`;} // "30 AUG/AUG 2021"-stijl
 function passDataSync(p){
   const DEMO=typeof ARTIFACT_DEMO!=="undefined"||location.hostname==="localhost"||location.hostname==="127.0.0.1";
-  let li=null,datum="—";
+  let li=null,datum="—",cups=[];
   if(p&&p.rounds){
     li=levelInfo(p);
     p.lvlData=p.lvlData||{}; // eerste keer dat dit level gehaald is → vastleggen voor 'bereikt op'
     if(!p.lvlData[li.nr]){p.lvlData[li.nr]=Date.now();save();}
     datum=pasDatum(p.lvlData[li.nr]);
+    cups=CONT_CODES.filter(ct=>contCup(p,ct));
   }else if(DEMO&&!p){p={naam:"Finn",points:1234,diamonds:12,best:9,speeltijd:47*60000,rounds:24,perfect:2}; // voorbeeld om het ontwerp te beoordelen
-    li={nr:4,naam:LVL_NAMEN[3],volgende:"Nog 8 landen goed voor level 5"};datum=pasDatum(new Date(2026,4,12));}
+    li={nr:7,sub:3,naam:LVL_NAMEN[3],volgende:"Nog 14 goede antwoorden tot je volgende ⭐",stap:32,frac:.33};datum=pasDatum(new Date(2026,4,12));cups=["EU"];}
   $("#pid-naam").textContent=p&&p.naam?p.naam:"—";
   $("#pid-level").textContent=li?li.naam:"—";
   $("#pid-datum").textContent=datum;
   const balk=$("#pd-balk");
-  if(!balk.children.length)for(let i=0;i<10;i++){const s=document.createElement("i");s.title=`Level ${i+1}: ${LVL_NAMEN[i]}`;balk.appendChild(s);}
+  if(!balk.children.length)for(let i=0;i<20;i++){const s=document.createElement("i");s.title=`Level ${i+1}`;balk.appendChild(s);}
   [...balk.children].forEach((s,i)=>s.className=li&&i<li.nr?"vol":"");
-  $("#pd-volgende").textContent=li?li.volgende:"Speel een ronde om je paspoort te vullen!";
+  $("#pd-subbalk").textContent=li?"⭐".repeat(li.sub)+"☆".repeat(5-li.sub):"☆☆☆☆☆"; // de 5 substappen van het huidige level, onder de levelbalk
+  $("#pd-volgende").textContent=li?`Level ${li.nr} van 20 · ${li.volgende}`:"Speel een ronde om je paspoort te vullen!";
   const st6=p||{points:0,diamonds:0,best:0,speeltijd:0,rounds:0,perfect:0};
   const V=[["🪙",st6.points,"munten / coins",5],["💎",st6.diamonds,"diamanten / gems",6],["🔥",st6.best,"reeks / streak",7],
-    ["🏆",st6.perfect||0,"perfect",8],["🏋️",st6.rounds,"rondes / rounds",9],["⏱️",Math.round((st6.speeltijd||0)/60000),"minuten / minutes",10]];
+    ["🌟",st6.perfect||0,"perfect",8],["🏋️",st6.rounds,"rondes / rounds",9],["⏱️",Math.round((st6.speeltijd||0)/60000),"minuten / minutes",10]];
   $("#pd-velden").innerHTML=V.map(([ico,v,l,n])=>`<div class="pv"><small><i>${n}</i> ${l}</small><b>${ico} ${v}</b></div>`).join("");
+  // continent-cups: gewonnen als elk land van dat werelddeel 10× goed geraden is
+  $("#pd-cups").innerHTML=CONT_CODES.map(ct=>
+    `<span class="cup${cups.includes(ct)?" aan":""}" title="${CONT_NAAM[ct]}: elk land 10× goed geraden">🏆<small>${CONT_KORT[ct]}</small></span>`).join("");
+}
+const CONT_CODES=["EU","AS","AF","NA","SA","OC"];
+const CONT_KORT={EU:"EUR",AS:"AZI",AF:"AFR",NA:"N-AM",SA:"Z-AM",OC:"OCE"};
+function contCup(p,ct){ // cup gewonnen: élk land van dit werelddeel minstens 10× goed
+  const alle=LANDEN.filter(c=>c.cont===ct&&heeftKaart(c));
+  return alle.length>0&&alle.every(c=>totGoed(p,c.id)>=10);
 }
 function toonPaspoort(){
   const p=passSpeler();
@@ -2983,7 +3554,7 @@ function toonPaspoort(){
 }
 function passRender(){
   const p=passSpeler();
-  $("#pass-sub").textContent=p?`${CONT_NAAM[passCont]} — 3× goed = gouden tegel, 10× goed = paspoortstempel!`:"Speel eerst een ronde om stempels te verzamelen!";
+  $("#pass-sub").textContent=p?`${CONT_NAAM[passCont]} — 5× goed = gouden tegel, 10× goed = paspoortstempel!`:"Speel eerst een ronde om stempels te verzamelen!";
   const g=$("#pass-grid");g.innerHTML="";
   const DEMO=typeof ARTIFACT_DEMO!=="undefined"||location.hostname==="localhost"||location.hostname==="127.0.0.1"; // preview (artifact of localhost): voorbeeldstempels om het ontwerp te beoordelen
   const DEMO_LANDEN=new Set(["NL","FR","DE","IT","ES","GR","JP","TH","IN","EG","ZA","MA","US","MX","CA","BR","PE","AR","AU","NZ","ID"]);
@@ -2992,7 +3563,7 @@ function passRender(){
     let n=p?totGoed(p,c.id):0;
     if(DEMO&&DEMO_LANDEN.has(c.id))n=Math.max(n,12);
     const d=document.createElement("div");
-    d.className="stamp"+(n===0?" leeg":"")+(n>=3?" goud":"");
+    d.className="stamp"+(n===0?" leeg":"")+(n>=5?" goud":"");
     // paspoortstempel (10×): verweerde inktstempel (echte visum-look) op een per-land vaste maar "willekeurige" plek
     let stempel="";
     if(n>=10){
@@ -3154,11 +3725,12 @@ $("#mp-aan").onclick=()=>{ wisselMuziek(); $("#mp-aan").classList.toggle("aan",m
 $("#mp-vol").oninput=()=>{ const v=parseFloat($("#mp-vol").value); zetMuziekVol(v); $("#mp-volval").textContent=Math.round(v*100)+"%"; };
 $("#mp-tracks").addEventListener("change",e=>{ if(e.target.name==="mptrack"){ kiesTrack(e.target.value);
   document.querySelectorAll(".mp-track").forEach(l=>l.classList.toggle("sel",l.querySelector("input").checked)); } });
-$("#b-nogeens").onclick=()=>{sndKlik();startRonde();};
+$("#b-nogeens").onclick=()=>{sndKlik();if(st.wasPuzzel)startPuzzel();else startRonde();};
 $("#b-anders").onclick=()=>{chipsSync();segSync();toonScherm("#s-start");menuSync("expeditie");};
 $("#s-result").addEventListener("click",ev=>{if(ev.target===ev.currentTarget)$("#b-anders").click();}); // naast het overzicht klikken = home
 addEventListener("keydown",ev=>{
   if($("#fb").classList.contains("open")){if(ev.key==="Enter"){ev.preventDefault();$("#b-next").click();}return;}
+  if($("#s-game").classList.contains("active")&&st.puzzel&&(ev.key==="h"||ev.key==="H")){$("#b-hint").click();return;}
   if($("#s-game").classList.contains("active")&&st.q&&!st.answered){
     const i=Number(ev.key)-1;
     const knoppen=document.querySelectorAll("#q-choices .choice");
