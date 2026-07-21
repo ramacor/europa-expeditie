@@ -399,6 +399,11 @@
   .levelbox{background:var(--panel); border-radius:15px; box-shadow:var(--shadow); padding:14px 18px; width:min(560px,100%); text-align:center; font-size:16px}
   .levelbar{height:10px; background:var(--panel2); border-radius:99px; overflow:hidden; margin-top:9px}
   .levelbar i{display:block; height:100%; background:var(--gold-grad); border-radius:99px; transition:width .8s ease}
+  /* etappes van het huidige level: behaald = goud, huidige = omlijnd, nog te gaan = gedempt */
+  .etplijst{display:flex; flex-wrap:wrap; gap:5px; justify-content:center; margin-top:10px}
+  .etp{font-size:11.5px; line-height:1.35; padding:3px 9px; border-radius:999px; background:var(--panel2); color:var(--muted); white-space:nowrap}
+  .etp.af{background:var(--gold-grad); color:#3A2A00; font-weight:bold}
+  .etp.nu{box-shadow:inset 0 0 0 2px var(--teal); color:var(--ink); font-weight:bold}
   .stamps{display:flex; gap:12px; flex-wrap:wrap; justify-content:center; width:min(560px,100%); font-size:46px}
   .stamps span{animation:stempelplof .5s cubic-bezier(.3,1.6,.6,1) both}
   @keyframes stempelplof{from{transform:scale(.2) rotate(-16deg); opacity:0}}
@@ -479,10 +484,25 @@
   .pd-cups .cup{display:flex; flex-direction:column; align-items:center; font-size:26px; line-height:1.15; opacity:.22; filter:grayscale(1)} /* nog te winnen: grijs */
   .pd-cups .cup.aan{opacity:1; filter:none; text-shadow:0 0 9px rgba(247,201,72,.65)}
   .pd-cups .cup small{font-size:8px; font-weight:bold; letter-spacing:.5px; color:#3D5E9E}
-  .pd-balk{display:flex; gap:3px; margin:9px 0 3px}
-  .pd-subbalk{font-size:13px; letter-spacing:3px; line-height:1; margin:1px 0 3px} /* de 5 substappen (sterren) van het huidige level */
-  .pd-balk i{flex:1; height:7px; border-radius:99px; background:rgba(40,70,120,.16)}
+  /* 20 levels als pillenrij: het huidige level draagt zijn naam, de andere zijn even hoog maar smal.
+     Past de naam er op een smal scherm niet meer bij (lange rangen als 'Meester van de Wereldkaart'),
+     dan breekt de rij netjes af in plaats van buiten de paspoortkaart te lopen. */
+  .pd-rij{margin-top:10px} /* lucht tussen het kopje+rij van de levels en dat van de etappes */
+  .pd-balk{display:flex; flex-wrap:wrap; align-items:stretch; gap:3px; margin-top:3px}
+  .pd-subbalk{display:flex; flex-wrap:wrap; gap:3px; margin-top:3px} /* de etappes van het huidige level (2 t/m 8 stuks) */
+  /* etappepillen: compacter en lager dan de levelrij, die de kop van het blok is */
+  .pd-subbalk .etp{height:15px; border-radius:99px; display:flex; align-items:center;
+    font-size:8px; padding:0 7px; background:rgba(40,70,120,.13); color:#51617E}
+  .pd-subbalk .etp.af{background:var(--gold-grad); color:#3A2A00}
+  .pd-subbalk .etp.nu{box-shadow:inset 0 0 0 1.5px #3D5E9E; color:#1B2A4A}
+  .pd-balk i{flex:1 1 5px; min-width:5px; height:18px; border-radius:99px; background:rgba(40,70,120,.16)}
   .pd-balk i.vol{background:var(--gold-grad); box-shadow:0 0 5px rgba(232,148,10,.5)}
+  /* let op: font-size en font-weight los opgeven — 'inherit' mag niet in de font-shorthand,
+     dan vervalt de héle regel en erft de pil de veel te grote tekengrootte van het paspoort */
+  .pd-balk i.nu{flex:none; max-width:100%; padding:0 12px; font-size:9.5px; font-weight:bold; font-style:normal; line-height:1;
+    text-transform:uppercase; letter-spacing:.7px; white-space:nowrap;
+    display:flex; align-items:center; justify-content:center; background:var(--gold-grad); color:#3A2A00;
+    box-shadow:inset 0 0 0 1.5px #3D5E9E, 0 0 6px rgba(232,148,10,.6)}
   .pd-volgende{font-size:10.5px; color:#51617E; font-style:italic}
   .boektabs{display:flex; background:none; padding:8px 8px 0; gap:5px} /* pastel van .pasblok schijnt erdoorheen → contouren van de tabjes zichtbaar */
   .boektab{flex:1; border:none; background:var(--panel2); color:var(--muted); padding:9px 4px; font-size:13px; font-weight:bold; cursor:pointer; border-radius:10px 10px 0 0}
@@ -736,8 +756,9 @@
     <div class="statbox"><div class="v" id="r-totdiam">0</div><div class="l">💎 totaal</div></div>
   </div>
   <div class="levelbox">
-    <div id="r-level">🎒 Toerist</div>
+    <div id="r-level">Level 1 · Padvinder</div>
     <div class="levelbar"><i id="r-levelfill"></i></div>
+    <div class="etplijst" id="r-etappes" aria-label="Etappes van dit level"></div>
     <div style="font-size:13px;color:var(--muted);margin-top:6px" id="r-levelnext"></div>
   </div>
   <div class="stamps" id="r-stamps"></div>
@@ -852,8 +873,10 @@
       </div>
       <div class="pasid-stats" id="pd-velden"></div>
       <div class="pv" style="margin-top:8px"><small><i>11</i> continent-cups / trophies</small><div class="pd-cups" id="pd-cups"></div></div>
-      <div class="pd-balk" id="pd-balk" aria-label="Levelvoortgang"></div>
-      <div class="pd-subbalk" id="pd-subbalk" aria-label="Substappen binnen dit level"></div>
+      <div class="pv pd-rij"><small><i>12</i> levels / levels</small>
+        <div class="pd-balk" id="pd-balk" aria-label="Levelvoortgang"></div></div>
+      <div class="pv pd-rij"><small><i>13</i> etappes / stages</small>
+        <div class="pd-subbalk" id="pd-subbalk" aria-label="Etappes binnen dit level"></div></div>
       <div class="pd-volgende" id="pd-volgende"></div>
     </div>
     <div class="boektabs">
@@ -1230,34 +1253,63 @@ LANDEN.forEach((c,i)=>{c.idx=i;c.kleur=GROTE_LANDEN[c.id]||KLEUR_FIX[c.id]||`hsl
 const PEP_GOED=["Superknap, {n}! 🎉","Wauw {n}, jij kent {cont} steeds beter! 🌍","Geweldig gedaan! 🌟","Boem! Goed zo, {n}! 💥","Jij wordt een echte topograaf, {n}! 🗺️","Kampioen! 🏆","Yes! Weer eentje goed! ✨","Knap hoor, {n}! 🚀"];
 const PEP_FOUT=["Bijna, {n}! De volgende keer weet je 'm!","Niet erg — zó leer je het juist! 💪","Oei, nét niet! Onthoud 'm voor de volgende keer 😉","Goed geprobeerd, {n}! Op naar de volgende!"];
 const PEP_TUSSEN=["Je doet het super, {n}! 🙌","Hou vol, ontdekkingsreiziger! 🧭","De diamanten wachten op je! 💎","Wat een reis, {n}! ✈️"];
-// 20 levels × 5 sublevels = 100 stappen, gelijkmatig verdeeld over alle landen van de wereld:
-// elk land telt tot maximaal 10× goed mee (eindeloos herhalen van één land telt dus niet door).
-// De hele wereld 10× goed = level 20 vol. Weging: level 1-5 verhoudingsgewijs makkelijker (×0,5),
-// level 16-20 zwaarder (×1,5), daartussen neutraal — zo komen de eerste succesjes snel.
-// Namen zijn voorlopig (10 rangen, elk 2 levels breed) — definitieve benaming volgt nog.
-const LVL_NAMEN=["🎒 Toerist","🚌 Dagjesmens","🥾 Backpacker","🧭 Padvinder","🗺️ Kaartlezer","🚂 Reisleider","✈️ Wereldreiziger","⛵ Ontdekkingsreiziger","🔭 Topograaf","👑 Legende van de Wereld"];
-let LVL_TRAP=null; // cumulatieve drempel per substap (100 stuks), in 'goede antwoorden'-eenheden
+/* 20 rangen met samen precies 100 etappes (2,2,3,3,3,4,4,4,5,5,5,5,6,6,6,7,7,7,8,8).
+   Voortgang = per land het aantal keren goed, gecapt op 10 (anti-grind); alle categorieën tellen mee.
+   Elke etappe kost exact evenveel: drempel(n)=round(n×totaalDoel/100), cumulatief gerekend zodat
+   afrondingen niet opstapelen en drempel(100) precies totaalDoel is — de hele wereld 10× goed = level 20 vol. */
+const LVL=[
+  {n:"Padvinder",                  e:["De Eerste Voetstap","Het Kompas"]},
+  {n:"Kaartlezer",                 e:["De Windroos","De Stippellijn"]},
+  {n:"Schatzoeker",                e:["De Schatkaart","Het Kruisje","De Schatkist"]},
+  {n:"Mountainbiker",              e:["De Helm Op","De Steile Afdaling","De Finishvlag"]},
+  {n:"Backpacker",                 e:["De Volle Rugzak","De Slaapzak","De Verre Horizon"]},
+  {n:"Spoorzoeker",                e:["Het Perron","De Tunnel","De Wissel","De Stoomfluit"]},
+  {n:"Bergbeklimmer",              e:["De Rotswand","De Hangbrug","De Sneeuwgrens","De Bergtop"]},
+  {n:"Zeevaarder",                 e:["De Trossen Los","De Volle Zeilen","De Storm op Zee","Land in Zicht"]},
+  {n:"Woestijnreiziger",           e:["De Kamelenkaravaan","De Zandduinen","De Zandstorm","De Fata Morgana","De Oase"]},
+  {n:"Jungle-Gids",                e:["Het Kapmes","De Lianen","De Waterval","De Krokodillenrivier","De Verborgen Tempel"]},
+  {n:"Poolreiziger",               e:["De Hondenslee","De IJsvlakte","De IJsberen","De Sneeuwstorm","Het Noorderlicht"]},
+  {n:"Ballonvaarder",              e:["De Zandzakken Los","Boven de Wolken","De Tegenwind","De Vogelzwerm","De Zachte Landing"]},
+  {n:"Stuntpiloot",                e:["De Startbaan","De Looping","De Duikvlucht","Het Wolkendek","De Rookpluim","De Vliegshow"]},
+  {n:"Admiraal",                   e:["Het Vlaggenschip","De Vloot","De Verrekijker","De Piratenjacht","De Zeeslag","De Erehaven"]},
+  {n:"Expeditieleider",            e:["Het Basiskamp","De Proviand","Het Routeplan","De Rivieroversteek","Het Noodweer","De Geplante Vlag"]},
+  {n:"Wereldreiziger",             e:["Het Wereldticket","Het Kolosseum","De Piramides","De Taj Mahal","De Chinese Muur","Het Vrijheidsbeeld","De Thuiskomst"]},
+  {n:"Ontdekkingsreiziger",        e:["Het Scheepsjournaal","De Witte Vlek","De Onbekende Kust","Het Verloren Eiland","De Diepe Grot","De Nieuwe Zeeroute","De Nieuwe Wereld"]},
+  {n:"Meester-Ontdekker",          e:["De Oude Boekrol","Het Geheimschrift","De Verzonken Stad","De Gouden Stad","Het Vergeten Rijk","De Laatste Aanwijzing","De Meesterproef"]},
+  {n:"Legende van de Landkaart",   e:["Het Kaartenkabinet","De Vier Windstreken","De Evenaar","De Poolster","De Zeven Zeeën","De Duizend Eilanden","De Zilveren Atlas","Jouw Naam op de Kaart"]},
+  {n:"Meester van de Wereldkaart", e:["De Gouden Atlas","De Hoogste Berg","De Diepste Oceaan","De Langste Rivier","De Verste Uithoek","De Laatste Grens","De Volle Wereldkaart","De Meesterkroon"]}
+];
+// hoeveel etappes er vóór elk level liggen: 0,2,4,7,10,13,17,21,25,30,35,40,45,51,57,63,70,77,84,92
+const LVL_VANAF=(()=>{const a=[];let s=0;for(const l of LVL){a.push(s);s+=l.e.length;}return a;})();
+const LVL_ETAPPES=LVL_VANAF[19]+LVL[19].e.length; // 100
+let LVL_TRAP=null; // cumulatieve drempel per etappe (100 stuks), in 'goede antwoorden'-eenheden
 function lvlTrappen(){
   if(LVL_TRAP)return LVL_TRAP;
-  const T=LANDEN.filter(heeftKaart).length*10; // totale voortgang als álles 10× goed is
-  const w=[];for(let l=1;l<=20;l++){const g=l<=5?0.5:l>=16?1.5:1;for(let s=0;s<5;s++)w.push(g);}
-  const som=w.reduce((a,b)=>a+b,0);
-  LVL_TRAP=[];let acc=0;for(const g of w){acc+=g*T/som;LVL_TRAP.push(acc);}
+  const T=LANDEN.filter(heeftKaart).length*10; // totaalDoel: alles 10× goed
+  LVL_TRAP=[];for(let n=1;n<=LVL_ETAPPES;n++)LVL_TRAP.push(Math.round(n*T/LVL_ETAPPES));
   return LVL_TRAP;
 }
 function levelVoortgang(p){let v=0;for(const c of LANDEN){if(heeftKaart(c))v+=Math.min(10,totGoed(p,c.id));}return v;}
 function levelInfo(p){
   const tr=lvlTrappen(), v=levelVoortgang(p);
-  let stap=0; while(stap<100&&v>=tr[stap]-1e-9)stap++; // aantal afgeronde substappen (0-100)
-  const klaar=stap>=100;
-  const nr=klaar?20:Math.floor(stap/5)+1, sub=klaar?5:stap%5+1; // huidig level en substap (ster) daarbinnen
-  const naam=LVL_NAMEN[Math.min(9,Math.floor((nr-1)/2))];
+  let stap=0; while(stap<LVL_ETAPPES&&v>=tr[stap])stap++; // aantal behaalde etappes (0-100)
+  const klaar=stap>=LVL_ETAPPES;
+  let i=LVL.length-1; while(i>0&&LVL_VANAF[i]>stap)i--;   // level waar deze etappe in valt
+  const nr=i+1, etappes=LVL[i].e, gedaan=Math.min(stap-LVL_VANAF[i],etappes.length);
   const vorige=stap>0?tr[stap-1]:0, doel=klaar?null:tr[stap];
   const rest=doel?Math.max(1,Math.ceil(doel-v)):0;
-  const frac=klaar?1:(stap+(v-vorige)/(doel-vorige))/100; // totale voortgang 0-1 (voor balkjes)
-  const volgende=klaar?"Alles gehaald — Legende van de Wereld! 👑"
-    :(sub===5?`Nog ${rest} goede antwoorden tot level ${nr+1}`:`Nog ${rest} goede antwoorden tot je volgende ⭐`);
-  return {nr,sub,naam,volgende,stap,frac,klaar};
+  const frac=klaar?1:(stap+(doel>vorige?(v-vorige)/(doel-vorige):0))/LVL_ETAPPES; // totale voortgang 0-1 (voor balkjes)
+  // laatste etappe van een level = de promotie zelf: dan de volgende rang aankondigen
+  const nog=`Nog ${rest} goed${rest===1?" antwoord":"e antwoorden"}`;
+  const volgende=klaar?`Alles gehaald — ${LVL[19].n}! 👑`
+    :(gedaan===etappes.length-1&&nr<20?`${nog} tot level ${nr+1}: ${LVL[nr].n}`
+      :`${nog} tot ${etappes[gedaan]}`);
+  return {nr,naam:LVL[i].n,etappes,gedaan,volgendeEtappe:klaar?null:etappes[gedaan],volgende,stap,frac,klaar};
+}
+// etappes van het huidige level, met de behaalde gemarkeerd en de namen zichtbaar
+function etappeHtml(li){
+  return li.etappes.map((naam,i)=>
+    `<span class="etp${i<li.gedaan?" af":i===li.gedaan?" nu":""}">${i<li.gedaan?"★":"☆"} ${esc(naam)}</span>`).join("");
 }
 
 /* ================= STATE & OPSLAG ================= */
@@ -1288,12 +1340,16 @@ function speler(){
   if(!p.econ2){ // muntjes worden nu een doorlopende score; diamant = 1 per 5 goede vragen (los van bonussen)
     p.points=(p.diamonds||0)*5+(p.points||0); p.diaProg=0; p.econ2=true;
   }
-  econ3(p);
+  econ3(p);lvlEtappes(p);
   return p;
 }
 function econ3(p){ // puntensysteem v3: 5 punten per goed antwoord (was 1) — bestaande munten mee opgeschaald, xp = levelteller
   if(p.econ3)return p;
   p.points=(p.points||0)*5; p.xp=p.points; delete p.lvlData; p.econ3=true; return p;
+}
+function lvlEtappes(p){ // levels met etappes: level en etappes volgen uit de per-land-tellers, dus alleen de
+  if(p.lvlEtappes)return p; // 'bereikt op'-datums beginnen opnieuw (de levels zijn opnieuw geijkt)
+  delete p.lvlData; p.lvlEtappes=true; return p;
 }
 function logVan(p,id){p.log=p.log||{};const l=p.log[id]=p.log[id]||{lg:0,lf:0,hg:0,hf:0,vg:0,vf:0,og:0,of:0};
   if(l.og===undefined){l.og=0;l.of=0;} return l;} // og/of: vormvragen (lazy-migratie van oude opslag)
@@ -2973,10 +3029,11 @@ function eindRonde(){
   $("#r-punt").textContent=st.ronde.punt;
   $("#r-streak").textContent=st.ronde.best;
   $("#r-totdiam").textContent=p.diamonds;
-  // level (20 niveaus × 5 substappen, op basis van geleerde landen)
+  // level (20 rangen met samen 100 etappes, op basis van geleerde landen)
   const li=levelInfo(p);
-  $("#r-level").textContent=`Level ${li.nr} · ${li.naam} ${"⭐".repeat(li.sub)}${"☆".repeat(5-li.sub)}`;
+  $("#r-level").textContent=`Level ${li.nr} van 20 · ${li.naam}`;
   $("#r-levelfill").style.width=(li.frac*100)+"%";
+  $("#r-etappes").innerHTML=etappeHtml(li);
   $("#r-levelnext").textContent=li.volgende;
   const stamps=$("#r-stamps");stamps.innerHTML="";
   if(st.ronde.stempels.length){
@@ -3517,14 +3574,20 @@ function passDataSync(p){
     datum=pasDatum(p.lvlData[li.nr]);
     cups=CONT_CODES.filter(ct=>contCup(p,ct));
   }else if(DEMO&&!p){p={naam:"Finn",points:1234,diamonds:12,best:9,speeltijd:47*60000,rounds:24,perfect:2}; // voorbeeld om het ontwerp te beoordelen
-    li={nr:7,sub:3,naam:LVL_NAMEN[3],volgende:"Nog 14 goede antwoorden tot je volgende ⭐",stap:32,frac:.33};datum=pasDatum(new Date(2026,4,12));cups=["EU"];}
+    li={nr:7,naam:LVL[6].n,etappes:LVL[6].e,gedaan:2,volgendeEtappe:LVL[6].e[2],
+      volgende:`Nog 14 goede antwoorden tot ${LVL[6].e[2]}`,stap:23,frac:.23,klaar:false};
+    datum=pasDatum(new Date(2026,4,12));cups=["EU"];}
   $("#pid-naam").textContent=p&&p.naam?p.naam:"—";
   $("#pid-level").textContent=li?li.naam:"—";
   $("#pid-datum").textContent=datum;
   const balk=$("#pd-balk");
-  if(!balk.children.length)for(let i=0;i<20;i++){const s=document.createElement("i");s.title=`Level ${i+1}`;balk.appendChild(s);}
-  [...balk.children].forEach((s,i)=>s.className=li&&i<li.nr?"vol":"");
-  $("#pd-subbalk").textContent=li?"⭐".repeat(li.sub)+"☆".repeat(5-li.sub):"☆☆☆☆☆"; // de 5 substappen van het huidige level, onder de levelbalk
+  if(!balk.children.length)for(let i=0;i<20;i++){const s=document.createElement("i");s.title=`Level ${i+1} · ${LVL[i].n}`;balk.appendChild(s);}
+  [...balk.children].forEach((s,i)=>{ // het level waar je in zit draagt zijn naam, de rest blijft een smal pilletje
+    const nu=!!li&&i===li.nr-1;
+    s.className=li?(nu?"nu":(i<li.nr-1?"vol":"")):"";
+    s.textContent=nu?`${li.nr}. ${li.naam}`:"";
+  });
+  $("#pd-subbalk").innerHTML=li?etappeHtml(li):""; // de etappes van het huidige level (aantal verschilt per level)
   $("#pd-volgende").textContent=li?`Level ${li.nr} van 20 · ${li.volgende}`:"Speel een ronde om je paspoort te vullen!";
   const st6=p||{points:0,diamonds:0,best:0,speeltijd:0,rounds:0,perfect:0};
   const V=[["🪙",st6.points,"munten / coins",5],["💎",st6.diamonds,"diamanten / gems",6],["🔥",st6.best,"reeks / streak",7],
