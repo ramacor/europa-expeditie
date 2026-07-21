@@ -447,7 +447,7 @@
   .s-dubbel::before{inset:4.5px; border-width:1.2px}
   .s-ticket{width:93%; border-radius:2px; clip-path:polygon(7% 0,93% 0,100% 16%,100% 84%,93% 100%,7% 100%,0 84%,0 16%)} /* afgeschuinde hoeken (Barcelona-stijl) */
   .s-ticket::before{display:none}
-  .s-skew{width:90%; border-radius:6px; transform-origin:center; --skew:skewX(-5deg)} /* licht geschuind kader */
+  .s-recht{width:90%; border-radius:6px} /* strak rechthoekig kader (echte stempels zijn nooit scheefgetrokken) */
   .stempel10 .s-deco{position:absolute; font-weight:normal; opacity:.28; pointer-events:none; line-height:1}
   .stempel10 .s-vulband{background:currentColor; border-radius:3px; padding:1px 6px}
   .stempel10 .s-vulband i{font-style:normal; color:#F3C044; mix-blend-mode:screen}
@@ -2999,7 +2999,7 @@ function passRender(){
       let h=0;for(const ch of c.id)h=h*31+ch.charCodeAt(0);h=Math.imul(h^h>>>4,2654435761)>>>0; // goed uitgemengde hash: alle bit-keuzes variëren echt
       const INKT=["#B03A2E","#1F5FA8","#2E6E5E","#6B3FA0","#0F766E","#B4560F"];
       const kleur=INKT[(h>>>3)%INKT.length], rot=((h>>>2)%25)-12, over=2+((h>>>4)%6), dx=((h>>>6)%13)-6, top=27+((h>>>8)%5);
-      const vorm=["s-rond","s-ovaal","s-blok","s-dash","s-band","s-dubbel","s-ticket","s-skew"][h%8];
+      const vorm=["s-rond","s-ovaal","s-blok","s-dash","s-band","s-dubbel","s-ticket","s-recht"][h%8];
       const KOPPEN=["✈︎ EXPEDITIE ✈︎","★ FINN'S EXPEDITIE ★","→ AANKOMST ←","• WERELDREIZIGER •","✓ TOEGANG OK ✓","✈︎ AANKOMST ✈︎","★ ★ EXPEDITIE ★ ★"];
       const kop=KOPPEN[(h>>>5)%KOPPEN.length];
       const lg=p&&p.log&&p.log[c.id];
@@ -3012,7 +3012,7 @@ function passRender(){
       const vulband=(h>>>11)%4===0; // 1 op 4: landnaam als gevulde inktband (knockout-letters)
       const woord=c.w&&c.w[0]?c.w[0]:"";
       const onder=[woord?`“${esc(woord)}”`:"★ ★ ★","★ ★ ★",esc(c.h.toUpperCase())][(h>>>7)%3]; // woordje, sterren of hoofdstad
-      stempel=`<span class="stempel10 ${vorm}${c.n.length>11?" s-lang":""}" style="color:${kleur};top:${top}%;bottom:-${over}%;transform:translateX(calc(-50% + ${dx}px)) rotate(${rot}deg)${vorm==="s-skew"?" skewX(-5deg)":""}">`
+      stempel=`<span class="stempel10 ${vorm}${c.n.length>11?" s-lang":""}" style="color:${kleur};top:${top}%;bottom:-${over}%;transform:translateX(calc(-50% + ${dx}px)) rotate(${rot}deg)">`
         +(DECO?`<span class="s-deco" style="${decoStijl}">${DECO}</span>`:"")
         +`<span class="s-top">${kop}</span>`
         +(vulband?`<span class="s-land s-vulband"><i>${esc(c.n.toUpperCase())}</i></span>`:`<span class="s-land">${esc(c.n.toUpperCase())}</span>`)
