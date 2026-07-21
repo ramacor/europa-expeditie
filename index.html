@@ -1175,12 +1175,12 @@ const DBKEY="europa-expeditie-v1";
 let db=load();
 function load(){
   let d;try{d=JSON.parse(localStorage.getItem(DBKEY));}catch(e){}
-  if(!d||!d.players)d={players:{},last:"",settings:{oefen:"mix",stijl:"mix",aantal:"10",niveau:"1",mini:false,flits:false},muted:false};
+  if(!d||!d.players)d={players:{},last:"",settings:{continents:["EU"],oefen:"landen",stijl:"kaart",aantal:"10",niveau:"1",mini:false,flits:false},muted:false,thema:"donker"}; // eerste keer spelen: Europa, landen, aanwijzen op kaart, 10 vragen, ontdekker, donker thema
   if(!d.settings.continents)d.settings.continents=["EU"]; // continent-keuze (default Europa)
   if(d.stem===undefined)d.stem=true; // gesproken aanmoedigingen: standaard aan
   if(d.muziek===undefined)d.muziek=true; // achtergrondmuziek: standaard aan
   if(d.effecten===undefined)d.effecten=(d.muted===true?false:true); // geluidseffecten (voorheen de globale mute)
-  if(d.muziekVol===undefined)d.muziekVol=0.45; // muziekvolume (los van geluidseffecten/stem)
+  if(d.muziekVol===undefined)d.muziekVol=0.4; // muziekvolume (los van geluidseffecten/stem)
   if(d.muziekKeuze===undefined)d.muziekKeuze="expeditie"; // gekozen achtergrondtrack (default = huidige)
   return d;
 }
@@ -1663,7 +1663,7 @@ const MUZIEK_SPEL="./muziek/spel.mp3";
 let mMenu=null, mSpel=null, muziekOntgrendeld=false, muziekDoel="menu";
 function muziekAan(){ return db.muziek!==false; } // eigen knop; los van geluidseffecten/stem
 function menuTrackSrc(){ const t=MUZIEK_TRACKS.find(x=>x.key===db.muziekKeuze)||MUZIEK_TRACKS[0]; return t.src; }
-function muziekVolPas(){ const v=(db.muziekVol==null?0.45:db.muziekVol); if(mMenu)mMenu.volume=v; if(mSpel)mSpel.volume=v*0.65; } // alleen muziek, niet effecten/stem
+function muziekVolPas(){ const v=(db.muziekVol==null?0.4:db.muziekVol); if(mMenu)mMenu.volume=v; if(mSpel)mSpel.volume=v*0.65; } // alleen muziek, niet effecten/stem
 function muziekInit(){
   if(mMenu)return;
   mMenu=new Audio(menuTrackSrc()); mMenu.loop=true;
@@ -3134,7 +3134,7 @@ function muziekPopSync(){
   $("#mp-fx").classList.toggle("aan",db.effecten!==false);
   $("#mp-stem").classList.toggle("aan",stemAan());
   $("#mp-aan").classList.toggle("aan",muziekAan());
-  const v=(db.muziekVol==null?0.45:db.muziekVol);
+  const v=(db.muziekVol==null?0.4:db.muziekVol);
   $("#mp-vol").value=v; $("#mp-volval").textContent=Math.round(v*100)+"%";
   const cont=$("#mp-tracks"); cont.innerHTML="";
   MUZIEK_TRACKS.forEach(t=>{
