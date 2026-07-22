@@ -4236,7 +4236,7 @@ function passDataSync(p){
       etappeTekst:`Nog 14 goede antwoorden tot ${LVL[6].e[2]}`,stap:23,frac:.23,klaar:false};
     datum=pasDatum(new Date(2026,4,12));cups=["EU"];}
   $("#pid-naam").textContent=p&&p.naam?p.naam:"—";
-  $("#pid-level").textContent=li?li.naam:"—";
+  $("#pid-level").textContent=li?`Level ${li.nr}: ${li.naam}`:"—";
   $("#pid-datum").textContent=datum;
   const balk=$("#pd-balk");
   if(!balk.children.length)for(let i=0;i<20;i++){const s=document.createElement("i");s.title=`Level ${i+1} · ${LVL[i].n}`;balk.appendChild(s);}
