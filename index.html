@@ -579,6 +579,86 @@
   .pk-goud{fill:#F1B62B; animation:pkgoud 2s ease-in-out infinite}
   @keyframes pkgoud{0%,100%{filter:drop-shadow(0 0 2px rgba(247,201,72,.6))}50%{filter:drop-shadow(0 0 9px rgba(247,201,72,1)) brightness(1.15)}}
   .pklegenda{display:flex; gap:16px; font-size:12px; margin-top:10px; justify-content:center; flex-wrap:wrap}
+  /* ---------- Schatkist-tab (de winkel): schat tonen, land kiezen op de globe, kopen met korting ---------- */
+  .schatverdien{display:flex; flex-wrap:wrap; gap:5px; margin-bottom:12px}
+  .schatverdien>span{background:var(--panel2); border-radius:999px; padding:5px 11px; font-size:12px} /* alleen de chips zelf — niet de geneste robijn-span */
+  .schatverdien b{white-space:nowrap}
+  /* de schatkist zelf: houten kist met gouden beslag, deksel-naad en binnenwaartse schaduw */
+  .schatkist{position:relative; background:linear-gradient(180deg,#8A5A2B,#6B4320 55%,#57351A); border:3px solid #D9A441;
+    border-radius:16px; padding:11px 14px 10px; color:#FFE9B8; box-shadow:inset 0 0 26px rgba(0,0,0,.38), 0 4px 14px rgba(0,0,0,.25)}
+  .schatkist::before{content:""; position:absolute; left:0; right:0; top:34px; height:3px; background:#D9A441; opacity:.5; pointer-events:none}
+  .schatkist-kop{font-size:13px; font-weight:800; letter-spacing:1.6px; text-transform:uppercase; margin-bottom:18px} /* ruim boven de eerste muntenrij: de deksel-naad (::before) loopt hier tussendoor */
+  .schatrij{display:flex; align-items:baseline; gap:10px; margin-top:7px} /* teller en muntenrij op één lijn */
+  .schattal{flex:none; min-width:76px; font-size:17px; font-variant-numeric:tabular-nums}
+  /* de rijkdom uitgeteld: 1 🪙 = 10 muntjes (één goed antwoord), 1 💰 = 500, diamanten stuk voor stuk
+     — zelfde tekengrootte als de teller ervoor, zodat alles netjes uitlijnt */
+  .muntstapel,.diamstapel{display:flex; flex-wrap:wrap; gap:2px; line-height:1.2; font-size:17px; align-content:flex-start}
+  .muntstapel .zak{margin-right:1px}
+  .muntstapel .meer,.diamstapel .meer{font-size:12px; font-weight:bold; margin-left:4px; white-space:nowrap}
+  .schatvoet{display:block; margin-top:9px; font-size:10px; opacity:.75}
+  .kortingband{display:flex; flex-wrap:wrap; gap:5px; align-items:center; margin:12px 0}
+  .kkop{font-size:12.5px; font-weight:bold}
+  .ktrede{background:var(--panel2); border-radius:999px; padding:4px 10px; font-size:12px; opacity:.75}
+  .ktrede.aan{background:var(--gold-grad); color:#3A2A00; font-weight:bold; opacity:1}
+  /* infopaneel van het aangetikte land */
+  .schatpaneel{margin-top:12px; background:var(--panel2); border-radius:14px; padding:13px 14px; animation:paneelplof .3s ease both}
+  @keyframes paneelplof{from{transform:translateY(8px); opacity:0}}
+  .schatpaneel h3{margin:0 0 2px; font-size:19px; display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+  .sp-badge{font-size:11.5px; background:var(--gold-grad); color:#3A2A00; border-radius:999px; padding:3px 10px; font-weight:800; letter-spacing:.4px}
+  /* landfeiten als mini-tegeltjes naast elkaar: klein kopje, dikke waarde (zelfde idee als de paspoort-veldjes) */
+  .sp-feiten{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:7px; margin-top:10px}
+  .spf{background:color-mix(in srgb, var(--inkt) 8%, transparent); border-radius:10px; padding:7px 11px; min-width:0}
+  .spf small{display:block; font-size:9.5px; font-weight:bold; text-transform:uppercase; letter-spacing:.6px; opacity:.6; margin-bottom:1px; white-space:nowrap}
+  .spf b{font-size:14.5px; overflow-wrap:break-word}
+  /* het prijskaartje: gestippeld goud kader rond het sommetje munten + diamanten − korting = prijs */
+  .sp-kaartje{display:flex; align-items:baseline; gap:12px; margin-top:10px; padding:9px 13px;
+    background:color-mix(in srgb, #F1B62B 13%, transparent); border:1.5px dashed #D9A441; border-radius:11px}
+  .sp-kaartje small{font-size:13px; font-weight:bold; text-transform:uppercase; letter-spacing:.7px; opacity:.75; white-space:nowrap} /* bijna even groot als het bedrag erachter */
+  .sp-prijs{font-size:16px; font-variant-numeric:tabular-nums}
+  /* saldo-strook: groen = je kunt het kopen, rood = nog sparen, grijs = nog geen speler */
+  .sp-saldo{margin-top:8px; font-size:13px; line-height:1.5; border-radius:10px; padding:8px 12px}
+  .sp-saldo.ok{background:color-mix(in srgb, #3BA55D 16%, transparent)}
+  .sp-saldo.niet{background:color-mix(in srgb, #C4485C 13%, transparent)}
+  .sp-saldo.leeg{background:color-mix(in srgb, var(--inkt) 8%, transparent)}
+  .sp-kortinfo{margin-top:8px; font-size:12px; opacity:.7}
+  /* eigendomsrij: korte gouden banner + verkoopknop (in een afwijkende kleur) ernaast */
+  .sp-eigenrij{display:flex; gap:8px; margin-top:10px; align-items:stretch; flex-wrap:wrap}
+  .sp-eigen{flex:1; min-width:190px; display:flex; align-items:center; background:var(--gold-grad); color:#3A2A00; font-weight:bold; border-radius:11px; padding:10px 13px; font-size:14px}
+  .verkoopknop{flex:none; border:none; border-radius:11px; padding:10px 15px; font-size:13.5px; font-weight:800; cursor:pointer;
+    background:linear-gradient(135deg,#8E3B4B,#C4485C); color:#fff; box-shadow:0 3px 9px rgba(0,0,0,.25)}
+  .verkoopknop:hover{filter:brightness(1.08)}
+  .sp-tekort{color:#C4485C; font-weight:bold}
+  .koopknop{margin-top:11px; width:100%; border:none; border-radius:14px; padding:13px; font-size:16.5px; font-weight:800; cursor:pointer;
+    background:var(--gold-grad); color:#3A2A00; box-shadow:0 4px 12px rgba(0,0,0,.25)}
+  .koopknop:disabled{opacity:.45; cursor:not-allowed}
+  /* ---------- Schatten: goudstaaf (3D-SVG #staafsym, naar goudstaaf.jpg) en robijn (roodgekleurde diamant) ---------- */
+  .gstaaf{display:inline-block; width:1.35em; height:.73em; vertical-align:-.08em}
+  .robijn{filter:hue-rotate(155deg) saturate(1.8) brightness(.95)}
+  /* robijn- en level-pop-up: bijzondere momenten — actief wegklikken */
+  #robijnpop,#levelpop{position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:95;
+    background:rgba(8,12,30,.72); padding:18px}
+  #robijnpop.open,#levelpop.open{display:flex}
+  .edelcard{background:var(--panel); border-radius:22px; box-shadow:var(--shadow); width:min(480px,100%); max-height:88vh; overflow-y:auto;
+    padding:26px 24px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:12px}
+  .edelcard .diamant3d{font-size:110px}
+  .edelcard .bigbtn{width:100%; margin-top:6px}
+  .robijnt{background:linear-gradient(135deg,#8E1F2C,#E4536B); color:#fff}
+  .rp-reden{font-size:16px; font-weight:bold; text-wrap:balance}
+  .rp-waarde{font-size:13.5px; color:var(--muted)}
+  .lp-feest{font-size:64px; line-height:1}
+  .edelcard h2{margin:0; font-size:24px; text-wrap:balance}
+  .lp-beloning{background:var(--gold-grad); color:#3A2A00; font-weight:800; border-radius:999px; padding:8px 18px; font-size:15px}
+  .lp-volgend{background:var(--panel2); border-radius:14px; padding:12px 14px; font-size:14px; width:100%}
+  .lp-volgend .etplijst{margin-top:8px}
+  .schattotaal{border-top:1px solid rgba(217,164,65,.5); padding-top:8px; margin-top:10px; font-size:14.5px; font-weight:bold}
+  /* Mijn koninkrijk: vlaggen van je gekochte landen — tik op een vlag om het land op de globe te bekijken */
+  .rijk{margin-top:12px; background:color-mix(in srgb, #F1B62B 10%, transparent); border:2px solid #D9A441; border-radius:14px; padding:11px 13px}
+  .rijk-kop{font-size:13px; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; margin-bottom:8px}
+  .rijk-kop span{opacity:.7; font-weight:600; letter-spacing:0; text-transform:none}
+  .rijk-vlaggen{display:flex; flex-wrap:wrap; gap:6px}
+  .rijkvlag{border:none; background:var(--panel2); border-radius:10px; padding:5px 9px; font-size:24px; line-height:1.15; cursor:pointer; transition:transform .12s}
+  .rijkvlag:hover{transform:scale(1.15)}
+  .rijk-vlaggen .meer{font-size:12.5px; opacity:.75; align-self:center}
   /* verweerde inktstempels (drie vormen, geïnspireerd op echte visumstempels); plek/draai/kleur per land */
   .stempel10{position:absolute; left:50%; display:flex; flex-direction:column; align-items:center; justify-content:center;
     border:2.5px solid currentColor; font-weight:bold; line-height:1.12; text-align:center; pointer-events:none;
@@ -673,6 +753,23 @@
   }
 </style>
 
+<!-- gedeelde 3D-goudstaaf (naar goudstaaf.jpg): glanzend bovenvlak, taps toelopende voorkant, glansstreep -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <linearGradient id="stf-top" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#FFF7C8"/><stop offset=".55" stop-color="#FBDA5E"/><stop offset="1" stop-color="#F2C232"/>
+  </linearGradient>
+  <linearGradient id="stf-voor" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#EFB222"/><stop offset=".5" stop-color="#D3930F"/><stop offset="1" stop-color="#9E6708"/>
+  </linearGradient>
+  <g id="staafsym">
+    <path d="M15 62 L245 62 L212 124 L48 124 Z" fill="url(#stf-voor)"/>
+    <path d="M100 62 L138 62 L118 124 L86 124 Z" fill="rgba(255,255,255,.22)"/><!-- glans op de voorkant -->
+    <path d="M45 16 L215 16 L245 62 L15 62 Z" fill="url(#stf-top)" stroke="#C9880F" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M84 16 L118 16 L92 62 L64 62 Z" fill="rgba(255,255,255,.45)"/><!-- glansstreep over het bovenvlak -->
+    <path d="M15 62 L245 62" stroke="#8F5D06" stroke-width="2"/><!-- rand tussen boven- en voorvlak -->
+  </g>
+</defs></svg>
+
 <!-- ============ STARTSCHERM ============ -->
 <div class="screen active" id="s-start">
   <div class="topknoppen">
@@ -684,9 +781,9 @@
     <h1>Finn's Expeditie</h1>
     <p>Ontdek de landen, hoofdsteden en vlaggen van de hele wereld. Verdien muntjes, spaar diamanten en word een echte wereldkampioen topografie!</p>
     <div class="rules">
-      <span>✅ goed = 5 🪙</span>
-      <span>🎯⚡ moeilijk of bliksem = 10 🪙</span>
-      <span>💎 5 goed = diamant</span>
+      <span>✅ goed = 10 🪙</span>
+      <span>🎯⚡ moeilijk of bliksem = 20 🪙</span>
+      <span><svg class="gstaaf" viewBox="0 0 260 140" aria-hidden="true"><use href="#staafsym"/></svg> 10 goed = goudstaaf</span>
       <span>🔥 3 op rij = bonus</span>
     </div>
   </div>
@@ -810,7 +907,9 @@
     <span id="hud-vraag">Vraag 1/10</span>
     <span id="hud-voortgang" aria-label="Voortgang van de ronde"></span>
     <span class="stat" id="hud-munt" title="Muntjes verdiend">🪙 0</span>
-    <span class="stat" id="hud-diamant" title="Diamanten (1 per 5 goede vragen)">💎 0</span>
+    <span class="stat" id="hud-staaf" title="Goudstaven — 1 per 10 goede vragen (waarde: 100 muntjes)"><svg class="gstaaf" viewBox="0 0 260 140" aria-hidden="true"><use href="#staafsym"/></svg> 0</span>
+    <span class="stat" id="hud-diamant" title="Blauwe diamanten — 1 per gehaald level (waarde: 500 muntjes)">💎 0</span>
+    <span class="stat" id="hud-robijn" title="Robijnen — continent-cups en level 10 (waarde: 1000 muntjes)"><span class="robijn">💎</span> 0</span>
     <span class="stat" id="hud-streak">🔥 0</span>
     <button class="iconbtn" id="b-mute" title="Geluid &amp; muziek" aria-label="Geluid- en muziekinstellingen">🔊</button>
   </div>
@@ -847,13 +946,13 @@
   <div class="hero"><span class="globe" id="herobol">🌍</span></div>
   <h1 id="r-titel">Ronde klaar!</h1>
   <div class="resgems" id="r-gems"></div>
-  <div id="r-perfect" style="display:none">🏆 PERFECTE RONDE — bonus: +1 💎!</div>
+  <div id="r-perfect" style="display:none">🏆 PERFECTE RONDE — bonus: +🪙 50!</div>
   <div id="r-motor"></div>
   <div class="statgrid">
     <div class="statbox"><div class="v" id="r-goed">0</div><div class="l">Goed</div></div>
     <div class="statbox"><div class="v" id="r-punt">0</div><div class="l">🪙 Muntjes</div></div>
     <div class="statbox"><div class="v" id="r-streak">0</div><div class="l">Beste reeks</div></div>
-    <div class="statbox"><div class="v" id="r-totdiam">0</div><div class="l">💎 totaal</div></div>
+    <div class="statbox"><div class="v" id="r-totdiam">0</div><div class="l">💰 Schat waard (🪙)</div></div>
   </div>
   <div class="levelbox">
     <div id="r-level">Level 1 · Padvinder</div>
@@ -899,8 +998,8 @@
     <h2 id="w-titel">👋 Welkom terug!</h2>
     <div class="sub" id="w-sub">Kijk eens wat je al bij elkaar hebt gespeeld:</div>
     <div class="statgrid">
-      <div class="statbox"><div class="v" id="w-diam">0</div><div class="l">💎 Diamanten</div></div>
-      <div class="statbox"><div class="v" id="w-punt">0</div><div class="l">🪙 Muntjes verdiend</div></div>
+      <div class="statbox"><div class="v" id="w-diam">0</div><div class="l">💰 Schat waard (🪙)</div></div>
+      <div class="statbox"><div class="v" id="w-punt">0</div><div class="l">🪙 Muntjes</div></div>
       <div class="statbox"><div class="v" id="w-tijd">0</div><div class="l">⏱️ Minuten gespeeld</div></div>
       <button class="statbox" id="w-pastegel" title="Bekijk je reispaspoort" style="border:2px dashed var(--accent); cursor:pointer; font:inherit">
         <div class="v" id="w-pas">0</div><div class="l">📔 Landen in paspoort · tik!</div>
@@ -972,11 +1071,11 @@
         </div>
       </div>
       <div class="pasid-stats" id="pd-velden"></div>
-      <div class="pv" style="margin-top:8px"><small><i>11</i> continent-cups / trophies</small><div class="pd-cups" id="pd-cups"></div></div>
-      <div class="pv pd-rij"><small><i>12</i> levels / levels</small>
+      <div class="pv" style="margin-top:8px"><small><i>13</i> continent-cups / trophies</small><div class="pd-cups" id="pd-cups"></div></div>
+      <div class="pv pd-rij"><small><i>14</i> levels / levels</small>
         <div class="pd-balk" id="pd-balk" aria-label="Levelvoortgang"></div>
         <div class="pd-onder" id="pd-levelinfo"></div></div>
-      <div class="pv pd-rij"><small><i>13</i> etappes / stages</small>
+      <div class="pv pd-rij"><small><i>15</i> etappes / stages</small>
         <div class="pd-subbalk" id="pd-subbalk" aria-label="Etappes binnen dit level"></div>
         <div class="pd-onder" id="pd-volgende"></div></div>
     </div>
@@ -984,6 +1083,7 @@
       <button class="boektab actief" data-tab="stempels">📔 Stempels</button>
       <button class="boektab" data-tab="kaart">🗺️ Kaart</button>
       <button class="boektab" data-tab="leader">🏅 Toplijst</button>
+      <button class="boektab" data-tab="schat">💰 Schatkist</button>
     </div>
     </div>
     <div class="boekpagina">
@@ -1003,6 +1103,44 @@
         <div class="sub">🌍 Draai de globe! Jouw veroverde wereld: 5× goed = zilver, 10× goed = goud.</div>
         <div id="pk-houder"></div>
         <div class="pklegenda"><span>⬜ nog te ontdekken</span><span>🥈 5× goed</span><span>🥇 10× goed</span></div>
+      </div>
+      <div id="pass-schat" style="display:none">
+        <div class="sub">💰 Dit is de winkel van het spel: verdien muntjes, goudstaven, diamanten en robijnen met spelen — en koop er landen mee!</div>
+        <div class="schatverdien">
+          <span>✅ Goed antwoord = <b>🪙 10</b></span>
+          <span>🎯⚡ Moeilijk of bliksem = <b>🪙 20</b></span>
+          <span>🔥 3 op een rij = <b>🪙 +10 bonus</b></span>
+          <span>🌟 Perfecte ronde = <b>🪙 +50 bonus</b></span>
+          <span>🔟 Elke 10 goed = <b><svg class="gstaaf" viewBox="0 0 260 140" aria-hidden="true"><use href="#staafsym"/></svg> 1 goudstaaf</b></span>
+          <span>⏱️ Elke 10 minuten spelen = <b><svg class="gstaaf" viewBox="0 0 260 140" aria-hidden="true"><use href="#staafsym"/></svg> 1</b></span>
+          <span>🚩 Etappe gehaald = <b><svg class="gstaaf" viewBox="0 0 260 140" aria-hidden="true"><use href="#staafsym"/></svg> 1</b></span>
+          <span>🆙 Level gehaald = <b>💎 1 diamant</b></span>
+          <span>🏆 Continent-cup = <b><span class="robijn">💎</span> 1 robijn</b></span>
+          <span>👑 Level 10 bereikt = <b><span class="robijn">💎</span> 1 robijn</b></span>
+        </div>
+        <div class="schatkist">
+          <div class="schatkist-kop">🗝️ Jouw schatkist</div>
+          <div class="schatrij"><b class="schattal" id="schat-munt-tal">🪙 0</b><div class="muntstapel" id="schat-munt-vis"></div></div>
+          <div class="schatrij"><b class="schattal" id="schat-staaf-tal"><svg class="gstaaf" viewBox="0 0 260 140" aria-hidden="true"><use href="#staafsym"/></svg> 0</b><div class="diamstapel" id="schat-staaf-vis"></div></div>
+          <div class="schatrij"><b class="schattal" id="schat-diam-tal">💎 0</b><div class="diamstapel" id="schat-diam-vis"></div></div>
+          <div class="schatrij"><b class="schattal" id="schat-rob-tal"><span class="robijn">💎</span> 0</b><div class="diamstapel" id="schat-rob-vis"></div></div>
+          <div class="schatrij schattotaal"><b class="schattal">💰</b><div id="schat-totaal">Samen 🪙 0 waard</div></div>
+          <small class="schatvoet">1 🪙-icoon = 10 muntjes · 1 💰 = 500 · goudstaaf <svg class="gstaaf" viewBox="0 0 260 140" aria-hidden="true"><use href="#staafsym"/></svg> = 🪙 100 · diamant 💎 = 🪙 500 · robijn <span class="robijn">💎</span> = 🪙 1.000</small>
+        </div>
+        <div class="rijk">
+          <div class="rijk-kop">👑 Mijn koninkrijk <span id="rijk-tal"></span></div>
+          <div class="rijk-vlaggen" id="rijk-vlaggen"></div>
+        </div>
+        <div class="kortingband">
+          <span class="kkop">🏷️ Vaak goed geraden = korting:</span>
+          <span class="ktrede" data-kt="3">✔ 3× goed <b>−10%</b></span>
+          <span class="ktrede" data-kt="5">✔ 5× goed <b>−25%</b></span>
+          <span class="ktrede" data-kt="10">✔ 10× goed <b>−50%</b></span>
+        </div>
+        <div class="sub" style="margin-bottom:8px">🌍 Draai de globe en tik op een land om te zien wat het kost!</div>
+        <div id="ps-houder"></div>
+        <div class="pklegenda"><span>⬜ nog te koop</span><span>👑 gekocht — goud: jouw koninkrijk!</span></div>
+        <div id="schat-land"></div>
       </div>
       <div id="pass-leader" style="display:none">
         <div class="sub">Welke landen ken jij het best? Jouw toplijst:</div>
@@ -1038,14 +1176,33 @@
     <button class="bigbtn" id="mp-sluit">Klaar</button>
   </div>
 </div>
-<div id="diamantpop" aria-hidden="true">
-  <div class="diamant3d">💎</div>
-  <div class="diamanttekst">DIAMANT VERDIEND!</div>
+<div id="diamantpop" aria-hidden="true"><!-- korte schat-viering (verdwijnt vanzelf): goudstaaf, diamant, etappe… -->
+  <div class="diamant3d" id="dp-icoon">💎</div>
+  <div class="diamanttekst" id="dp-tekst">DIAMANT VERDIEND!</div>
+  <div class="perfectsub" id="dp-sub" style="margin-top:10px"></div>
 </div>
 <div id="perfectpop" aria-hidden="true">
   <div class="trofee3d">🏆</div>
   <div class="perfecttekst">PERFECTE RONDE!</div>
-  <div class="perfectsub">Alle vragen goed — bonus: +1 💎</div>
+  <div class="perfectsub">Alle vragen goed — bonus: +🪙 50</div>
+</div>
+<div id="robijnpop" aria-hidden="true"><!-- bijzonder moment: robijn gewonnen — actief wegklikken -->
+  <div class="edelcard">
+    <div class="diamant3d" id="rp-gem"><span class="robijn">💎</span></div>
+    <div class="diamanttekst robijnt">ROBIJN GEWONNEN!</div>
+    <div class="rp-reden" id="rp-reden"></div>
+    <div class="rp-waarde">1 robijn is maar liefst 🪙 1.000 waard!</div>
+    <button class="bigbtn" id="rp-verder">🤩 Geweldig!</button>
+  </div>
+</div>
+<div id="levelpop" aria-hidden="true"><!-- level gehaald: wat je afrondde, wat je krijgt en wat het volgende level is -->
+  <div class="edelcard">
+    <div class="lp-feest">🎉</div>
+    <h2 id="lp-titel">Level gehaald!</h2>
+    <div class="lp-beloning" id="lp-beloning"></div>
+    <div class="lp-volgend" id="lp-volgend"></div>
+    <button class="bigbtn" id="lp-verder">🚀 Op naar het volgende level!</button>
+  </div>
 </div>
 <div id="fotogroot" aria-hidden="true">
   <img id="fg-img" alt="">
@@ -1076,7 +1233,7 @@ const DATA_KLAAR=(async()=>{
 </script>
 <script>
 "use strict";
-const VERSIE="53"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="54"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -1351,6 +1508,11 @@ const GROTE_LANDEN={
 const KLEUR_FIX={DE:"hsl(204 62% 60%)",CH:"hsl(2 62% 60%)",PL:"hsl(330 62% 60%)",HU:"hsl(74 62% 60%)",HR:"hsl(160 62% 60%)",LT:"hsl(212 62% 60%)",BG:"hsl(147 62% 60%)",AF:"hsl(122 62% 60%)",CG:"hsl(295 62% 60%)",NE:"hsl(178 62% 60%)",CI:"hsl(7 62% 60%)",MR:"hsl(250 62% 60%)"};
 LANDEN.forEach((c,i)=>{c.idx=i;c.kleur=GROTE_LANDEN[c.id]||KLEUR_FIX[c.id]||`hsl(${Math.round((i*137.508+14)%360)} 62% 60%)`;});
 
+// inwoners in miljoenen (Natural Earth POP_EST) — bepaalt de prijs van een land in de schatkist
+// landoppervlakte in km² (uit Natural Earth berekend; ministaatjes en afwijkende gevallen op encyclopedische waarde gezet)
+const OPPERVLAK={AD:468,AE:71400,AF:644000,AG:442,AL:28400,AM:29600,AO:1250000,AR:2790000,AT:83900,AU:7720000,AZ:86300,BA:51800,BB:430,BD:138000,BE:30600,BF:274000,BG:113000,BH:786,BI:27200,BJ:117000,BN:5770,BO:1090000,BR:8520000,BS:13900,BT:40600,BW:582000,BY:207000,BZ:22400,CA:9920000,CD:2340000,CF:622000,CG:347000,CH:41400,CI:323000,CL:738000,CM:467000,CN:9600000,CO:1140000,CR:51500,CU:110000,CV:4030,CY:9250,CZ:78700,DE:357000,DJ:22000,DK:42600,DM:750,DO:48700,DZ:2320000,EC:257000,EE:45700,EG:1010000,EH:266000,ER:123000,ES:507000,ET:1130000,FI:332000,FJ:18300,FM:702,FR:644000,GA:262000,GB:243000,GD:344,GE:69600,GF:83500,GH:240000,GM:10600,GN:246000,GQ:26900,GR:132000,GT:109000,GW:33000,GY:213000,HN:113000,HR:55000,HT:27000,HU:93200,ID:1890000,IE:69300,IL:22200,IN:3290000,IQ:439000,IR:1630000,IS:102000,IT:301000,JM:11100,JO:89100,JP:374000,KE:590000,KG:199000,KH:182000,KI:811,KM:1860,KN:261,KP:123000,KR:98700,KW:17500,KZ:2720000,LA:229000,LB:10000,LC:616,LI:160,LK:66700,LR:95900,LS:30200,LT:64800,LU:2610,LV:64400,LY:1630000,MA:447000,MC:2,MD:33200,ME:13700,MG:596000,MH:181,MK:25400,ML:1260000,MM:666000,MN:1560000,MR:1040000,MT:316,MU:2020,MV:298,MW:120000,MX:1970000,MY:330000,MZ:793000,NA:827000,NE:1190000,NG:913000,NI:129000,NL:41500,NO:380000,NP:148000,NR:21,NZ:269000,OM:313000,PA:75000,PE:1300000,PG:468000,PH:295000,PK:876000,PL:313000,PT:91500,PW:459,PY:402000,QA:11200,RO:236000,RS:77600,RU:17100000,RW:25500,SA:1930000,SB:28900,SC:452,SD:1870000,SE:444000,SG:728,SI:20300,SK:48400,SL:72100,SM:61,SN:197000,SO:475000,SR:146000,SS:631000,ST:964,SV:20700,SY:186000,SZ:17200,TD:1270000,TG:57200,TH:517000,TJ:142000,TL:15200,TM:472000,TN:157000,TO:747,TR:781000,TT:5130,TV:26,TW:36400,TZ:948000,UA:604000,UG:243000,US:9830000,UY:178000,UZ:448000,VA:0.44,VC:389,VE:919000,VN:331000,VU:12200,WS:2830,XK:10900,YE:456000,ZA:1220000,ZM:756000,ZW:391000};
+const INWONERS={AD:0.08,AE:9.8,AF:38,AG:0.1,AL:2.9,AM:3,AO:31.8,AR:44.9,AT:8.9,AU:25.4,AZ:10,BA:3.3,BB:0.29,BD:163,BE:11.5,BF:20.3,BG:7,BH:1.6,BI:11.5,BJ:11.8,BN:0.43,BO:11.5,BR:211,BS:0.39,BT:0.76,BW:2.3,BY:9.5,BZ:0.39,CA:37.6,CD:86.8,CF:4.7,CG:5.4,CH:8.6,CI:25.7,CL:19,CM:25.9,CN:1397.7,CO:50.3,CR:5,CU:11.3,CV:0.55,CY:1.2,CZ:10.7,DE:83.1,DJ:0.97,DK:5.8,DM:0.07,DO:10.7,DZ:43.1,EC:17.4,EE:1.3,EG:100.4,EH:0.6,ER:6.1,ES:47.1,ET:112.1,FI:5.5,FJ:0.89,FM:0.11,FR:67.1,GA:2.2,GB:66.8,GD:0.11,GE:3.7,GF:0.3,GH:30.4,GM:2.3,GN:12.8,GQ:1.4,GR:10.7,GT:16.6,GW:1.9,GY:0.78,HN:9.7,HR:4.1,HT:11.3,HU:9.8,ID:270.6,IE:4.9,IL:9.1,IN:1366.4,IQ:39.3,IR:82.9,IS:0.36,IT:60.3,JM:2.9,JO:10.1,JP:126.3,KE:52.6,KG:6.5,KH:16.5,KI:0.12,KM:0.85,KN:0.05,KP:25.7,KR:51.7,KW:4.2,KZ:18.5,LA:7.2,LB:6.9,LC:0.18,LI:0.04,LK:21.8,LR:4.9,LS:2.1,LT:2.8,LU:0.62,LV:1.9,LY:6.8,MA:36.5,MC:0.04,MD:2.7,ME:0.62,MG:27,MH:0.06,MK:2.1,ML:19.7,MM:54,MN:3.2,MR:4.5,MT:0.5,MU:1.3,MV:0.53,MW:18.6,MX:127.6,MY:31.9,MZ:30.4,NA:2.5,NE:23.3,NG:201,NI:6.5,NL:17.3,NO:5.3,NP:28.6,NR:0.01,NZ:4.9,OM:5,PA:4.2,PE:32.5,PG:8.8,PH:108.1,PK:216.6,PL:38,PT:10.3,PW:0.02,PY:7,QA:2.8,RO:19.4,RS:6.9,RU:144.4,RW:12.6,SA:34.3,SB:0.67,SC:0.1,SD:42.8,SE:10.3,SG:5.7,SI:2.1,SK:5.5,SL:7.8,SM:0.03,SN:16.3,SO:10.2,SR:0.58,SS:11.1,ST:0.22,SV:6.5,SY:17.1,SZ:1.1,TD:15.9,TG:8.1,TH:69.6,TJ:9.3,TL:1.3,TM:5.9,TN:11.7,TO:0.1,TR:83.4,TT:1.4,TV:0.01,TW:23.6,TZ:58,UA:44.4,UG:44.3,US:328.2,UY:3.5,UZ:33.6,VA:0.0008,VC:0.11,VE:28.5,VN:96.5,VU:0.3,WS:0.2,XK:1.8,YE:29.2,ZA:58.6,ZM:17.9,ZW:14.6};
+
 const PEP_GOED=["Superknap, {n}! 🎉","Wauw {n}, jij kent {cont} steeds beter! 🌍","Geweldig gedaan! 🌟","Boem! Goed zo, {n}! 💥","Jij wordt een echte topograaf, {n}! 🗺️","Kampioen! 🏆","Yes! Weer eentje goed! ✨","Knap hoor, {n}! 🚀"];
 const PEP_FOUT=["Bijna, {n}! De volgende keer weet je 'm!","Niet erg — zó leer je het juist! 💪","Oei, nét niet! Onthoud 'm voor de volgende keer 😉","Goed geprobeerd, {n}! Op naar de volgende!"];
 const PEP_TUSSEN=["Je doet het super, {n}! 🙌","Hou vol, ontdekkingsreiziger! 🧭","De diamanten wachten op je! 💎","Wat een reis, {n}! ✈️"];
@@ -1387,8 +1549,9 @@ let LVL_TRAP=null; // cumulatieve drempel per etappe (100 stuks), in 'goede antw
 function lvlTrappen(){
   if(LVL_TRAP)return LVL_TRAP;
   const T=LANDEN.filter(heeftKaart).length*10; // totaalDoel: alles 10× goed
-  LVL_TRAP=[];for(let n=1;n<=LVL_ETAPPES;n++)LVL_TRAP.push(Math.round(n*T/LVL_ETAPPES));
-  return LVL_TRAP;
+  const tr=[];for(let n=1;n<=LVL_ETAPPES;n++)tr.push(Math.round(n*T/LVL_ETAPPES));
+  if(T>0)LVL_TRAP=tr; // kaarten nog niet geladen → niets cachen (anders blijven de drempels voorgoed 0)
+  return tr;
 }
 function levelVoortgang(p){let v=0;for(const c of LANDEN){if(heeftKaart(c))v+=Math.min(10,totGoed(p,c.id));}return v;}
 function levelInfo(p){
@@ -1441,7 +1604,8 @@ function load(){
 function save(){try{localStorage.setItem(DBKEY,JSON.stringify(db));}catch(e){}}
 function speler(){
   const k=st.naam.toLowerCase();
-  if(!db.players[k])db.players[k]={naam:st.naam,diamonds:0,points:0,xp:0,best:0,rounds:0,goedTotaal:0,speeltijd:0,pass:{},log:{},econ3:true};
+  if(!db.players[k])db.players[k]={naam:st.naam,diamonds:0,points:0,staven:0,stafProg:0,robijnen:0,xp:0,best:0,rounds:0,goedTotaal:0,speeltijd:0,
+    beloondeStap:0,beloondLevel:1,beloondeCups:[],tijdBeloond:0,pass:{},log:{},econ3:true,econ4:true,econ5:true};
   const p=db.players[k];
   if(!p.log){ // migratie: oude tellers omzetten naar de nieuwe logging per categorie
     p.log={};
@@ -1451,13 +1615,35 @@ function speler(){
   if(!p.econ2){ // muntjes worden nu een doorlopende score; diamant = 1 per 5 goede vragen (los van bonussen)
     p.points=(p.diamonds||0)*5+(p.points||0); p.diaProg=0; p.econ2=true;
   }
-  econ3(p);lvlEtappes(p);
+  econ3(p);econ4(p);econ5(p);lvlEtappes(p);
   return p;
 }
 function econ3(p){ // puntensysteem v3: 5 punten per goed antwoord (was 1) — bestaande munten mee opgeschaald, xp = levelteller
   if(p.econ3)return p;
   p.points=(p.points||0)*5; p.xp=p.points; delete p.lvlData; p.econ3=true; return p;
 }
+function econ4(p){ // puntensysteem v4 (schatkist): 10 munten per goed antwoord (was 5) — bestaande munten mee verdubbeld
+  if(p.econ4)return p;
+  p.points=(p.points||0)*2; p.xp=(p.xp||0)*2; p.econ4=true; return p;
+}
+function econ5(p){ // puntensysteem v5 (schatten): goudstaaf per 10 goed/etappe/10 min, diamant per level, robijn per cup en level 10
+  if(p.econ5)return p;
+  if(typeof KAARTEN==="undefined"||!KAARTEN||!KAARTEN.EU)return p; // kaarten nog niet binnen (levelInfo kan dan niet) — volgende aanroep
+  p.points=(p.points||0)+(p.diamonds||0)*50; // oude diamanten (1 per 5 goed) omgewisseld voor 🪙 50 per stuk
+  const li=levelInfo(p), cups=CONT_CODES.filter(ct=>contCup(p,ct));
+  // met terugwerkende kracht: wat je met dit spel al verdiend zou hebben
+  p.staven=Math.floor((p.goedTotaal||0)/10)+li.stap+Math.floor((p.speeltijd||0)/600000);
+  p.stafProg=(p.goedTotaal||0)%10;
+  p.diamonds=Math.max(0,li.nr-1);
+  p.robijnen=cups.length+(li.nr>=10?1:0);
+  p.robijnLvl10=li.nr>=10;
+  p.beloondeStap=li.stap; p.beloondLevel=li.nr; p.beloondeCups=cups;
+  p.tijdBeloond=Math.floor((p.speeltijd||0)/600000);
+  delete p.diaProg;
+  p.econ5=true; return p;
+}
+const WAARDE={staaf:100,diamant:500,robijn:1000}; // vaste wisselkoersen van de schatten, in muntjes
+function totaalWaarde(p){return (p.points||0)+(p.staven||0)*WAARDE.staaf+(p.diamonds||0)*WAARDE.diamant+(p.robijnen||0)*WAARDE.robijn;}
 function lvlEtappes(p){ // levels met etappes: level en etappes volgen uit de per-land-tellers, dus alleen de
   if(p.lvlEtappes)return p; // 'bereikt op'-datums beginnen opnieuw (de levels zijn opnieuw geijkt)
   delete p.lvlData; p.lvlEtappes=true; return p;
@@ -1467,13 +1653,22 @@ function logVan(p,id){p.log=p.log||{};const l=p.log[id]=p.log[id]||{lg:0,lf:0,hg
 function catVan(type){return type==="mcVorm"?"o":(type==="klikLand"||type==="mcLand")?"l":(type==="klikVlag"||type==="mcVlag")?"v":"h";}
 // één bron van waarheid: hoe vaak dit land in totaal goed is geraden (som van alle categorieën)
 function totGoed(p,id){const l=p&&p.log&&p.log[id];return l?(l.lg+l.hg+l.vg+(l.og||0)):0;}
-function stopSpeeltijd(){ // tel de verstreken rondetijd bij de speler op
-  if(st.rondeStart&&st.naam){const p=speler();p.speeltijd=(p.speeltijd||0)+Date.now()-st.rondeStart;save();}
+function stopSpeeltijd(){ // tel de verstreken rondetijd bij de speler op; elke 10 minuten spelen = 1 goudstaaf
+  if(st.rondeStart&&st.naam){
+    const p=speler();p.speeltijd=(p.speeltijd||0)+Date.now()-st.rondeStart;
+    const tb=Math.floor(p.speeltijd/600000);
+    if(tb>(p.tijdBeloond||0)){
+      const n=tb-(p.tijdBeloond||0);
+      p.tijdBeloond=tb;p.staven=(p.staven||0)+n;st.ronde.staven+=n;
+      setTimeout(()=>toonEffect(STAAF_3D,"GOUDSTAAF VERDIEND!",`Al ${tb*10} minuten op expeditie — speelbonus!`),1200);
+    }
+    save();
+  }
   st.rondeStart=null;
 }
 
 const st={naam:"",vragen:[],qi:0,q:null,answered:false,hints:0,streak:0,verken:false,
-  ronde:{goed:0,punt:0,best:0,diam:0,stempels:[]},moeilijk:false,timerId:null,timerEind:0};
+  ronde:{goed:0,punt:0,best:0,diam:0,staven:0,rob:0,stempels:[]},moeilijk:false,timerId:null,timerEind:0};
 
 /* ================= HULPJES ================= */
 const $=s=>document.querySelector(s);
@@ -2031,15 +2226,105 @@ function perfecteRonde(){ // gouden trofee + sterrenregen bij alles goed
   }
   knal(innerWidth/2,innerHeight*.35,150);
 }
-function toonDiamant(){
+/* korte schat-vieringen (goudstaaf, diamant, etappe): zelfde 3D-effect, netjes ná elkaar in een rij */
+const STAAF_ICO='<svg class="gstaaf" viewBox="0 0 260 140" aria-hidden="true"><use href="#staafsym"/></svg>', ROBIJN_ICO='<span class="robijn">💎</span>';
+// grote versie voor de viering: zelfde 3D-staaf, mét de gestempelde tekst (zoals op een echte goudstaaf)
+const STAAF_3D=`<svg class="gstaaf" viewBox="0 0 260 140" aria-hidden="true"><use href="#staafsym"/>
+  <text x="130" y="38" text-anchor="middle" font-size="13" font-weight="bold" letter-spacing="3" fill="rgba(130,75,0,.6)" font-family="Georgia,'Times New Roman',serif">999,9</text>
+  <text x="130" y="57" text-anchor="middle" font-size="17" font-weight="bold" letter-spacing="5" fill="rgba(130,75,0,.65)" font-family="Georgia,'Times New Roman',serif">GOUD</text></svg>`;
+const effectRij=[];let effectBezig=false;
+function toonEffect(icoon,tekst,sub){effectRij.push([icoon,tekst,sub]);if(!effectBezig)volgendeEffect();}
+function volgendeEffect(){
+  const e=effectRij.shift();
+  if(!e){effectBezig=false;return;}
+  effectBezig=true;
   sndDiamant();
-  const pop=$("#diamantpop"),d=pop.querySelector(".diamant3d");
+  const pop=$("#diamantpop"),d=$("#dp-icoon");
+  d.innerHTML=e[0];$("#dp-tekst").textContent=e[1];$("#dp-sub").textContent=e[2]||"";
   d.style.animation="none";void d.offsetWidth;d.style.animation=""; // 3D-draai opnieuw starten
   pop.style.opacity="1";
   pop.classList.add("open");
   knal(innerWidth/2,innerHeight*.42,130);
   setTimeout(()=>{pop.style.opacity="0";},1650);              // uitfaden…
-  setTimeout(()=>{pop.classList.remove("open");pop.style.opacity="";},2050); // …en na 2 s weg
+  setTimeout(()=>{pop.classList.remove("open");pop.style.opacity="";volgendeEffect();},2100); // …weg, en dan de volgende viering
+}
+/* grote pop-ups (level gehaald, robijn gewonnen): actief wegklikken, in een nette wachtrij */
+const popupRij=[];let popupOpen=false;
+function planPopup(fn){popupRij.push(fn);if(!popupOpen)volgendePopup();}
+function volgendePopup(){
+  const fn=popupRij.shift();
+  if(!fn){popupOpen=false;return;}
+  popupOpen=true;fn();
+}
+$("#lp-verder").onclick=()=>{sndKlik();$("#levelpop").classList.remove("open");setTimeout(volgendePopup,300);};
+$("#rp-verder").onclick=()=>{sndKlik();$("#robijnpop").classList.remove("open");setTimeout(volgendePopup,300);};
+function toonLevelPopup(p,vanNr){
+  planPopup(()=>{
+    const li=levelInfo(p);
+    const af=li.klaar?li.nr:li.nr-1, n=Math.max(1,af-vanNr+1);
+    $("#lp-titel").textContent=`Level ${af} gehaald: ${LVL[af-1].n}!`;
+    $("#lp-beloning").innerHTML=`Beloning: +${n} 💎 blauwe diamant${n>1?"en":""} (🪙 ${n*WAARDE.diamant} waard)`;
+    $("#lp-volgend").innerHTML=li.klaar
+      ?`👑 Je hebt het allerhoogste level bereikt — ${esc(LVL[19].n)}. Wat een expeditie!`
+      :`Nu ben je <b>Level ${li.nr}: ${esc(li.naam)}</b>. De etappes van dit level:`
+        +`<div class="etplijst">${etappeHtml(li)}</div>`
+        +`<div style="margin-top:8px;color:var(--muted);font-size:12.5px">${esc(li.etappeTekst)}</div>`;
+    $("#levelpop").classList.add("open");
+    sndFanfare();knal(innerWidth/2,innerHeight*.3,150);
+  });
+}
+function toonRobijnPopup(reden){
+  planPopup(()=>{
+    $("#rp-reden").textContent=reden;
+    $("#robijnpop").classList.add("open");
+    sndDiamant();knal(innerWidth/2,innerHeight*.35,160);
+  });
+}
+function rondeGemsHtml(){ // schatten van deze ronde op het resultaatscherm: goudstaven, diamanten, robijnen
+  const r=st.ronde;
+  return STAAF_ICO.repeat(Math.min(12,r.staven||0))+"💎".repeat(Math.min(8,r.diam||0))+ROBIJN_ICO.repeat(Math.min(6,r.rob||0));
+}
+/* ná elk goed antwoord: goudstaaf per 10 goed, goudstaaf per etappe, diamant per level, robijn per cup en bij level 10 */
+function checkBeloningen(p){
+  let staaf=false;
+  p.stafProg=(p.stafProg||0)+1; // spaart gewoon door over rondes heen
+  if(p.stafProg>=10){
+    p.stafProg=0;p.staven=(p.staven||0)+1;st.ronde.staven++;staaf=true;
+    setTimeout(()=>toonEffect(STAAF_3D,"GOUDSTAAF VERDIEND!","10 goede antwoorden = 1 goudstaaf (🪙 100 waard)"),900);
+  }
+  const li=levelInfo(p);
+  const vorigeStap=p.beloondeStap==null?li.stap:p.beloondeStap;
+  const vorigLevel=p.beloondLevel==null?li.nr:p.beloondLevel;
+  if(li.stap>vorigeStap){ // etappe(s) afgerond: 1 goudstaaf per etappe
+    const n=li.stap-vorigeStap;
+    p.staven=(p.staven||0)+n;st.ronde.staven+=n;
+    if(li.nr===vorigLevel&&!li.klaar){ // etappe bínnen het level: korte melding (een level-up krijgt zijn eigen pop-up)
+      const naam=LVL[li.nr-1].e[Math.max(0,li.gedaan-1)];
+      setTimeout(()=>toonEffect("🚩","ETAPPE GEHAALD!",`${naam} — beloning: 1 goudstaaf`),1000);
+    }
+  }
+  p.beloondeStap=li.stap;
+  const klaarNu=li.klaar&&!p.beloondKlaar;
+  if(li.nr>vorigLevel||klaarNu){ // level(s) afgerond: 1 blauwe diamant per level + pop-up
+    const n=Math.max(0,li.nr-vorigLevel)+(klaarNu?1:0);
+    p.diamonds=(p.diamonds||0)+n;st.ronde.diam+=n;
+    if(klaarNu)p.beloondKlaar=true;
+    setTimeout(()=>toonLevelPopup(p,vorigLevel),1300);
+    if(li.nr>=10&&!p.robijnLvl10){ // level 10 bereikt: robijn!
+      p.robijnLvl10=true;p.robijnen=(p.robijnen||0)+1;st.ronde.rob++;
+      setTimeout(()=>toonRobijnPopup("Je hebt level 10 bereikt — je bent al over de helft van de expeditie!"),1500);
+    }
+  }
+  p.beloondLevel=Math.max(vorigLevel,li.nr);
+  // continent-cups: elk nieuw gewonnen werelddeel = 1 robijn
+  const cups=CONT_CODES.filter(ct=>contCup(p,ct)), oud=p.beloondeCups||[];
+  const nieuw=cups.filter(ct=>!oud.includes(ct));
+  if(nieuw.length){
+    p.robijnen=(p.robijnen||0)+nieuw.length;st.ronde.rob+=nieuw.length;
+    nieuw.forEach(ct=>setTimeout(()=>toonRobijnPopup(`Continent-cup ${CONT_NAAM[ct]} gewonnen: elk land 10× goed geraden!`),1700));
+  }
+  p.beloondeCups=cups;
+  return staaf;
 }
 
 /* ================= CONFETTI ================= */
@@ -2269,7 +2554,7 @@ function startRonde(moeilijk=false){
   st.qi=0;st.streak=0;st.verken=false;st.rondeStart=Date.now();st.stedenronde=false;st.gebied=null;st.wasPuzzel=false;st.motor=null;
   st.moeilijk=moeilijk; // moeilijke ronde = dubbele punten
   st.stemNaGoed=true; // eerste goede antwoord van de ronde krijgt altijd een gesproken aanmoediging
-  st.ronde={goed:0,punt:0,best:0,diam:0,stempels:[],uitslagen:[]};
+  st.ronde={goed:0,punt:0,best:0,diam:0,staven:0,rob:0,stempels:[],uitslagen:[]};
   $("#hud-naam").textContent=p.naam;
   $("#hud-ava").textContent=p.naam[0].toUpperCase();
   hudSync();
@@ -2344,7 +2629,7 @@ async function startStedenRonde(){
   });
   menuSync(null);$("#s-game").classList.remove("metmenu");toonPlatteKaart();
   st.qi=0;st.streak=0;st.verken=false;st.rondeStart=Date.now();st.stemNaGoed=true;st.stedenronde=true;st.gebied=null;st.moeilijk=false;st.wasPuzzel=false;st.motor=null;
-  st.ronde={goed:0,punt:0,best:0,diam:0,stempels:[],uitslagen:[]};
+  st.ronde={goed:0,punt:0,best:0,diam:0,staven:0,rob:0,stempels:[],uitslagen:[]};
   const p=speler();
   $("#hud-naam").textContent=p.naam;$("#hud-ava").textContent=p.naam[0].toUpperCase();
   hudSync();toonScherm("#s-game");toonVraag();
@@ -2416,7 +2701,7 @@ async function startGebiedRonde(key){
   menuSync(null);$("#s-game").classList.remove("metmenu");toonPlatteKaart();
   st.qi=0;st.streak=0;st.verken=false;st.rondeStart=Date.now();st.stemNaGoed=true;
   st.stedenronde=false;st.gebied=key;st.moeilijk=false;st.wasPuzzel=false;st.motor=null;
-  st.ronde={goed:0,punt:0,best:0,diam:0,stempels:[],uitslagen:[]};
+  st.ronde={goed:0,punt:0,best:0,diam:0,staven:0,rob:0,stempels:[],uitslagen:[]};
   const p=speler();
   $("#hud-naam").textContent=p.naam;$("#hud-ava").textContent=p.naam[0].toUpperCase();
   hudSync();toonScherm("#s-game");toonVraag();
@@ -2614,7 +2899,7 @@ function startPuzzel(){
   st.qi=0;st.streak=0;st.verken=false;st.rondeStart=Date.now();st.stedenronde=false;st.gebied=null;st.moeilijk=false;
   st.wasPuzzel=true;st.stemNaGoed=true;st.q=null;st.answered=false;st.hints=0;st.motor=null;
   st.vragen=gekozen.map(c=>({type:"puzzel",c}));
-  st.ronde={goed:0,punt:0,best:0,diam:0,stempels:[],uitslagen:[]};
+  st.ronde={goed:0,punt:0,best:0,diam:0,staven:0,rob:0,stempels:[],uitslagen:[]};
   st.puzzel={cont,stukken:gekozen.map(c=>({c,klaar:false,gemist:false})),hulp,regio};
   p.pzVorige=gekozen.map(c=>c.id);save(); // onthoud deze ronde: volgende puzzel moet ≥ helft verse landen hebben
   // alles versmelt tot één naamloos landvlak — alleen de hulplanden houden kleur als houvast
@@ -2646,7 +2931,7 @@ function pzTekst(net){ // `net` = zojuist goed gelegd land
     :"Alle stukken liggen op hun plek! 🎉";
   $("#q-text").innerHTML=kop+rest;
 }
-function pzVoet(){const nog=5-((speler().diaProg)||0);$("#q-voet").textContent=`💎 nog ${nog} goed${nog===1?"":"e"} tot je volgende diamant`;}
+function pzVoet(){const nog=10-((speler().stafProg)||0);$("#q-voet").innerHTML=`${STAAF_ICO} nog ${nog} goed${nog===1?"":"e"} tot je volgende goudstaaf`;}
 function bouwTray(){
   const tray=$("#pz-tray");tray.innerHTML="";tray.style.display="grid";
   const K=KAARTEN[st.puzzel.cont];
@@ -2827,19 +3112,17 @@ function pzPunten(s,px,py){ // zelfde economie als een gewone vraag: eerste pogi
     st.ronde.goed++;st.streak++;
     if(st.streak>st.ronde.best)st.ronde.best=st.streak;
     if(st.streak>p.best)p.best=st.streak;
-    let pts=5;
-    if(st.streak>0&&st.streak%3===0){pts+=5;setTimeout(()=>{vlamEffect();sndVlam();},650);}
+    let pts=10;
+    if(st.streak>0&&st.streak%3===0){pts+=10;setTimeout(()=>{vlamEffect();sndVlam();},650);}
     st.ronde.punt+=pts;p.points+=pts;p.xp=(p.xp||0)+pts;p.goedTotaal++;
     const eerder=p.pass[c.id]||0;p.pass[c.id]=eerder+1;if(eerder===0)st.ronde.stempels.push(c);
-    let diamant=false;
-    p.diaProg=(p.diaProg||0)+1;
-    if(p.diaProg>=5){p.diaProg=0;p.diamonds++;st.ronde.diam++;diamant=true;setTimeout(toonDiamant,900);}
-    st.ronde.uitslagen[st.qi]={goed:true,diamant};
+    const staaf=checkBeloningen(p); // goudstaaf per 10 goed + etappes/levels/cups
+    st.ronde.uitslagen[st.qi]={goed:true,staaf};
     for(let i=0;i<3;i++)vliegMunt(px,py,i*160);
     if(st.stemNaGoed){speelStem();st.stemNaGoed=false;}else st.stemNaGoed=true;
-  }else{ // na missers alsnog gelegd: 2 troostmuntjes, geen streak/diamant
-    st.ronde.punt+=2;p.points+=2;p.xp=(p.xp||0)+2;
-    st.ronde.uitslagen[st.qi]={goed:false,diamant:false};
+  }else{ // na missers alsnog gelegd: 4 troostmuntjes, geen streak/diamant
+    st.ronde.punt+=4;p.points+=4;p.xp=(p.xp||0)+4;
+    st.ronde.uitslagen[st.qi]={goed:false,staaf:false};
     vliegMunt(px,py,0);
   }
   st.qi++;
@@ -2995,7 +3278,7 @@ function startMotorRonde(startC,doelC){
   menuSync(null);$("#s-game").classList.remove("metmenu");toonPlatteKaart();
   st.qi=0;st.streak=0;st.verken=false;st.rondeStart=Date.now();st.stedenronde=false;st.gebied=null;
   st.moeilijk=false;st.wasPuzzel=false;st.puzzel=null;st.q=null;st.vragen=[];st.stemNaGoed=true;
-  st.ronde={goed:0,punt:0,best:0,diam:0,stempels:[],uitslagen:[]};
+  st.ronde={goed:0,punt:0,best:0,diam:0,staven:0,rob:0,stempels:[],uitslagen:[]};
   const tank=kortste.length-1+MR_TANK_EXTRA;
   st.motor={cont,start:startC.id,doel:doelC.id,hier:startC.id,route:[startC.id],km:0,
     tank,tankTot:tank,kortste:kortste.length-1,vragen:0,rijdt:false,vraag:false,klaar:false,hints:0,
@@ -3217,7 +3500,7 @@ function mrDouane(c,laatste){ // grenscontrole: vraagje over het land dat je bin
   });
   mrVoet();
 }
-function mrAntwoord(goed,knop,c,soort,laatste,opts){ // zelfde economie als een gewone vraag (5 punten, streak, diamant, stempel)
+function mrAntwoord(goed,knop,c,soort,laatste,opts){ // zelfde economie als een gewone vraag (10 munten, streak, diamant, stempel)
   st.answered=true;const p=speler(),M=st.motor;
   knop.classList.add(goed?"good":"bad");
   document.querySelectorAll("#q-choices .choice").forEach((b,i)=>{b.disabled=true;if(opts[i].ok)b.classList.add("good");});
@@ -3230,12 +3513,11 @@ function mrAntwoord(goed,knop,c,soort,laatste,opts){ // zelfde economie als een 
     st.ronde.goed++;st.streak++;
     if(st.streak>st.ronde.best)st.ronde.best=st.streak;
     if(st.streak>p.best)p.best=st.streak;
-    let pts=5;
-    if(st.streak%3===0){pts+=5;setTimeout(()=>{vlamEffect();sndVlam();},600);}
+    let pts=10;
+    if(st.streak%3===0){pts+=10;setTimeout(()=>{vlamEffect();sndVlam();},600);}
     st.ronde.punt+=pts;p.points+=pts;p.xp=(p.xp||0)+pts;p.goedTotaal++;
     const eerder=p.pass[c.id]||0;p.pass[c.id]=eerder+1;if(eerder===0)st.ronde.stempels.push(c);
-    p.diaProg=(p.diaProg||0)+1;
-    if(p.diaProg>=5){p.diaProg=0;p.diamonds++;st.ronde.diam++;setTimeout(toonDiamant,900);}
+    checkBeloningen(p); // goudstaaf per 10 goed + etappes/levels/cups
     sndGoed();
     const lr=paden[c.id].getBoundingClientRect();
     for(let i=0;i<3;i++)vliegMunt(lr.left+lr.width/2,lr.top+lr.height/2,i*180);
@@ -3299,18 +3581,18 @@ function eindMotor(gehaald){
   const p=speler(),M=st.motor;
   stopSpeeltijd();p.rounds++;
   const grenzen=M.route.length-1,topRoute=gehaald&&grenzen===M.kortste;
-  if(topRoute){p.diamonds++;st.ronde.diam++;} // routeplanner-bonus: kortste route = extra diamant
+  if(topRoute){p.staven=(p.staven||0)+1;st.ronde.staven++;} // routeplanner-bonus: kortste route = 1 goudstaaf
   save();
   kaartReset();stopTimer();annuleerFoto();
   $("#r-perfect").style.display="none";
   $("#r-titel").textContent=gehaald
     ?(topRoute?`🏆 KORTSTE ROUTE, ${p.naam}! Wat een toprit!`:`🏁 Aangekomen, ${p.naam}! Wat een reis!`)
     :`⛽ Benzine op, ${p.naam} — volgende keer lukt het!`;
-  $("#r-gems").textContent=st.ronde.diam>0?"💎".repeat(st.ronde.diam):"";
+  $("#r-gems").innerHTML=rondeGemsHtml();
   $("#r-goed").textContent=`${st.ronde.goed}/${M.vragen}`;
   $("#r-punt").textContent=st.ronde.punt;
   $("#r-streak").textContent=st.ronde.best;
-  $("#r-totdiam").textContent=p.diamonds;
+  $("#r-totdiam").textContent=`🪙 ${totaalWaarde(p)}`;
   const li=levelInfo(p);
   $("#r-level").textContent=`Level ${li.nr} van 20 · ${li.naam}`;
   $("#r-levelfill").style.width=(li.frac*100)+"%";
@@ -3321,7 +3603,7 @@ function eindMotor(gehaald){
   const vlaggen=M.route.map(id=>LAND_VAN[id].f).join(" → ");
   const kw=n=>`${n} ${n===1?"grens":"grenzen"}`;
   let voet;
-  if(topRoute)voet=`🏆 Dit wás de kortste route (${kw(M.kortste)}) — bonusdiamant! 💎`;
+  if(topRoute)voet=`🏆 Dit wás de kortste route (${kw(M.kortste)}) — bonus: 1 goudstaaf!`;
   else if(gehaald)voet=`🧭 Het kan in ${kw(M.kortste)} — probeer het nog eens!`;
   else voet=`🧭 De kortste route (${kw(M.kortste)}): ${(mrRoute(M.cont,M.start,M.doel)||[]).map(id=>LAND_VAN[id].f).join(" → ")}`;
   $("#r-motor").innerHTML=`<div class="mr-res-route">${vlaggen}${gehaald?" 🏁":" → …"}</div>
@@ -3340,6 +3622,8 @@ function eindMotor(gehaald){
 function hudSync(){
   const p=speler();
   $("#hud-diamant").textContent=`💎 ${p.diamonds}`;
+  $("#hud-staaf").innerHTML=`${STAAF_ICO} ${p.staven||0}`;
+  $("#hud-robijn").innerHTML=`${ROBIJN_ICO} ${p.robijnen||0}`;
   $("#hud-streak").textContent=`🔥 ${st.streak}`;
   $("#hud-munt").textContent=`🪙 ${p.points}`;
   geluidKnopSync();
@@ -3356,7 +3640,7 @@ function voortgangSync(){
   [...bar.children].forEach((el,i)=>{
     const u=st.ronde.uitslagen[i];
     el.className="";el.textContent="";
-    if(u){el.className=u.goed?"goed":"fout";el.textContent=u.goed?(u.diamant?"💎":"🪙"):"😞";}
+    if(u){el.className=u.goed?"goed":"fout";el.innerHTML=u.goed?(u.staaf?STAAF_ICO:"🪙"):"😞";}
     else if(i===st.qi)el.className="nu";
   });
 }
@@ -3387,7 +3671,7 @@ function toonVraag(){
   $("#b-hint").style.display="";$("#b-hint").disabled=false;$("#b-hint").textContent="💡 Hint (nog 2)";
   $("#q-choices").innerHTML="";
   $("#q-klik").style.display="none";
-  {const nog=5-((speler().diaProg)||0);$("#q-voet").textContent=`💎 nog ${nog} goed${nog===1?"":"e"} tot je volgende diamant`;}
+  {const nog=10-((speler().stafProg)||0);$("#q-voet").innerHTML=`${STAAF_ICO} nog ${nog} goed${nog===1?"":"e"} tot je volgende goudstaaf`;}
   const c=q.c;
   st.klikStad=null;
   if(q.stad){ // stedenronde: bouw de stippenlaag op de landkaart
@@ -3551,21 +3835,19 @@ function beantwoord(goed,knop,timeout=false,geklikt=null){
     st.ronde.goed++;st.streak++;
     if(st.streak>st.ronde.best)st.ronde.best=st.streak;
     if(st.streak>p.best)p.best=st.streak;
-    let pts=(st.moeilijk||db.settings.flits)?10:5; // 5 per goed antwoord; moeilijke ronde of bliksemronde = 10
+    let pts=(st.moeilijk||db.settings.flits)?20:10; // 10 per goed antwoord; moeilijke ronde of bliksemronde = 20
     belon.push(`🪙 +${pts} muntjes`);
-    if(st.streak>0&&st.streak%3===0){pts+=5;belon.push("🔥 3 op een rij: +5 bonus!");setTimeout(()=>{vlamEffect();sndVlam();},650);}
-    st.ronde.punt+=pts;p.points+=pts;p.xp=(p.xp||0)+pts;p.goedTotaal++; // muntjes stapelen door, worden nooit opgesoupeerd; xp telt mee voor het level
+    if(st.streak>0&&st.streak%3===0){pts+=10;belon.push("🔥 3 op een rij: +10 bonus!");setTimeout(()=>{vlamEffect();sndVlam();},650);}
+    st.ronde.punt+=pts;p.points+=pts;p.xp=(p.xp||0)+pts;p.goedTotaal++; // muntjes zijn óók de valuta van de schatkist (landen kopen); xp telt mee voor het level
     if(!q.stad&&!q.gebied){ // paspoortstempels zijn er alleen voor landen
       const eerder=p.pass[c.id]||0;
       p.pass[c.id]=eerder+1;
       if(eerder===0)st.ronde.stempels.push(c);
     }
-    // diamant: precies 1 per 5 goede antwoorden — los van gouden/bonusvragen
-    let diamant=false;
-    p.diaProg=(p.diaProg||0)+1;
-    if(p.diaProg>=5){p.diaProg=0;p.diamonds++;st.ronde.diam++;belon.push("💎 DIAMANT verdiend!");diamant=true;}
-    if(diamant)setTimeout(toonDiamant,1000); // ná de muntjes: grote 3D-diamant-viering
-    st.ronde.uitslagen[st.qi]={goed:true,diamant};
+    // beloningen: goudstaaf per 10 goed (spaart door over rondes), plus etappes/levels/cups — eigen vieringen en pop-ups
+    const staaf=checkBeloningen(p);
+    if(staaf)belon.push(`${STAAF_ICO} GOUDSTAAF verdiend!`);
+    st.ronde.uitslagen[st.qi]={goed:true,staaf};
     sndGoed();
     // gedoseerde gesproken aanmoediging: 1e goede vraag van de ronde altijd, daarna om-en-om (1 ertussen zonder),
     // en ná een fout speelt het eerstvolgende goede antwoord altijd. Tekst = precies wat je hoort.
@@ -3573,13 +3855,13 @@ function beantwoord(goed,knop,timeout=false,geklikt=null){
     else { st.stemNaGoed=true; }
     // muntjes vliegen vanaf het goede land naar de teller
     const lr=(q.stad&&stadEl(q.stad)?stadEl(q.stad):paden[c.id]).getBoundingClientRect();
-    const nMunt=pts>=10?5:3; // visueel: 3 muntjes bij 5 punten, 5 bij 10+ (niet één per punt — te druk)
+    const nMunt=pts>=20?5:3; // visueel: 3 muntjes bij 10 munten, 5 bij 20+ (niet één per munt — te druk)
     for(let i=0;i<nMunt;i++)vliegMunt(lr.left+lr.width/2,lr.top+lr.height/2,i*180);
     const r=$("#map").getBoundingClientRect();
     knal(r.left+r.width/2,r.top+r.height/2,70);
   }else{
     st.streak=0;sndFout();
-    st.ronde.uitslagen[st.qi]={goed:false,diamant:false};
+    st.ronde.uitslagen[st.qi]={goed:false,staaf:false};
     if(!q.stad&&!q.gebied){p.fouten=p.fouten||{};p.fouten[c.id]=(p.fouten[c.id]||0)+1;} // voor de moeilijke ronde
     st.stemNaGoed=true; // ná een fout speelt het eerstvolgende goede antwoord altijd een aanmoediging
   }
@@ -3666,7 +3948,7 @@ function toonFeedback(goed,belon,timeout,geklikt,stemTekst){
     $("#f-fotobox").style.display="none";
   }
   const bel=$("#f-belon");bel.innerHTML="";
-  belon.forEach(t=>{const s=document.createElement("span");if(t.includes("💎"))s.className="diamant";s.innerHTML=t;bel.appendChild(s);});
+  belon.forEach(t=>{const s=document.createElement("span");if(t.includes("💎")||t.includes("gstaaf"))s.className="diamant";s.innerHTML=t;bel.appendChild(s);});
   $("#b-next").textContent=st.qi+1>=st.vragen.length?"Bekijk je resultaat 🏁":"Volgende ▶";
   $("#fb").classList.add("open");
   $("#b-next").focus();
@@ -3687,17 +3969,17 @@ function eindRonde(){
   $("#r-motor").style.display="none"; // routekaartje hoort alleen bij de motorreis
   const pct=st.ronde.goed/st.vragen.length;
   const perfect=pct===1;
-  if(perfect){ // bijzondere beloning: bonusdiamant + trofee met sterrenregen
-    p.diamonds++;st.ronde.diam++;p.perfect=(p.perfect||0)+1;save();
+  if(perfect){ // bijzondere beloning: 50 bonusmunten + trofee met sterrenregen
+    p.points+=50;st.ronde.punt+=50;p.perfect=(p.perfect||0)+1;save();
     setTimeout(perfecteRonde,600);
   }
   $("#r-perfect").style.display=perfect?"block":"none";
   $("#r-titel").textContent=perfect?`PERFECT, ${p.naam}! Alles goed! 🤩`:pct>=.7?`Super gedaan, ${p.naam}! 🎉`:pct>=.4?`Lekker bezig, ${p.naam}! 💪`:`Goed geprobeerd, ${p.naam} — oefening baart kunst! 🌱`;
-  $("#r-gems").textContent=st.ronde.diam>0?"💎".repeat(st.ronde.diam):"";
+  $("#r-gems").innerHTML=rondeGemsHtml();
   $("#r-goed").textContent=`${st.ronde.goed}/${st.vragen.length}`;
   $("#r-punt").textContent=st.ronde.punt;
   $("#r-streak").textContent=st.ronde.best;
-  $("#r-totdiam").textContent=p.diamonds;
+  $("#r-totdiam").textContent=`🪙 ${totaalWaarde(p)}`;
   // level (20 rangen met samen 100 etappes, op basis van geleerde landen)
   const li=levelInfo(p);
   $("#r-level").textContent=`Level ${li.nr} van 20 · ${li.naam}`;
@@ -3947,17 +4229,22 @@ function maakGlobe(canvas, opts){
     const nu=performance.now();
     // land-ids: het diepe niveau kent er een paar méér (bv. Frans-Guyana-varianten) → vereniging bij diep zoomen
     const bronIds=diepAan?Object.assign({},landenB,DIEP_LANDEN):landenB;
-    for(const id in bronIds){
-      const c=LAND_VAN[id];if(!c)continue;
+    const tekenLand=id=>{
+      const c=LAND_VAN[id];if(!c)return;
       const ringen=((diepAan&&DIEP_LANDEN[id])||landenB[id]||[]).filter(ringOk);
-      if(!ringen.length)continue;
+      if(!ringen.length)return;
       const fill=opts.kleurFn?opts.kleurFn(c):c.kleur;
-      tekenRingen(ringen, fill, lijn, lijnW); // evenodd: gaten (enclaves zoals Baarle) blijven open voor het buurland
+      // randFn: eigen randkleur per land — rand in de vulkleur laat de grens met een gelijkgekleurd buurland wegvallen
+      tekenRingen(ringen, fill, opts.randFn?opts.randFn(c,lijn):lijn, lijnW); // evenodd: gaten (enclaves zoals Baarle) blijven open voor het buurland
       if(opts.glans&&(fill==="#F1B62B"||fill==="#CBD3DF")){ // veroverde zilver/goud-landen glanzen (pulserende sheen)
         const sh=0.16+0.16*Math.sin(nu/430+(c.idx||0)*0.7);
         if(sh>0.03)tekenRingen(ringen, `rgba(255,255,255,${sh.toFixed(3)})`, null, 0);
       }
-    }
+    };
+    if(opts.bovenFn){ // die landen als laatste tekenen: hun rand wint van de grenslijn van de buurlanden (gouden koninkrijk)
+      for(const id in bronIds)if(!LAND_VAN[id]||!opts.bovenFn(LAND_VAN[id]))tekenLand(id);
+      for(const id in bronIds)if(LAND_VAN[id]&&opts.bovenFn(LAND_VAN[id]))tekenLand(id);
+    }else for(const id in bronIds)tekenLand(id);
     tekenHoogte(ringOk); // reliëf over de landkleuren, onder het water
     // meren en rivieren als waterlaag over de landen (lagunes in zeekleur, interne meren lichter)
     if(GLOBE.meren){for(const pg of GLOBE.meren){if(ringOk(pg[0]))tekenRingen(pg, zee, null, 0);}}
@@ -3968,7 +4255,7 @@ function maakGlobe(canvas, opts){
       const d=GLOBE.dots[id];if(zicht(d[0],d[1])<0)continue;const c=LAND_VAN[id];
       const [x,y]=pr(d[0],d[1]);ctx.beginPath();ctx.arc(x,y,4,0,7);
       ctx.fillStyle=opts.kleurFn?opts.kleurFn(c):(c?c.kleur:"#fff");ctx.fill();
-      ctx.strokeStyle=lijn;ctx.lineWidth=1;ctx.stroke();}
+      ctx.strokeStyle=(c&&opts.randFn?opts.randFn(c,lijn):lijn);ctx.lineWidth=1;ctx.stroke();}
     // geselecteerd land: rest dof maken, het land helder bovenop met een duidelijke rand
     if(hi){
       ctx.fillStyle="rgba(6,10,26,0.5)";ctx.beginPath();ctx.arc(cx,cy,R,0,7);ctx.fill(); // dof waas over de bol
@@ -4109,6 +4396,8 @@ function hudSyncVeilig(){
   const k=(st.naam||"").toLowerCase();
   const p=db.players[k];
   $("#hud-diamant").textContent=`💎 ${p?p.diamonds:0}`;
+  $("#hud-staaf").innerHTML=`${STAAF_ICO} ${p?(p.staven||0):0}`;
+  $("#hud-robijn").innerHTML=`${ROBIJN_ICO} ${p?(p.robijnen||0):0}`;
   $("#hud-streak").textContent=`🔥 0`;
   $("#hud-munt").textContent=`🪙 ${p?p.points:0}`;
 }
@@ -4185,12 +4474,13 @@ $("#b-hint").onclick=()=>{
 /* ================= WELKOM TERUG ================= */
 function toonWelkom(){
   const k=(db.last||"").toLowerCase();
-  const p=db.players[k];
+  let p=db.players[k];
   if(!p||!p.rounds)return; // nieuwe speler: gewoon het startscherm
+  p=econ5(econ4(econ3(p))); // munten-migraties meteen toepassen, anders toont dit scherm het oude saldo
   st.naam=p.naam;
   $("#w-titel").textContent=`👋 Welkom terug, ${p.naam}!`;
   $("#w-sub").textContent=p.perfect?`Kijk eens wat je al hebt gespeeld — met ${p.perfect} perfecte ronde${p.perfect===1?"":"s"} 🏆!`:"Kijk eens wat je al bij elkaar hebt gespeeld:";
-  $("#w-diam").textContent=p.diamonds;
+  $("#w-diam").textContent=totaalWaarde(p);
   $("#w-punt").textContent=p.points;
   $("#w-tijd").textContent=Math.round((p.speeltijd||0)/60000);
   $("#w-pas").textContent=`${LANDEN.filter(c=>totGoed(p,c.id)>0).length}/${LANDEN.length}`;
@@ -4202,7 +4492,7 @@ $("#m-welkom").addEventListener("click",ev=>{if(ev.target===ev.currentTarget)slu
 $("#w-pastegel").onclick=()=>{sluitWelkom();sndKlik();toonPaspoort();};
 
 /* ================= PASPOORT ================= */
-function passSpeler(){const naam=st.naam||db.last;const p=db.players[(naam||"").toLowerCase()];return p?econ3(p):p;}
+function passSpeler(){const naam=st.naam||db.last;const p=db.players[(naam||"").toLowerCase()];return p?econ5(econ4(econ3(p))):p;}
 let passCont="EU"; // welk werelddeel toont het paspoort
 // pasfoto: tik op het fotovak → camera of fotobibliotheek; verkleind opgeslagen bij de speler
 function pasFotoSync(){
@@ -4243,7 +4533,7 @@ function passDataSync(p){
     if(!p.lvlData[li.nr]){p.lvlData[li.nr]=Date.now();save();}
     datum=pasDatum(p.lvlData[li.nr]);
     cups=CONT_CODES.filter(ct=>contCup(p,ct));
-  }else if(DEMO&&!p){p={naam:"Finn",points:1234,diamonds:12,best:9,speeltijd:47*60000,rounds:24,perfect:2}; // voorbeeld om het ontwerp te beoordelen
+  }else if(DEMO&&!p){p={naam:"Finn",points:640,staven:7,diamonds:2,robijnen:1,best:9,speeltijd:47*60000,rounds:24,perfect:2}; // voorbeeld om het ontwerp te beoordelen
     li={nr:7,naam:LVL[6].n,etappes:LVL[6].e,gedaan:2,volgendeEtappe:LVL[6].e[2],
       volgende:`Nog 14 goede antwoorden tot ${LVL[6].e[2]}`,
       levelTekst:`Level 7 van 20 · nog 82 goede antwoorden tot level 8: ${LVL[7].n}`,
@@ -4262,9 +4552,10 @@ function passDataSync(p){
   $("#pd-levelinfo").textContent=li?li.levelTekst:""; // regel onder de levelrij
   $("#pd-subbalk").innerHTML=li?etappeHtml(li):""; // de etappes van het huidige level (aantal verschilt per level)
   $("#pd-volgende").textContent=li?li.etappeTekst:"Speel een ronde om je paspoort te vullen!"; // regel onder de etappes
-  const st6=p||{points:0,diamonds:0,best:0,speeltijd:0,rounds:0,perfect:0};
-  const V=[["🪙",st6.points,"munten / coins",5],["💎",st6.diamonds,"diamanten / gems",6],["🔥",st6.best,"reeks / streak",7],
-    ["🌟",st6.perfect||0,"perfect",8],["🏋️",st6.rounds,"rondes / rounds",9],["⏱️",Math.round((st6.speeltijd||0)/60000),"minuten / minutes",10]];
+  const st6=p||{points:0,staven:0,diamonds:0,robijnen:0,best:0,speeltijd:0,rounds:0,perfect:0};
+  const V=[["🪙",st6.points,"munten / coins",5],[STAAF_ICO,st6.staven||0,"goudstaven / gold bars",6],["💎",st6.diamonds,"diamanten / gems",7],
+    [ROBIJN_ICO,st6.robijnen||0,"robijnen / rubies",8],["🔥",st6.best,"reeks / streak",9],["🌟",st6.perfect||0,"perfect",10],
+    ["🏋️",st6.rounds,"rondes / rounds",11],["⏱️",Math.round((st6.speeltijd||0)/60000),"minuten / minutes",12]];
   $("#pd-velden").innerHTML=V.map(([ico,v,l,n])=>`<div class="pv"><small><i>${n}</i> ${l}</small><b>${ico} ${v}</b></div>`).join("");
   // continent-cups: gewonnen als elk land van dat werelddeel 10× goed geraden is
   $("#pd-cups").innerHTML=CONT_CODES.map(ct=>
@@ -4282,9 +4573,10 @@ function toonPaspoort(){
   document.querySelectorAll("#pass-cont button").forEach(b=>b.classList.toggle("sel",b.dataset.pc===passCont));
   passDataSync(p);
   pasFotoSync();
-  // altijd op de Stempels-tab openen (globe pas bij klik op Kaart)
+  // altijd op de Stempels-tab openen (globes pas bij klik op Kaart of Schatkist)
   document.querySelectorAll(".boektab").forEach(x=>x.classList.toggle("actief",x.dataset.tab==="stempels"));
-  $("#pass-stempels").style.display="block";$("#pass-kaart").style.display="none";$("#pass-leader").style.display="none";
+  $("#pass-stempels").style.display="block";$("#pass-kaart").style.display="none";$("#pass-schat").style.display="none";$("#pass-leader").style.display="none";
+  $("#pass-cont").style.display=""; // werelddeel-keuze weer tonen (op de schatkist-tab staat hij uit)
   toonScherm("#s-pass");menuSync("paspoort");
   passRender();
 }
@@ -4353,7 +4645,7 @@ document.querySelectorAll("#pass-cont button").forEach(b=>{
       setTimeout(()=>{if(kaartGlobe)kaartGlobe.autoDraai(true);},650);} // …en draai daarna vanzelf verder
   };
 });
-addEventListener("resize",()=>{if(verkenGlobe)verkenGlobe.meet();if(kaartGlobe)kaartGlobe.meet();});
+addEventListener("resize",()=>{if(verkenGlobe)verkenGlobe.meet();if(kaartGlobe)kaartGlobe.meet();if(schatGlobe)schatGlobe.meet();});
 // tabbladen van het boekje
 document.querySelectorAll(".boektab").forEach(b=>{
   b.onclick=()=>{
@@ -4361,10 +4653,15 @@ document.querySelectorAll(".boektab").forEach(b=>{
     document.querySelectorAll(".boektab").forEach(x=>x.classList.toggle("actief",x===b));
     $("#pass-stempels").style.display=b.dataset.tab==="stempels"?"block":"none";
     $("#pass-kaart").style.display=b.dataset.tab==="kaart"?"block":"none";
+    $("#pass-schat").style.display=b.dataset.tab==="schat"?"block":"none";
     $("#pass-leader").style.display=b.dataset.tab==="leader"?"block":"none";
+    $("#pass-cont").style.display=b.dataset.tab==="schat"?"none":""; // de winkel toont de hele wereld: geen werelddeel-keuze
     if(b.dataset.tab==="kaart"){ // globe pas bouwen/meten als de tab zichtbaar is
       kleurPassKaart(passSpeler());
       requestAnimationFrame(()=>{if(kaartGlobe)kaartGlobe.meet();});
+    }
+    if(b.dataset.tab==="schat"){ // schat en winkel-globe pas bouwen als de tab zichtbaar is
+      schatSync();schatPaneel();maakSchatGlobe();
     }
   };
 });
@@ -4440,7 +4737,193 @@ function kleurPassKaart(p){
     requestAnimationFrame(()=>{if(kaartGlobe)kaartGlobe.meet();});
   }else{ kaartGlobe.meet(); }
 }
-function stopKaartGlobe(){ if(kaartGlobe){kaartGlobe.stop();kaartGlobe=null;} }
+function stopKaartGlobe(){ // ruimt beide paspoort-globes op (kaart- én schatkist-tab)
+  if(kaartGlobe){kaartGlobe.stop();kaartGlobe=null;}
+  if(schatGlobe){schatGlobe.stop();schatGlobe=null;}
+  schatSel=null;
+}
+
+/* ================= SCHATKIST (de winkel van het spel) ================= */
+let schatGlobe=null, schatSel=null, schatP=null, schatDemoP=null;
+function schatSpeler(){ // echte speler, of een voorbeeldschat in de preview (artifact/localhost) om het ontwerp te beoordelen
+  const p=passSpeler(); if(p)return p;
+  const DEMO=typeof ARTIFACT_DEMO!=="undefined"||location.hostname==="localhost"||location.hostname==="127.0.0.1";
+  if(!DEMO)return null;
+  if(!schatDemoP){const dl=n=>({lg:n,lf:0,hg:0,hf:0,vg:0,vf:0,og:0,of:0});
+    schatDemoP={naam:"Finn",points:640,staven:7,stafProg:4,diamonds:2,robijnen:1,log:{NL:dl(12),FR:dl(6),BE:dl(3),DE:dl(1)},gekocht:{LU:Date.now()}};}
+  return schatDemoP;
+}
+const isGekocht=(p,id)=>!!(p&&p.gekocht&&p.gekocht[id]);
+function landPrijs(c){ // prijs in muntjes uit het inwoneraantal (kubuswortel) — geijkt op het verdienmodel v5 (± 🪙 35 per goed antwoord)
+  const inw=(INWONERS[c.id]||1)*1e6;
+  return {munt:Math.max(10,Math.round(Math.cbrt(inw)*1.5/10)*10)}; // ± Vaticaanstad 10, Nederland 390, VS 1040, China 1680
+}
+function schatKorting(p,id){const n=p?totGoed(p,id):0;return n>=10?.5:n>=5?.25:n>=3?.1:0;}
+function metKorting(pr,k){return {munt:Math.max(1,Math.ceil(pr.munt*(1-k)))};}
+function betaal(p,bedrag){ // munten eerst; te weinig los geld → schatten wisselen (kleinste eerst), wisselgeld terug in munten
+  p.points-=bedrag;
+  while(p.points<0&&(p.staven||0)>0){p.staven--;p.points+=WAARDE.staaf;}
+  while(p.points<0&&(p.diamonds||0)>0){p.diamonds--;p.points+=WAARDE.diamant;}
+  while(p.points<0&&(p.robijnen||0)>0){p.robijnen--;p.points+=WAARDE.robijn;}
+}
+function muntIcons(bedrag){ // reeks muntjes: 1 🪙 per 10 muntjes (= één goed antwoord); grote schatten in zakken van 500
+  if(bedrag<=0)return '<span class="meer">0</span>';
+  let zak=0,rest=bedrag;
+  if(bedrag>600){zak=Math.floor(bedrag/500);rest=bedrag-zak*500;}
+  const munt=Math.max(zak?0:1,Math.round(rest/10)), zakToon=Math.min(zak,30);
+  return '<i class="zak">💰</i>'.repeat(zakToon)
+    +(zak>zakToon?`<span class="meer">+${zak-zakToon} 💰</span>`:"")
+    +'<i>🪙</i>'.repeat(munt);
+}
+function edelIcons(n,ico){ // rij edelstenen/goudstaven, stuk voor stuk
+  if(n<=0)return '<span class="meer">nog geen</span>';
+  const toon=Math.min(n,40);
+  return ico.repeat(toon)+(n>toon?`<span class="meer">+${n-toon}</span>`:"");
+}
+function oppTekst(c){ // "9,8 miljoen km²" / "41.500 km²" / "0,44 km²"
+  const a=OPPERVLAK[c.id]; if(a==null)return null;
+  if(a>=1e6)return (a/1e6).toFixed(1).replace(".",",")+" miljoen km²";
+  return a.toLocaleString("nl-NL")+" km²";
+}
+function inwTekst(c){ // "1,4 miljard" / "17,3 miljoen" / "620 duizend" / "800"
+  const m=INWONERS[c.id]; if(m==null)return "?";
+  if(m>=1000)return (m/1000).toFixed(1).replace(".",",")+" miljard";
+  if(m>=100)return Math.round(m)+" miljoen";
+  if(m>=1)return m.toFixed(1).replace(".",",").replace(",0","")+" miljoen";
+  const n=Math.round(m*1e6);
+  return n>=10000?Math.round(n/1000)+" duizend":String(n);
+}
+function schatSync(){ // de eigen schat: tellers plus de uitgetelde rijkdom in de kist
+  schatP=schatSpeler();const p=schatP;
+  $("#schat-munt-tal").textContent=`🪙 ${p?p.points:0}`;
+  $("#schat-staaf-tal").innerHTML=`${STAAF_ICO} ${p?(p.staven||0):0}`;
+  $("#schat-diam-tal").textContent=`💎 ${p?p.diamonds:0}`;
+  $("#schat-rob-tal").innerHTML=`${ROBIJN_ICO} ${p?(p.robijnen||0):0}`;
+  $("#schat-munt-vis").innerHTML=p?muntIcons(p.points):'<span class="meer">Speel een ronde om je schatkist te vullen!</span>';
+  $("#schat-staaf-vis").innerHTML=p?edelIcons(p.staven||0,STAAF_ICO):"";
+  $("#schat-diam-vis").innerHTML=p?edelIcons(p.diamonds||0,"💎"):"";
+  $("#schat-rob-vis").innerHTML=p?edelIcons(p.robijnen||0,ROBIJN_ICO):"";
+  $("#schat-totaal").innerHTML=`Samen <b>🪙 ${p?totaalWaarde(p):0}</b> waard`;
+  rijkSync();
+}
+function rijkSync(){ // Mijn koninkrijk: vlaggen van de gekochte landen, in koopvolgorde — tik = land op de globe bekijken
+  const p=schatP, el=$("#rijk-vlaggen");
+  const ids=(p&&p.gekocht?Object.keys(p.gekocht):[]).filter(id=>LAND_VAN[id]);
+  $("#rijk-tal").textContent=ids.length?`· ${ids.length} land${ids.length===1?"":"en"}`:"";
+  if(!ids.length){el.innerHTML='<span class="meer">Nog leeg — koop je eerste land op de globe hieronder!</span>';return;}
+  const kt=id=>p.gekocht[id].t||p.gekocht[id]; // kooptijd (oude aankopen waren een kaal tijdstip)
+  ids.sort((a,b)=>kt(a)-kt(b));
+  el.innerHTML=ids.map(id=>`<button class="rijkvlag" data-rv="${id}" title="${esc(LAND_VAN[id].n)}">${LAND_VAN[id].f}</button>`).join("");
+  el.querySelectorAll(".rijkvlag").forEach(b=>{
+    b.onclick=()=>{
+      const id=b.dataset.rv;
+      schatKies(id); // gouden rand + infopaneel
+      if(schatGlobe)schatGlobe.focus(id); // globe draait meteen naar het land
+      $("#ps-houder").scrollIntoView({behavior:"smooth",block:"center"});
+    };
+  });
+}
+function maakSchatGlobe(){ // globe pas bouwen als de tab zichtbaar is (anders 0×0)
+  if($("#pass-schat").style.display==="none")return;
+  if(!schatGlobe){
+    $("#ps-houder").innerHTML='<canvas id="g-schat" style="width:100%;height:min(58vh,440px);display:block;touch-action:none;cursor:grab"></canvas>';
+    schatGlobe=maakGlobe($("#g-schat"),{mode:"kaart", auto:true, startId:CONT_START[passCont]||"DE",
+      rivieren:false, hoogte:false, lijnVar:"--pas-line", lijnDikte:1.15, // zelfde rustige beeld als de paspoort-globe
+      kleurFn:c=>isGekocht(schatP,c.id)?"#F1B62B":"rgba(120,132,168,0.28)", // gekochte landen worden goud
+      randFn:(c,lijn)=>isGekocht(schatP,c.id)?"#F1B62B":lijn, // rand óók goud: grenzen tussen gekochte buurlanden vallen weg — één koninkrijk
+      bovenFn:c=>isGekocht(schatP,c.id), // het koninkrijk als laatste getekend: de gouden rand wint van de grenzen van de buren
+      onClick:schatKies});
+    requestAnimationFrame(()=>{if(schatGlobe)schatGlobe.meet();});
+  }else schatGlobe.meet();
+}
+function schatKies(id){
+  if(typeof id==="string"&&id[0]==="~"){toast("Dat gebied hoort bij een ander land — niet los te koop 😉");return;}
+  const c=LAND_VAN[id]; if(!c)return;
+  sndKlik();schatSel=id;
+  if(schatGlobe)schatGlobe.highlight(id);
+  schatPaneel();
+}
+function schatPaneel(){ // infopaneel van het gekozen land: inwoners, prijs (met korting) en of je het kunt kopen
+  const el=$("#schat-land"), p=schatP=schatSpeler(), c=schatSel?LAND_VAN[schatSel]:null;
+  document.querySelectorAll(".ktrede").forEach(t=>t.classList.toggle("aan",!!c&&p&&totGoed(p,c.id)>=+t.dataset.kt));
+  if(!c){el.innerHTML="";return;}
+  const n=p?totGoed(p,c.id):0, k=schatKorting(p,c.id);
+  const vol=landPrijs(c), prijs=metKorting(vol,k), af=isGekocht(p,c.id);
+  const prijsTekst=pr=>`🪙 ${pr.munt}`;
+  const opp=oppTekst(c);
+  // kop met vlag, daaronder de landfeiten als mini-tegeltjes naast elkaar (zelfde idee als de paspoort-veldjes)
+  let h=`<div class="schatpaneel">
+    <h3><span>${c.f}</span> ${esc(c.n)} ${af?'<span class="sp-badge">👑 VAN JOU</span>':""}</h3>
+    <div class="sp-feiten">
+      <div class="spf"><small>👥 inwoners</small><b>${inwTekst(c)}</b></div>`
+      +(opp?`<div class="spf"><small>📏 oppervlakte</small><b>${opp}</b></div>`:"")
+      +`<div class="spf"><small>🏛️ hoofdstad</small><b>${esc(c.h)}</b></div>
+    </div>`;
+  if(af){
+    const terug=(p.gekocht[c.id]&&p.gekocht[c.id].prijs)||metKorting(vol,k).munt; // wat je betaalde; oude aankopen: de huidige prijs
+    h+=`<div class="sp-eigenrij">
+      <div class="sp-eigen">👑 Dit land behoort tot jouw koninkrijk</div>
+      <button class="verkoopknop" id="schat-verkoop">↩︎ Verkopen voor 🪙 ${terug}</button>
+    </div>`;
+  }else{
+    // het prijskaartje: prijs − korting = prijs (alles in muntjes; betalen mag met je hele schat)
+    h+=`<div class="sp-kaartje"><small>🏷️ prijs</small><div class="sp-prijs">${k>0
+      ?`${prijsTekst(vol)} − ${Math.round(k*100)}% = <b>${prijsTekst(prijs)}</b>`
+      :`<b>${prijsTekst(vol)}</b>`}</div></div>`;
+    // dan: wat is je schat waard — als gekleurde strook (groen = je kunt kopen, rood = nog sparen)
+    let knop="";
+    const tot=p?totaalWaarde(p):0;
+    if(!p){
+      h+=`<div class="sp-saldo leeg">Speel eerst een ronde om je schatkist te vullen!</div>`;
+    }else if(tot>=prijs.munt){
+      h+=`<div class="sp-saldo ok">✅ Jouw schat is samen <b>🪙 ${tot}</b> waard — genoeg!
+        Na de koop houd je <b>🪙 ${tot-prijs.munt}</b> aan schatten over.</div>`;
+      knop=`<button class="koopknop" id="schat-koop">💰 Koop ${esc(c.n)} voor ${prijsTekst(prijs)}</button>`;
+    }else{
+      const tk=prijs.munt-tot;
+      h+=`<div class="sp-saldo niet">Jouw schat is samen <b>🪙 ${tot}</b> waard.
+        <span class="sp-tekort">Je komt nog <b>🪙 ${tk}</b> tekort</span> — dat zijn ± ${Math.ceil(tk/20)} goede antwoorden. Speel een ronde en kom terug! 💪</div>`;
+      knop=`<button class="koopknop" disabled>💰 Koop ${esc(c.n)} voor ${prijsTekst(prijs)}</button>`;
+    }
+    // onder de koopknop, als voetnootje: hoe je (meer) korting verdient
+    h+=knop+`<div class="sp-kortinfo">${k>0
+      ?`🏷️ Al <b>${n}×</b> goed geraden → <b>${Math.round(k*100)}% korting!</b>${k<.5?` Raad ${n<5?5:10}× goed voor ${n<5?25:50}%.`:""}`
+      :`🏷️ Nog geen korting — raad ${esc(c.n)} ${3-n}× goed voor 10% korting!`}</div>`;
+  }
+  el.innerHTML=h+"</div>";
+  const kb=$("#schat-koop"); if(kb)kb.onclick=koopLand;
+  const vk=$("#schat-verkoop"); if(vk)vk.onclick=verkoopLand;
+}
+function verkoopLand(){ // land verkopen: je krijgt precies terug wat je ervoor betaalde (in muntjes)
+  const p=schatSpeler(); if(!p||!schatSel)return;
+  const c=LAND_VAN[schatSel]; if(!c||!isGekocht(p,c.id))return;
+  const g=p.gekocht[c.id];
+  const terug=(g&&g.prijs)||metKorting(landPrijs(c),schatKorting(p,c.id)).munt;
+  delete p.gekocht[c.id];
+  p.points+=terug;
+  save();hudSyncVeilig();
+  const echt=passSpeler(); if(echt)passDataSync(echt);
+  sndMunt();
+  toast(`↩︎ ${c.f} ${c.n} verkocht voor 🪙 ${terug}`);
+  schatSync();schatPaneel();
+  if(schatGlobe)schatGlobe.render(); // het land kleurt terug naar grijs
+}
+function koopLand(){
+  const p=schatSpeler(); if(!p||!schatSel)return;
+  const c=LAND_VAN[schatSel]; if(!c||isGekocht(p,c.id))return;
+  const prijs=metKorting(landPrijs(c),schatKorting(p,c.id));
+  if(totaalWaarde(p)<prijs.munt)return;
+  betaal(p,prijs.munt); // munten eerst, daarna schatten wisselen (wisselgeld terug in munten)
+  (p.gekocht=p.gekocht||{})[c.id]={t:Date.now(),prijs:prijs.munt}; // betaalde prijs onthouden: verkopen geeft precies dit bedrag terug
+  save();hudSyncVeilig();
+  const echt=passSpeler(); if(echt)passDataSync(echt); // munten-veldje op de identiteitspagina meeschuiven
+  sndMunt();sndGoed();
+  const kb=$("#schat-koop");
+  if(kb){const r=kb.getBoundingClientRect();knal(r.left+r.width/2,r.top,60);}
+  toast(`👑 ${c.f} ${c.n} hoort nu bij jouw koninkrijk!`);
+  schatSync();schatPaneel();
+  if(schatGlobe)schatGlobe.render(); // het land kleurt meteen op
+}
 
 /* ================= KNOPPEN & TOETSEN ================= */
 $("#b-start").onclick=()=>{sndKlik();startRonde();};
