@@ -148,6 +148,45 @@
   .landgrid button:hover{border-color:var(--teal); transform:translateY(-1px)}
   .landgrid .lg-vlag{font-size:30px; line-height:1.15}
   .landgrid .lg-sub{font-size:12.5px; color:var(--muted)}
+  /* motorreis-tegel + keuzescherm + kaartlaag */
+  .motorbtn{background:linear-gradient(135deg,#FFC24D,#F4511E); color:#3D1400; font-size:17px; padding:14px}
+  #s-motor{align-items:center; justify-content:flex-start; gap:22px;
+    padding:calc(22px + env(safe-area-inset-top,0px)) 16px calc(104px + env(safe-area-inset-bottom,0px))}
+  #s-motor .hero{margin-bottom:4px}
+  .mr-voetnoot{font-size:12.5px; color:var(--muted); margin-top:8px}
+  .mr-opnieuw{border:2px solid var(--chip); background:var(--panel2); color:inherit; border-radius:999px;
+    padding:7px 14px; cursor:pointer; font:inherit; font-size:13.5px; margin-bottom:10px}
+  .mr-opnieuw:hover{border-color:var(--teal)}
+  /* motorreis in één kleur: zichtbare landen in de continentkaart-kleur (teal-mix, zelfde formule als
+     .contkaart .sel), je route zilver, het doel goud; waar je staat blijft de groene .goed-markering */
+  #map.motormodus .land:not(.mr-verstopt):not(.goed):not(.fout):not(.target){
+    fill:color-mix(in srgb, var(--teal) 55%, color-mix(in srgb, var(--meer) 30%, var(--panel2)))}
+  #map.motormodus .land.mr-was:not(.goed):not(.fout):not(.target){fill:#C9D0DB}
+  #map.motormodus .land.target{fill:var(--accent-fill)}
+  /* mistlaag: nog niet ontdekte landen kleuren als context en verliezen hun grenzen — je ziet het
+     continent, maar alleen je route, de buurlanden van je huidige land en het doel in kleur */
+  #map.motormodus .land.mr-verstopt{fill:var(--land-context); stroke:var(--land-context); stroke-width:1.4}
+  #map.motormodus #gDots circle.mr-verstopt{display:none}
+  :root[data-theme="dark"] #map.motormodus #gLand{filter:none}
+  :root[data-theme="dark"] #map.motormodus #gLand .land:not(.mr-verstopt){filter:brightness(.82) saturate(.95)}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) #map.motormodus #gLand{filter:none}
+    :root:not([data-theme="light"]) #map.motormodus #gLand .land:not(.mr-verstopt){filter:brightness(.82) saturate(.95)}
+  }
+  .mr-weg-c{fill:none; stroke:#23262E; stroke-width:5; stroke-linecap:round; stroke-linejoin:round;
+    vector-effect:non-scaling-stroke; opacity:.85}
+  .mr-weg-m{fill:none; stroke:#FFD34D; stroke-width:1.7; stroke-dasharray:7 6; stroke-linecap:round;
+    vector-effect:non-scaling-stroke}
+  .mr-ideaal{fill:none; stroke:#F7C948; stroke-width:3; stroke-dasharray:10 7; stroke-linecap:round;
+    vector-effect:non-scaling-stroke; filter:drop-shadow(0 0 6px rgba(247,201,72,.8))}
+  .mr-motor,.mr-vlag{text-anchor:middle; dominant-baseline:central; pointer-events:none;
+    filter:drop-shadow(0 2px 3px rgba(0,0,0,.4))}
+  /* resultaat: het routekaartje met vlaggen en kilometers */
+  #r-motor{background:var(--panel); border-radius:16px; padding:14px 18px; box-shadow:var(--shadow);
+    width:min(560px,100%); text-align:center; display:none}
+  .mr-res-route{font-size:25px; line-height:1.5; letter-spacing:1px}
+  .mr-res-km{font-size:16px; margin-top:6px}
+  .mr-res-top{font-size:14.5px; color:var(--muted); margin-top:6px}
   /* stedenronde: stad-stippen */
   .stad{fill:#FFFFFF; stroke:rgba(0,0,0,.65); stroke-width:1.3; cursor:pointer; vector-effect:non-scaling-stroke}
   .stad.dim{opacity:.22}
@@ -714,6 +753,7 @@
     </span>
   </div>
   <button class="bigbtn gebiedbtn" id="b-gebied">🧭 Gebieden-expeditie — provincies, staten &amp; deelstaten</button>
+  <button class="bigbtn motorbtn" id="b-motor">🏍️ Motorreis — rij van land naar land!</button>
 
 </div>
 
@@ -727,6 +767,33 @@
   <div class="card"><h2>🇪🇺 Europa</h2><div class="landgrid" id="gebied-eu"></div></div>
   <div class="card"><h2>🌏 Rest van de wereld</h2><div class="landgrid" id="gebied-wereld"></div></div>
   <button class="bigbtn" id="b-gebied-terug" style="font-size:17px; padding:13px">← Terug naar het startscherm</button>
+</div>
+
+<!-- ============ MOTORREIS: REISKEUZE ============ -->
+<div class="screen" id="s-motor">
+  <div class="hero">
+    <span class="globe">🏍️</span>
+    <h1>Motorreis</h1>
+    <p>Stap op je motor en rij van land naar land — alleen over land, want de zee over kan niet! Je ziet steeds alleen de buurlanden van het land waar je bent: elke keuze onthult een nieuw stukje van de kaart. Haal je doel met genoeg benzine, en beantwoord bij elke grens de vraag van de douanier!</p>
+  </div>
+  <div class="card">
+    <h2>🌍 In welk werelddeel rijd je?</h2>
+    <div class="seg" data-set="motorCont" id="mr-cont">
+      <button data-v="EU">Europa</button>
+      <button data-v="AS">Azië</button>
+      <button data-v="AF">Afrika</button>
+      <button data-v="NA">N-Amerika</button>
+      <button data-v="SA">Z-Amerika</button>
+    </div>
+    <div class="mr-voetnoot">🌊 Oceanië doet niet mee: daar liggen de landen op eilanden, ver uit elkaar in de oceaan.</div>
+  </div>
+  <button class="bigbtn motorbtn" id="b-mr-verras" style="font-size:17px; padding:13px">🎲 Verras me — kies een reis voor mij!</button>
+  <div class="card" id="mr-kies">
+    <h2 id="mr-kies-titel">📍 Waar begint je reis?</h2>
+    <button class="mr-opnieuw" id="b-mr-opnieuw" style="display:none">↩︎ Kies een ander startland</button>
+    <div class="landgrid" id="mr-grid"></div>
+  </div>
+  <button class="bigbtn" id="b-mr-terug" style="font-size:17px; padding:13px">← Terug naar het startscherm</button>
 </div>
 
 <!-- ============ SPELSCHERM ============ -->
@@ -775,6 +842,7 @@
   <h1 id="r-titel">Ronde klaar!</h1>
   <div class="resgems" id="r-gems"></div>
   <div id="r-perfect" style="display:none">🏆 PERFECTE RONDE — bonus: +1 💎!</div>
+  <div id="r-motor"></div>
   <div class="statgrid">
     <div class="statbox"><div class="v" id="r-goed">0</div><div class="l">Goed</div></div>
     <div class="statbox"><div class="v" id="r-punt">0</div><div class="l">🪙 Muntjes</div></div>
@@ -1002,7 +1070,7 @@ const DATA_KLAAR=(async()=>{
 </script>
 <script>
 "use strict";
-const VERSIE="51"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="52"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -1356,6 +1424,7 @@ function load(){
   if(!d||!d.players)d={players:{},last:"",settings:{continents:["EU"],oefen:"landen",stijl:"kaart",aantal:"10",niveau:"1",mini:false,flits:false},muted:false,thema:"donker"}; // eerste keer spelen: Europa, landen, aanwijzen op kaart, 10 vragen, ontdekker, donker thema
   if(!d.settings.continents)d.settings.continents=["EU"]; // continent-keuze (default Europa)
   if(!d.settings.puzzelN)d.settings.puzzelN="6"; // aantal stukken in de landenpuzzel
+  if(!d.settings.motorCont)d.settings.motorCont="EU"; // werelddeel van de motorreis (default Europa)
   if(d.stem===undefined)d.stem=true; // gesproken aanmoedigingen: standaard aan
   if(d.muziek===undefined)d.muziek=true; // achtergrondmuziek: standaard aan
   if(d.effecten===undefined)d.effecten=(d.muted===true?false:true); // geluidseffecten (voorheen de globale mute)
@@ -1624,6 +1693,7 @@ function lodPas(){
   if(diepKlaar)diepKaartVul(); // projecteert nieuw zichtbare landen en ververst dan zelf
   if(wissel)lodZet(fijnKlaar);
   if(typeof pzNaamPas==="function")pzNaamPas(); // puzzelnamen even groot houden bij zoomen
+  if(typeof mrMaatPas==="function")mrMaatPas(); // motortje even groot houden bij zoomen
   rivierPas(); // rivierdichtheid volgt de zoom
 }
 let animId=null;
@@ -1719,7 +1789,8 @@ function kaartReset(){
   wisSpot();
   if(typeof verbergVorm==="function")verbergVorm();
   if(typeof pzOpruim==="function")pzOpruim();
-  for(const id in paden)paden[id].classList.remove("dim","target","goed","fout","pz-neutraal","bijna","snapplof");
+  if(typeof mrOpruim==="function")mrOpruim();
+  for(const id in paden)paden[id].classList.remove("dim","target","goed","fout","pz-neutraal","bijna","snapplof","mr-was","mr-verstopt");
   document.querySelectorAll("#gStad circle").forEach(c=>c.classList.remove("dim","target","goed","fout"));
   map.classList.remove("klikbaar");
 }
@@ -2090,7 +2161,7 @@ $("#t-mini").onclick=()=>{db.settings.mini=!db.settings.mini;if(db.settings.mini
 $("#t-flits").onclick=()=>{db.settings.flits=!db.settings.flits;save();segSync();sndKlik();};
 
 const naamIn=$("#naam");
-function knoppenSync(){const uit=!st.naam;$("#b-start").classList.toggle("wachtop",uit);$("#b-moeilijk").classList.toggle("wachtop",uit);$("#b-vormen").classList.toggle("wachtop",uit);$("#b-puzzel").classList.toggle("wachtop",uit);$("#b-gebied").classList.toggle("wachtop",uit);}
+function knoppenSync(){const uit=!st.naam;$("#b-start").classList.toggle("wachtop",uit);$("#b-moeilijk").classList.toggle("wachtop",uit);$("#b-vormen").classList.toggle("wachtop",uit);$("#b-puzzel").classList.toggle("wachtop",uit);$("#b-gebied").classList.toggle("wachtop",uit);$("#b-motor").classList.toggle("wachtop",uit);}
 function wijsNaarNaam(){ // duidelijk maken dat eerst de voornaam nodig is
   toast("👋 Vul eerst je voornaam in bij 'Wie gaat er spelen?'");
   const veld=$("#naam");
@@ -2189,7 +2260,7 @@ function startRonde(moeilijk=false){
   st.vragen=moeilijk?maakMoeilijkeVragen():maakVragen();
   if(!st.vragen.length){toast("Geen vragen mogelijk met deze instellingen 🤔");return;}
   menuSync(null);$("#s-game").classList.remove("metmenu");toonPlatteKaart();
-  st.qi=0;st.streak=0;st.verken=false;st.rondeStart=Date.now();st.stedenronde=false;st.gebied=null;st.wasPuzzel=false;
+  st.qi=0;st.streak=0;st.verken=false;st.rondeStart=Date.now();st.stedenronde=false;st.gebied=null;st.wasPuzzel=false;st.motor=null;
   st.moeilijk=moeilijk; // moeilijke ronde = dubbele punten
   st.stemNaGoed=true; // eerste goede antwoord van de ronde krijgt altijd een gesproken aanmoediging
   st.ronde={goed:0,punt:0,best:0,diam:0,stempels:[],uitslagen:[]};
@@ -2266,7 +2337,7 @@ async function startStedenRonde(){
     return q;
   });
   menuSync(null);$("#s-game").classList.remove("metmenu");toonPlatteKaart();
-  st.qi=0;st.streak=0;st.verken=false;st.rondeStart=Date.now();st.stemNaGoed=true;st.stedenronde=true;st.gebied=null;st.moeilijk=false;st.wasPuzzel=false;
+  st.qi=0;st.streak=0;st.verken=false;st.rondeStart=Date.now();st.stemNaGoed=true;st.stedenronde=true;st.gebied=null;st.moeilijk=false;st.wasPuzzel=false;st.motor=null;
   st.ronde={goed:0,punt:0,best:0,diam:0,stempels:[],uitslagen:[]};
   const p=speler();
   $("#hud-naam").textContent=p.naam;$("#hud-ava").textContent=p.naam[0].toUpperCase();
@@ -2338,7 +2409,7 @@ async function startGebiedRonde(key){
   });
   menuSync(null);$("#s-game").classList.remove("metmenu");toonPlatteKaart();
   st.qi=0;st.streak=0;st.verken=false;st.rondeStart=Date.now();st.stemNaGoed=true;
-  st.stedenronde=false;st.gebied=key;st.moeilijk=false;st.wasPuzzel=false;
+  st.stedenronde=false;st.gebied=key;st.moeilijk=false;st.wasPuzzel=false;st.motor=null;
   st.ronde={goed:0,punt:0,best:0,diam:0,stempels:[],uitslagen:[]};
   const p=speler();
   $("#hud-naam").textContent=p.naam;$("#hud-ava").textContent=p.naam[0].toUpperCase();
@@ -2535,7 +2606,7 @@ function startPuzzel(){
   setKaart(cont);
   kaartReset();stopTimer(); // ruimt óók een eventuele vorige puzzel op — dus vóór het klaarzetten
   st.qi=0;st.streak=0;st.verken=false;st.rondeStart=Date.now();st.stedenronde=false;st.gebied=null;st.moeilijk=false;
-  st.wasPuzzel=true;st.stemNaGoed=true;st.q=null;st.answered=false;st.hints=0;
+  st.wasPuzzel=true;st.stemNaGoed=true;st.q=null;st.answered=false;st.hints=0;st.motor=null;
   st.vragen=gekozen.map(c=>({type:"puzzel",c}));
   st.ronde={goed:0,punt:0,best:0,diam:0,stempels:[],uitslagen:[]};
   st.puzzel={cont,stukken:gekozen.map(c=>({c,klaar:false,gemist:false})),hulp,regio};
@@ -2802,6 +2873,460 @@ $("#b-puzzel").addEventListener("click",()=>{sndKlik();startPuzzel();});
 $("#b-puzzel").addEventListener("keydown",ev=>{if(ev.target===ev.currentTarget&&(ev.key==="Enter"||ev.key===" ")){ev.preventDefault();sndKlik();startPuzzel();}});
 document.querySelector("#b-puzzel .pz-seg").addEventListener("click",ev=>ev.stopPropagation()); // aantal kiezen ≠ starten
 
+/* ============ MOTORREIS (rij via buurlanden naar je doel) ============ */
+const MR_WEGFACTOR=1.25; // hemelsbreed → "over de weg": echte wegen maken gemiddeld zo'n omweg
+const MR_TANK_EXTRA=2;   // benzine voor de kortste route + dit — wie te veel omrijdt, staat droog
+const MR_MINI=new Set(["AD","MC","LI","SM","VA"]); // ministaatjes: geen halte op de motorreis
+const MR_TOPO={};
+// buurlanden zoals pzTopo, maar met drempel ≥2 gedeelde grenspunten: zo doen ook korte grenzen mee
+// (DK–DE, PL–RU, HU–SI, de Wachan-corridor AF–CN). Gecontroleerd op alle continenten: elk paar met
+// ≥2 gedeelde punten is een échte landgrens (drielandenpunten delen hooguit 1 punt).
+// Spelregel: alléén aaneengesloten land telt — over zee (veerboot, brug of tunnel) kom je niet,
+// dus eilandlanden zonder landgrens doen niet mee.
+function mrTopo(cont){
+  if(MR_TOPO[cont])return MR_TOPO[cont];
+  const K=KAARTEN[cont];
+  const paren=d=>d.match(/-?[\d.]+ -?[\d.]+/g)||[];
+  const per={};
+  for(const c of LANDEN){
+    if(c.cont!==cont)continue;
+    const g=K&&K.geo[c.id];
+    if(g&&g.d&&!g.dot)per[c.id]=[...new Set(paren(g.d))];
+  }
+  const bij={};
+  for(const id in per)for(const p of per[id])(bij[p]=bij[p]||[]).push(id);
+  const buren={};
+  for(const id in per){
+    const t={};
+    for(const p of per[id])for(const b of bij[p])if(b!==id)t[b]=(t[b]||0)+1;
+    buren[id]=Object.keys(t).filter(b=>t[b]>=2);
+  }
+  return MR_TOPO[cont]={buren};
+}
+function mrBFS(cont,van){ // kortste-pad-boom vanaf één land: afstand + vorige-stap per bereikbaar land
+  const {buren}=mrTopo(cont);
+  const afst={[van]:0},vorig={},rij=[van];
+  while(rij.length){
+    const h=rij.shift();
+    for(const b of buren[h]||[])if(!(b in afst)){afst[b]=afst[h]+1;vorig[b]=h;rij.push(b);}
+  }
+  return {afst,vorig};
+}
+function mrRoute(cont,van,naar){ // één kortste route als lijst land-ids (incl. begin en eind)
+  const {afst,vorig}=mrBFS(cont,van);
+  if(!(naar in afst))return null;
+  const r=[naar];while(r[0]!==van)r.unshift(vorig[r[0]]);
+  return r;
+}
+function mrKm(a,b){ // hemelsbreed tussen twee [lon,lat] (haversine), in km
+  const R=6371,D=Math.PI/180;
+  const h=Math.sin((b[1]-a[1])*D/2)**2+Math.cos(a[1]*D)*Math.cos(b[1]*D)*Math.sin((b[0]-a[0])*D/2)**2;
+  return 2*R*Math.asin(Math.sqrt(h));
+}
+const mrFmt=n=>Math.round(n).toLocaleString("nl-NL");
+function mrCapPx(id){const ll=GLOBE.steden[id],P=KAARTEN[st.motor.cont].proj;return projKaart(P,ll[0],ll[1]);}
+function mrLanden(cont){const {buren}=mrTopo(cont);return LANDEN.filter(c=>c.cont===cont&&buren[c.id]&&buren[c.id].length&&GLOBE.steden[c.id]);}
+
+/* ---------- reiskeuze (scherm s-motor) ---------- */
+let mrKies={stap:1,start:null};
+function mrCont(){return db.settings.motorCont||"EU";}
+function toonMotorKeuze(){
+  if(!st.naam){wijsNaarNaam();return;}
+  mrKies={stap:1,start:null};
+  segSync();mrGrid();
+  toonScherm("#s-motor");menuSync("expeditie");
+}
+function mrGrid(){
+  const cont=mrCont(),grid=$("#mr-grid");grid.innerHTML="";
+  const titel=$("#mr-kies-titel");
+  $("#b-mr-opnieuw").style.display=mrKies.stap===2?"":"none";
+  let lijst=mrLanden(cont),afst=null;
+  if(mrKies.stap===2){
+    titel.innerHTML=`🎯 Je start in ${mrKies.start.f} <b>${esc(mrKies.start.n)}</b> — waar rijd je naartoe?`;
+    afst=mrBFS(cont,mrKies.start.id).afst;
+    lijst=lijst.filter(c=>afst[c.id]>=1).sort((a,b)=>afst[a.id]-afst[b.id]||a.n.localeCompare(b.n,"nl"));
+  }else{
+    titel.textContent="📍 Waar begint je reis?";
+    lijst=lijst.slice().sort((a,b)=>a.n.localeCompare(b.n,"nl"));
+  }
+  for(const c of lijst){
+    const b=document.createElement("button");
+    const sub=mrKies.stap===2?`${afst[c.id]} ${afst[c.id]===1?"grens":"grenzen"} ver`:esc(c.h);
+    b.innerHTML=`<span class="lg-vlag">${c.f}</span><b>${esc(c.n)}</b><span class="lg-sub">${sub}</span>`;
+    b.onclick=()=>{sndKlik();
+      if(mrKies.stap===1){mrKies={stap:2,start:c};mrGrid();$("#mr-kies").scrollIntoView({behavior:"smooth",block:"start"});}
+      else startMotorRonde(mrKies.start,c);
+    };
+    grid.appendChild(b);
+  }
+}
+$("#mr-cont").addEventListener("click",ev=>{ // ná de generieke seg-handler: keuze is al opgeslagen
+  if(ev.target.dataset.v){mrKies={stap:1,start:null};mrGrid();}
+});
+$("#b-mr-opnieuw").onclick=()=>{sndKlik();mrKies={stap:1,start:null};mrGrid();};
+$("#b-mr-verras").onclick=()=>{
+  sndKlik();
+  if(!st.naam){wijsNaarNaam();return;}
+  const cont=mrCont(),lijst=mrLanden(cont);
+  if(!lijst.length)return;
+  const start=mrKies.stap===2?mrKies.start:rnd(lijst);
+  const afst=mrBFS(cont,start.id).afst;
+  const mooi=lijst.filter(c=>afst[c.id]>=3&&afst[c.id]<=5); // een échte reis: 3-5 grenzen
+  const doelen=mooi.length?mooi:lijst.filter(c=>afst[c.id]>=1);
+  if(!doelen.length)return;
+  startMotorRonde(start,rnd(doelen));
+};
+$("#b-motor").onclick=()=>{sndKlik();toonMotorKeuze();};
+$("#b-mr-terug").onclick=()=>{sndKlik();chipsSync();segSync();toonScherm("#s-start");menuSync("expeditie");};
+
+/* ---------- de rit zelf ---------- */
+function startMotorRonde(startC,doelC){
+  if(!st.naam){toonScherm("#s-start");menuSync("expeditie");wijsNaarNaam();return;}
+  db.last=st.naam;save();
+  const cont=startC.cont,kortste=mrRoute(cont,startC.id,doelC.id);
+  if(!kortste){toast("Die reis kan niet — kies een ander doel 🤔");return;}
+  setKaart(cont);
+  menuSync(null);$("#s-game").classList.remove("metmenu");toonPlatteKaart();
+  st.qi=0;st.streak=0;st.verken=false;st.rondeStart=Date.now();st.stedenronde=false;st.gebied=null;
+  st.moeilijk=false;st.wasPuzzel=false;st.puzzel=null;st.q=null;st.vragen=[];st.stemNaGoed=true;
+  st.ronde={goed:0,punt:0,best:0,diam:0,stempels:[],uitslagen:[]};
+  const tank=kortste.length-1+MR_TANK_EXTRA;
+  st.motor={cont,start:startC.id,doel:doelC.id,hier:startC.id,route:[startC.id],km:0,
+    tank,tankTot:tank,kortste:kortste.length-1,vragen:0,rijdt:false,vraag:false,klaar:false,hints:0,
+    zicht:new Set(),onthuld:new Set()}; // zicht: rekent mrMarkeer per beurt uit; onthuld: extra's (leermoment)
+  const p=speler();
+  $("#hud-naam").textContent=p.naam;$("#hud-ava").textContent=p.naam[0].toUpperCase();
+  $("#hud-vraag").textContent="🏍️ 0 grenzen";
+  hudSync();voortgangSync();
+  toonScherm("#s-game");
+  kaartReset();stopTimer();
+  mrBouwLaag();mrMarkeer();mrPrompt();
+  [40,180,450].forEach(t=>setTimeout(herstelKaartVorm,t));
+  setTimeout(mrZoom,500);
+}
+let mrEls=null;
+function mrBouwLaag(){ // eigen kaartlaag: weggetje, veerboot-lijnen, finishvlag en het motortje
+  const mk=t=>document.createElementNS(SVGNS,t);
+  mrOpruim();
+  map.classList.add("motormodus"); // mistlaag aan: alleen ontdekte landen in kleur
+  const g=mk("g");g.id="gMotor";g.style.pointerEvents="none";
+  const weg=mk("path");weg.setAttribute("class","mr-weg-c");
+  const mid=mk("path");mid.setAttribute("class","mr-weg-m");
+  const vlag=mk("text");vlag.setAttribute("class","mr-vlag");vlag.textContent="🏁";
+  const mot=mk("text");mot.setAttribute("class","mr-motor");mot.textContent="🏍️";
+  g.append(weg,mid,vlag,mot);map.appendChild(g);
+  mrEls={g,weg,mid,mot,vlag,wegD:""};
+  const D=mrCapPx(st.motor.doel);
+  vlag.setAttribute("x",D[0]);vlag.setAttribute("y",D[1]);
+  const A=mrCapPx(st.motor.hier);
+  mrZetMotor(A,1,0,0);
+  mrMaatPas();
+}
+function mrOpruim(){
+  const g=document.getElementById("gMotor");if(g)g.remove();mrEls=null;
+  map.classList.remove("motormodus");
+  if(mrSnd){mrSnd.stop();mrSnd=null;} // motor uit als de rit wordt afgebroken
+}
+function mrMaatPas(){ // motortje en vlag schalen mee met de zoom (zoals de stad-stippen)
+  if(!mrEls)return;
+  const f=Math.max(13,vb.w*0.034);
+  mrEls.mot.style.fontSize=f+"px";
+  mrEls.vlag.style.fontSize=(f*0.72)+"px";
+}
+function mrZetMotor(p,tx,ty,k){ // positie + kijkrichting; 🏍️ kijkt standaard naar links
+  const naarRechts=tx>=0;
+  let hoek=Math.atan2(ty,tx)*180/Math.PI;
+  if(!naarRechts)hoek=((hoek-180+540)%360)-180; // hoek t.o.v. de links-kijkende glyph
+  hoek=Math.max(-30,Math.min(30,hoek));
+  const hobbel=Math.sin((k||0)*26)*1.8; // hobbelen over de weg
+  mrEls.mot.setAttribute("transform",`translate(${p[0]} ${p[1]+hobbel}) rotate(${hoek.toFixed(1)})${naarRechts?" scale(-1,1)":""}`);
+}
+function mrMarkeer(){ // hier = groen, doel = goud, route = zilver, buurlanden = continentkleur — de rest mist
+  const M=st.motor,{buren}=mrTopo(M.cont);
+  // zichtbaar: je route, het doel en alléén de buurlanden van waar je nú staat (niet van eerdere stops);
+  // ben je op je bestemming, dan valt er niets meer te kiezen en blijft alleen de route over
+  M.zicht=new Set([...M.route,M.doel,...(M.hier===M.doel?[]:buren[M.hier]||[]),...M.onthuld]);
+  for(const id in paden){
+    const el=paden[id];
+    el.classList.remove("goed","target","fout","dim","mr-was");
+    el.classList.toggle("mr-verstopt",!M.zicht.has(id));
+  }
+  for(const id of M.route)if(paden[id])paden[id].classList.add("mr-was");
+  if(paden[M.hier]){paden[M.hier].classList.remove("mr-was");paden[M.hier].classList.add("goed");}
+  if(paden[M.doel])paden[M.doel].classList.add("target");
+}
+function mrZoom(){ // huidig land + buurlanden + doel in beeld
+  const M=st.motor;if(!M)return;
+  const {buren}=mrTopo(M.cont);
+  let bb=null;
+  const doe=id=>{const c=LAND_VAN[id];if(!c||!c.bb)return;
+    bb=bb?[Math.min(bb[0],c.bb[0]),Math.min(bb[1],c.bb[1]),Math.max(bb[2],c.bb[2]),Math.max(bb[3],c.bb[3])]:c.bb.slice();};
+  doe(M.hier);doe(M.doel);(buren[M.hier]||[]).forEach(doe);
+  if(bb)zoomNaarBB(bb);
+}
+function mrVoetHtml(km){const M=st.motor;
+  return `⛽ ${"🟩".repeat(Math.max(0,M.tank))}${"⬜".repeat(Math.max(0,M.tankTot-M.tank))} &nbsp;·&nbsp; 🛣️ ${mrFmt(km)} km`;}
+function mrVoet(){$("#q-voet").innerHTML=mrVoetHtml(st.motor.km);}
+function mrPrompt(){ // beurt: kies het volgende buurland
+  const M=st.motor,c=LAND_VAN[M.hier],doel=LAND_VAN[M.doel];
+  $("#q-label").textContent="🏍️ Motorreis";
+  $("#q-text").innerHTML=`Je bent in ${c.f} <b>${esc(c.n)}</b>. Rij naar ${doel.f} <b>${esc(doel.n)}</b> — klik het buurland waar je heen wilt!`;
+  $("#q-choices").innerHTML="";$("#q-klik").style.display="none";
+  $("#q-hint").style.display="none";$("#q-hint").innerHTML="";
+  $("#b-hint").style.display="";$("#b-hint").disabled=M.hints>=2;
+  $("#b-hint").textContent=M.hints>=2?"🧭 Routeplanner op":`🧭 Routeplanner (nog ${2-M.hints})`;
+  map.classList.add("klikbaar");
+  mrVoet();
+}
+function mrHint(){ // routeplanner: verklapt de volgende stap van een kortste route
+  const M=st.motor;
+  if(!M||M.rijdt||M.vraag||M.klaar||M.hints>=2)return;
+  const r=mrRoute(M.cont,M.hier,M.doel);
+  if(!r||r.length<2)return;
+  M.hints++;sndKlik();
+  const nx=LAND_VAN[r[1]];
+  $("#q-hint").style.display="block";
+  $("#q-hint").innerHTML=`🧭 De routeplanner zegt: rij naar ${nx.f} <b>${esc(nx.n)}</b>!`;
+  $("#b-hint").disabled=M.hints>=2;
+  $("#b-hint").textContent=M.hints>=2?"🧭 Routeplanner op":`🧭 Routeplanner (nog ${2-M.hints})`;
+}
+function mrKlik(c){
+  const M=st.motor;
+  if(M.klaar||M.rijdt||M.vraag)return;
+  if(c.id===M.hier){toast("Daar sta je al! 😄");return;}
+  const {buren}=mrTopo(M.cont);
+  if((buren[M.hier]||[]).includes(c.id)){mrRijd(c);return;}
+  sndFout();
+  if(MR_MINI.has(c.id)){toast(`🏰 ${c.n} is een ministaatje — dat slaan we op deze motorreis over!`);return;}
+  if(!M.zicht.has(c.id)){ // nog in de mist: naam niet verklappen; zeg wel of er zee tussen zit
+    const {afst}=mrBFS(M.cont,M.hier);
+    toast(afst[c.id]===undefined
+      ?"🌊 Daar zit zee tussen — met de motor kom je daar niet!"
+      :"🌫️ Dit land heb je nog niet ontdekt — rij eerst naar een buurland!");
+    return;
+  }
+  if(paden[c.id]){paden[c.id].classList.add("fout");setTimeout(()=>paden[c.id].classList.remove("fout"),900);}
+  toast(`❌ ${c.n} grenst niet aan ${LAND_VAN[M.hier].n} — kies een buurland!`);
+}
+let mrSnd=null; // draaiende motor van de huidige rit (om te kunnen stoppen bij afbreken)
+function mrVroem(dur=1.4){ // vriendelijk brommetje dat de hele rit meeloopt: zacht tuf-tuf, geen rauwe racemotor
+  if(db.effecten===false)return;
+  try{
+    actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    if(actx.state==="suspended")actx.resume();
+    const t=actx.currentTime, eind=t+Math.max(.8,dur);
+    const o=actx.createOscillator();o.type="triangle"; // warme, zachte grondtoon
+    o.frequency.setValueAtTime(105,t);
+    o.frequency.exponentialRampToValueAtTime(170,t+.6);             // rustig optrekken
+    o.frequency.setValueAtTime(170,Math.max(t+.6,eind-.35));
+    o.frequency.exponentialRampToValueAtTime(120,eind);             // zachtjes gas los
+    const zoem=actx.createOscillator();zoem.type="sine";zoem.frequency.value=5; // lichte zweving: gezellig gebrom
+    const zg=actx.createGain();zg.gain.value=5;
+    zoem.connect(zg);zg.connect(o.frequency);
+    const putter=actx.createOscillator();putter.type="sine";putter.frequency.value=15; // zacht tuf-tuf-tuf
+    const pg=actx.createGain();pg.gain.value=.05;
+    const g=actx.createGain();
+    g.gain.setValueAtTime(.0001,t);
+    g.gain.exponentialRampToValueAtTime(.13,t+.15);
+    g.gain.setValueAtTime(.13,Math.max(t+.16,eind-.35));
+    g.gain.exponentialRampToValueAtTime(.0001,eind);
+    const f=actx.createBiquadFilter();f.type="lowpass";f.frequency.value=520; // rond de scherpe randjes af
+    putter.connect(pg);pg.connect(g.gain);
+    o.connect(f);f.connect(g);g.connect(actx.destination);
+    [o,zoem,putter].forEach(x=>{x.start(t);x.stop(eind+.05);});
+    mrSnd={stop(){try{
+      g.gain.cancelScheduledValues(actx.currentTime);
+      g.gain.setTargetAtTime(.0001,actx.currentTime,.05);
+      [o,zoem,putter].forEach(x=>x.stop(actx.currentTime+.25));
+    }catch(e){}}};
+  }catch(e){}
+}
+function mrRijd(c){ // van hoofdstad naar hoofdstad over een gebogen weggetje
+  const M=st.motor,van=LAND_VAN[M.hier];
+  const A=mrCapPx(M.hier),B=mrCapPx(c.id);
+  const legKm=Math.max(10,Math.round(mrKm(GLOBE.steden[M.hier],GLOBE.steden[c.id])*MR_WEGFACTOR/10)*10);
+  const alBezocht=M.route.includes(c.id),vorige=M.hier;
+  M.rijdt=true;M.tank--;M.route.push(c.id);M.hier=c.id;
+  map.classList.remove("klikbaar");
+  $("#q-label").textContent="🏍️ Onderweg…";
+  $("#q-choices").innerHTML="";$("#q-hint").style.display="none";$("#b-hint").style.display="none";
+  $("#q-text").innerHTML=`Brommm! Van ${van.f} ${esc(van.n)} naar ${c.f} <b>${esc(c.n)}</b> — ± ${mrFmt(legKm)} km.`;
+  // vaste boogkant per landenpaar: heen- en terugrit volgen precies dezelfde lijn
+  const dx=B[0]-A[0],dy=B[1]-A[1],L=Math.hypot(dx,dy)||1;
+  const kant=vorige<c.id?1:-1,buig=Math.min(30,L*0.22)*kant;
+  const C=[(A[0]+B[0])/2-dy/L*buig,(A[1]+B[1])/2+dx/L*buig];
+  const d=`M${A[0].toFixed(1)} ${A[1].toFixed(1)}Q${C[0].toFixed(1)} ${C[1].toFixed(1)} ${B[0].toFixed(1)} ${B[1].toFixed(1)}`;
+  const tmp=document.createElementNS(SVGNS,"path");
+  tmp.setAttribute("class","mr-weg-m");tmp.setAttribute("d",d);
+  mrEls.g.insertBefore(tmp,mrEls.vlag);
+  const len=tmp.getTotalLength();
+  tmp.style.strokeDasharray=len+" "+len;tmp.style.strokeDashoffset=len;
+  const T=Math.max(750,Math.min(2100,len*9)),km0=M.km;
+  mrVroem(T/1000); // motorgeluid duurt precies de hele rit
+  M.km+=legKm;
+  $("#hud-vraag").textContent=`🏍️ ${M.route.length-1} ${M.route.length-1===1?"grens":"grenzen"}`;
+  const t0=performance.now();
+  const stap=t=>{
+    if(!st.motor||!mrEls)return; // ronde tussentijds afgebroken
+    let k=Math.min(1,(t-t0)/T);k=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+    const u=1-k;
+    const x=u*u*A[0]+2*u*k*C[0]+k*k*B[0],y=u*u*A[1]+2*u*k*C[1]+k*k*B[1];
+    const tx=2*u*(C[0]-A[0])+2*k*(B[0]-C[0]),ty=2*u*(C[1]-A[1])+2*k*(B[1]-C[1]);
+    tmp.style.strokeDashoffset=len*(1-k);
+    mrZetMotor([x,y],tx,ty,k);
+    $("#q-voet").innerHTML=mrVoetHtml(km0+legKm*k);
+    if(k<1){requestAnimationFrame(stap);return;}
+    tmp.remove();
+    mrEls.wegD+=d;mrEls.weg.setAttribute("d",mrEls.wegD);mrEls.mid.setAttribute("d",mrEls.wegD);
+    M.rijdt=false;
+    mrMarkeer();mrVoet();mrZoom();
+    if(alBezocht){ // hier was je al: de douanier kent je nog
+      if(c.id===M.doel){mrFinish();return;}
+      toast("🛂 De douanier herkent je nog — rij maar door!");
+      if(M.tank<=0){mrLeeg();return;}
+      mrPrompt();
+    }else mrDouane(c,c.id===M.doel);
+  };
+  requestAnimationFrame(stap);
+}
+function mrDouane(c,laatste){ // grenscontrole: vraagje over het land dat je binnenrijdt
+  const M=st.motor;M.vraag=true;M.vragen++;
+  const pool=LANDEN.filter(x=>x.cont===M.cont);
+  const soort=Math.random()<0.55?"h":"v";
+  const opts=shuffle([c,...afleiders(c,pool,soort==="h"?"h":"f")].map(x=>({t:soort==="h"?x.h:x.f,ok:x.id===c.id})));
+  $("#q-label").textContent="🛂 Grenscontrole";
+  $("#q-text").innerHTML=soort==="h"
+    ?`Welkom in ${c.f} <b>${esc(c.n)}</b>! De douanier vraagt: wat is de <b>hoofdstad</b>?`
+    :`Welkom in <b>${esc(c.n)}</b>! De douanier vraagt: welke <b>vlag</b> hoort bij dit land?`;
+  $("#q-klik").style.display="none";map.classList.remove("klikbaar");
+  $("#b-hint").style.display="none";$("#q-hint").style.display="none";
+  st.q={motor:true};st.answered=false;
+  const box=$("#q-choices");box.innerHTML="";
+  opts.forEach((o,i)=>{
+    const b=document.createElement("button");b.className="choice"+(soort==="v"?" vlagkeuze":"");
+    b.innerHTML=`<span class="key">${i+1}</span><span>${esc(o.t)}</span>`;
+    b.onclick=()=>{if(st.answered)return;mrAntwoord(o.ok,b,c,soort,laatste,opts);};
+    box.appendChild(b);
+  });
+  mrVoet();
+}
+function mrAntwoord(goed,knop,c,soort,laatste,opts){ // zelfde economie als een gewone vraag (5 punten, streak, diamant, stempel)
+  st.answered=true;const p=speler(),M=st.motor;
+  knop.classList.add(goed?"good":"bad");
+  document.querySelectorAll("#q-choices .choice").forEach((b,i)=>{b.disabled=true;if(opts[i].ok)b.classList.add("good");});
+  logVan(p,c.id)[soort+(goed?"g":"f")]++;
+  if(goed&&totGoed(p,c.id)>=10){const lg=logVan(p,c.id);if(!lg.d)lg.d=Date.now();}
+  if(goed){
+    st.ronde.goed++;st.streak++;
+    if(st.streak>st.ronde.best)st.ronde.best=st.streak;
+    if(st.streak>p.best)p.best=st.streak;
+    let pts=5;
+    if(st.streak%3===0){pts+=5;setTimeout(()=>{vlamEffect();sndVlam();},600);}
+    st.ronde.punt+=pts;p.points+=pts;p.xp=(p.xp||0)+pts;p.goedTotaal++;
+    const eerder=p.pass[c.id]||0;p.pass[c.id]=eerder+1;if(eerder===0)st.ronde.stempels.push(c);
+    p.diaProg=(p.diaProg||0)+1;
+    if(p.diaProg>=5){p.diaProg=0;p.diamonds++;st.ronde.diam++;setTimeout(toonDiamant,900);}
+    sndGoed();
+    const lr=paden[c.id].getBoundingClientRect();
+    for(let i=0;i<3;i++)vliegMunt(lr.left+lr.width/2,lr.top+lr.height/2,i*180);
+  }else{
+    st.streak=0;sndFout();
+    p.fouten=p.fouten||{};p.fouten[c.id]=(p.fouten[c.id]||0)+1;
+    $("#q-text").innerHTML+=`<div style="margin-top:6px">${soort==="h"
+      ?`De hoofdstad van ${esc(c.n)} is <b>${esc(c.h)}</b>.`
+      :`Dít is de vlag van ${esc(c.n)}: <span style="font-size:26px">${c.f}</span>`} Rij maar door! 🏍️</div>`;
+  }
+  save();hudSync();
+  setTimeout(()=>{
+    if(!st.motor||!$("#s-game").classList.contains("active"))return; // afgebroken
+    st.q=null;M.vraag=false;
+    if(laatste){mrFinish();return;}
+    if(M.tank<=0){mrLeeg();return;}
+    mrPrompt();
+  },goed?1200:2300);
+}
+function mrFinish(){
+  const M=st.motor;M.klaar=true;
+  map.classList.remove("klikbaar");
+  const doel=LAND_VAN[M.doel];
+  $("#q-label").textContent="🏁 Finish!";
+  $("#q-text").innerHTML=`🏁 Je bent aangekomen in ${doel.f} <b>${esc(doel.n)}</b>!`;
+  $("#q-choices").innerHTML="";
+  sndFanfare();speelStem();
+  const r=map.getBoundingClientRect();
+  knal(r.left+r.width/2,r.top+r.height*0.4,150);
+  setTimeout(()=>{if(st.motor)eindMotor(true);},1700);
+}
+function mrLeeg(){ // benzine op vóór het doel: toon als leermoment de kortste route in goud
+  const M=st.motor;M.klaar=true;
+  map.classList.remove("klikbaar");
+  $("#q-label").textContent="⛽ Benzine op!";
+  $("#q-text").innerHTML=`⛽ Je staat droog in ${LAND_VAN[M.hier].f} <b>${esc(LAND_VAN[M.hier].n)}</b>… De gouden lijn was de kortste route!`;
+  $("#q-choices").innerHTML="";
+  mrTekenIdeaal();
+  sndFout();
+  setTimeout(()=>{if(st.motor)eindMotor(false);},3400);
+}
+function mrTekenIdeaal(){
+  const M=st.motor,r=mrRoute(M.cont,M.start,M.doel);
+  if(!r||!mrEls)return;
+  r.forEach(id=>M.onthuld.add(id));mrMarkeer(); // leermoment: de landen van de kortste route uit de mist halen
+  let d="";
+  for(let i=0;i+1<r.length;i++){
+    const A=mrCapPx(r[i]),B=mrCapPx(r[i+1]);
+    const dx=B[0]-A[0],dy=B[1]-A[1],L=Math.hypot(dx,dy)||1;
+    const kant=r[i]<r[i+1]?1:-1,buig=Math.min(30,L*0.22)*kant;
+    d+=`M${A[0].toFixed(1)} ${A[1].toFixed(1)}Q${((A[0]+B[0])/2-dy/L*buig).toFixed(1)} ${((A[1]+B[1])/2+dx/L*buig).toFixed(1)} ${B[0].toFixed(1)} ${B[1].toFixed(1)}`;
+  }
+  const p=document.createElementNS(SVGNS,"path");
+  p.setAttribute("class","mr-ideaal");p.setAttribute("d",d);
+  mrEls.g.insertBefore(p,mrEls.vlag);
+  let bb=null;
+  for(const id of r){const c=LAND_VAN[id];if(c&&c.bb)bb=bb?[Math.min(bb[0],c.bb[0]),Math.min(bb[1],c.bb[1]),Math.max(bb[2],c.bb[2]),Math.max(bb[3],c.bb[3])]:c.bb.slice();}
+  if(bb)zoomNaarBB(bb);
+}
+function eindMotor(gehaald){
+  const p=speler(),M=st.motor;
+  stopSpeeltijd();p.rounds++;
+  const grenzen=M.route.length-1,topRoute=gehaald&&grenzen===M.kortste;
+  if(topRoute){p.diamonds++;st.ronde.diam++;} // routeplanner-bonus: kortste route = extra diamant
+  save();
+  kaartReset();stopTimer();annuleerFoto();
+  $("#r-perfect").style.display="none";
+  $("#r-titel").textContent=gehaald
+    ?(topRoute?`🏆 KORTSTE ROUTE, ${p.naam}! Wat een toprit!`:`🏁 Aangekomen, ${p.naam}! Wat een reis!`)
+    :`⛽ Benzine op, ${p.naam} — volgende keer lukt het!`;
+  $("#r-gems").textContent=st.ronde.diam>0?"💎".repeat(st.ronde.diam):"";
+  $("#r-goed").textContent=`${st.ronde.goed}/${M.vragen}`;
+  $("#r-punt").textContent=st.ronde.punt;
+  $("#r-streak").textContent=st.ronde.best;
+  $("#r-totdiam").textContent=p.diamonds;
+  const li=levelInfo(p);
+  $("#r-level").textContent=`Level ${li.nr} van 20 · ${li.naam}`;
+  $("#r-levelfill").style.width=(li.frac*100)+"%";
+  $("#r-etappes").innerHTML=etappeHtml(li);
+  $("#r-levelnext").textContent=li.volgende;
+  // routekaartje: de gereden route in vlaggen + kilometers + vergelijking met de kortste route
+  const start=LAND_VAN[M.start],doel=LAND_VAN[M.doel];
+  const vlaggen=M.route.map(id=>LAND_VAN[id].f).join(" → ");
+  const kw=n=>`${n} ${n===1?"grens":"grenzen"}`;
+  let voet;
+  if(topRoute)voet=`🏆 Dit wás de kortste route (${kw(M.kortste)}) — bonusdiamant! 💎`;
+  else if(gehaald)voet=`🧭 Het kan in ${kw(M.kortste)} — probeer het nog eens!`;
+  else voet=`🧭 De kortste route (${kw(M.kortste)}): ${(mrRoute(M.cont,M.start,M.doel)||[]).map(id=>LAND_VAN[id].f).join(" → ")}`;
+  $("#r-motor").innerHTML=`<div class="mr-res-route">${vlaggen}${gehaald?" 🏁":" → …"}</div>
+    <div class="mr-res-km">🛣️ ± <b>${mrFmt(M.km)} km</b> ${gehaald?`van ${esc(start.h)} naar ${esc(doel.h)}`:`gereden vanaf ${esc(start.h)}`} · ${kw(grenzen)}</div>
+    <div class="mr-res-top">${voet}</div>`;
+  $("#r-motor").style.display="block";
+  const stamps=$("#r-stamps");stamps.innerHTML="";
+  if(st.ronde.stempels.length){
+    const t=document.createElement("div");t.style.cssText="font-size:14px;color:var(--muted);width:100%";
+    t.textContent="Nieuwe stempels in je paspoort:";stamps.appendChild(t);
+    st.ronde.stempels.forEach(c=>{const s=document.createElement("span");s.textContent=c.f;s.title=c.n;stamps.appendChild(s);});
+  }
+  toonScherm("#s-result");
+}
+
 function hudSync(){
   const p=speler();
   $("#hud-diamant").textContent=`💎 ${p.diamonds}`;
@@ -2962,6 +3487,7 @@ function maakKeuzes(q){
 function klikLand(c){
   if(dragDist>8)return; // dit was slepen/pannen, geen antwoord
   if(st.verken){verkenInfo(c);return;}
+  if(st.motor){mrKlik(c);return;} // motorreis heeft eigen klik-afhandeling
   if(!st.q||st.answered)return;
   if(st.q.type!=="klikLand"&&st.q.type!=="klikHoofdstad"&&st.q.type!=="klikVlag")return;
   beantwoord(c.id===st.q.c.id,null,false,c);
@@ -3144,6 +3670,7 @@ function eindRonde(){
   stopSpeeltijd();
   p.rounds++;save();
   kaartReset();stopTimer();annuleerFoto();
+  $("#r-motor").style.display="none"; // routekaartje hoort alleen bij de motorreis
   const pct=st.ronde.goed/st.vragen.length;
   const perfect=pct===1;
   if(perfect){ // bijzondere beloning: bonusdiamant + trofee met sterrenregen
@@ -3620,6 +4147,7 @@ $("#vp-sluit").onclick=()=>{ $("#verken-pop").classList.remove("open"); if(verke
 /* ================= HINTS ================= */
 $("#b-hint").onclick=()=>{
   if(st.puzzel){pzHint();return;}
+  if(st.motor){mrHint();return;}
   if(st.verken||!st.q||st.answered)return;
   const q=st.q,c=q.c;
   st.hints++;sndKlik();
@@ -3869,7 +4397,7 @@ $("#b-pass2").onclick=()=>{sndKlik();toonPaspoort();};
 function naarHome(){ // ronde ALTIJD volledig afbreken (ook bliksemronde, feedback en grote foto)
   stopTimer();stopSpeeltijd();kaartReset();annuleerFoto();toonPlatteKaart();
   $("#fb").classList.remove("open");
-  st.verken=false;st.q=null;st.vragen=[];st.qi=0;st.stedenronde=false;st.gebied=null;
+  st.verken=false;st.q=null;st.vragen=[];st.qi=0;st.stedenronde=false;st.gebied=null;st.motor=null;
   $("#s-game").classList.remove("metmenu");
   chipsSync();segSync();toonScherm("#s-start");menuSync("expeditie");
 }
@@ -3919,7 +4447,7 @@ $("#mp-aan").onclick=()=>{ wisselMuziek(); $("#mp-aan").classList.toggle("aan",m
 $("#mp-vol").oninput=()=>{ const v=parseFloat($("#mp-vol").value); zetMuziekVol(v); $("#mp-volval").textContent=Math.round(v*100)+"%"; };
 $("#mp-tracks").addEventListener("change",e=>{ if(e.target.name==="mptrack"){ kiesTrack(e.target.value);
   document.querySelectorAll(".mp-track").forEach(l=>l.classList.toggle("sel",l.querySelector("input").checked)); } });
-$("#b-nogeens").onclick=()=>{sndKlik();if(st.wasPuzzel)startPuzzel();else if(st.gebied)startGebiedRonde(st.gebied);else startRonde();};
+$("#b-nogeens").onclick=()=>{sndKlik();if(st.wasPuzzel)startPuzzel();else if(st.motor)toonMotorKeuze();else if(st.gebied)startGebiedRonde(st.gebied);else startRonde();};
 $("#b-anders").onclick=()=>{chipsSync();segSync();toonScherm("#s-start");menuSync("expeditie");};
 $("#s-result").addEventListener("click",ev=>{if(ev.target===ev.currentTarget)$("#b-anders").click();}); // naast het overzicht klikken = home
 addEventListener("keydown",ev=>{
