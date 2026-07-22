@@ -566,7 +566,13 @@
   .lbwissel button.sel{border-color:var(--teal)}
   .lbrij{display:flex; align-items:center; gap:9px; padding:5px 6px; border-bottom:1px dashed color-mix(in srgb, var(--inkt) 30%, transparent); font-size:14px}
   .lbrij .plek{width:32px; text-align:center; font-size:16px; flex:none}
-  .lbrij .telling{margin-left:auto; font-weight:bold; font-variant-numeric:tabular-nums}
+  .lbrij .lbland{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .lbrij .lbcel{flex:none; width:52px; text-align:right; font-variant-numeric:tabular-nums; font-size:12.5px}
+  .lbrij .lbcel.lbtijd{width:86px}
+  /* kopregel: klikbare kolomkoppen om te sorteren (✔ goed / 💩 fout / ⏱ gemiddelde tijd) */
+  .lbrij.lbkop{border-bottom:2px solid color-mix(in srgb, var(--inkt) 40%, transparent)}
+  .lbkop .lbcel{background:none; border:none; color:inherit; cursor:pointer; font:inherit; font-size:14px; font-weight:bold; padding:2px 0}
+  .lbkop .lbcel:hover{color:var(--teal)}
   #pk-houder svg{width:100%; height:auto; background:rgba(0,0,0,.06); border-radius:12px; display:block}
   .pk-land{fill:color-mix(in srgb, var(--inkt) 15%, transparent); stroke:var(--pagina); stroke-width:.8}
   .pk-zilver{fill:#B9C2CE}
@@ -1070,7 +1076,7 @@ const DATA_KLAAR=(async()=>{
 </script>
 <script>
 "use strict";
-const VERSIE="52"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="53"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -3201,6 +3207,7 @@ function mrDouane(c,laatste){ // grenscontrole: vraagje over het land dat je bin
   $("#q-klik").style.display="none";map.classList.remove("klikbaar");
   $("#b-hint").style.display="none";$("#q-hint").style.display="none";
   st.q={motor:true};st.answered=false;
+  st.vraagStart=Date.now(); // reactietijd meten, net als bij gewone vragen
   const box=$("#q-choices");box.innerHTML="";
   opts.forEach((o,i)=>{
     const b=document.createElement("button");b.className="choice"+(soort==="v"?" vlagkeuze":"");
@@ -3215,6 +3222,9 @@ function mrAntwoord(goed,knop,c,soort,laatste,opts){ // zelfde economie als een 
   knop.classList.add(goed?"good":"bad");
   document.querySelectorAll("#q-choices .choice").forEach((b,i)=>{b.disabled=true;if(opts[i].ok)b.classList.add("good");});
   logVan(p,c.id)[soort+(goed?"g":"f")]++;
+  if(goed&&st.vraagStart){ // reactietijd bij een goed antwoord (max 30 s)
+    const lt=logVan(p,c.id);lt.tms=(lt.tms||0)+Math.min(30000,Date.now()-st.vraagStart);lt.tn=(lt.tn||0)+1;
+  }
   if(goed&&totGoed(p,c.id)>=10){const lg=logVan(p,c.id);if(!lg.d)lg.d=Date.now();}
   if(goed){
     st.ronde.goed++;st.streak++;
@@ -3449,6 +3459,7 @@ function toonVraag(){
     $("#q-text").innerHTML=`Welk land heeft deze vorm? 🧩`;
     toonVorm(c);maakKeuzes(q);
   }
+  st.vraagStart=Date.now(); // reactietijd meten: gemiddelde tijd per goed antwoord (toplijst)
   if(db.settings.flits)startTimer();
   if(st.qi>0&&st.qi%4===0&&st.ronde.goed/st.qi>=.5)toast(pep(PEP_TUSSEN));
 }
@@ -3530,6 +3541,9 @@ function beantwoord(goed,knop,timeout=false,geklikt=null){
     if(b.textContent.slice(1)===juisteTekst)b.classList.add("good");
   });
   if(!q.stad&&!q.gebied)logVan(p,c.id)[catVan(q.type)+(goed?"g":"f")]++; // logging per land én categorie (steden/gebieden: nog niet)
+  if(!q.stad&&!q.gebied&&goed&&st.vraagStart){ // reactietijd bij een goed antwoord (max 30 s: weggelopen telt niet mee)
+    const lt=logVan(p,c.id);lt.tms=(lt.tms||0)+Math.min(30000,Date.now()-st.vraagStart);lt.tn=(lt.tn||0)+1;
+  }
   if(!q.stad&&!q.gebied&&goed&&totGoed(p,c.id)>=10){const lg10=logVan(p,c.id);if(!lg10.d)lg10.d=Date.now();} // datum van de 10e goede → op de paspoortstempel
   const belon=[];
   let stemTekst=null; // gesproken zin (indien afgespeeld) → pop-up-tekst moet hiermee overeenkomen
@@ -4367,14 +4381,52 @@ function toplijstTelling(p,id){ // "t"=totaal (matcht de kaart), anders per cate
   if(lbCat==="t")return totGoed(p,id);
   return (p&&p.log&&p.log[id]&&p.log[id][lbCat+"g"])||0;
 }
+function toplijstFout(p,id){ // aantal keer fout, volgt net als goed de gekozen categorie-tab
+  const l=p&&p.log&&p.log[id]; if(!l)return 0;
+  if(lbCat==="t")return (l.lf||0)+(l.hf||0)+(l.vf||0)+(l.of||0);
+  return l[lbCat+"f"]||0;
+}
+function toplijstTijd(p,id){ // gemiddelde ms per goed antwoord — over álle goede antwoorden van dit land
+  const l=p&&p.log&&p.log[id];
+  return l&&l.tn?l.tms/l.tn:null;
+}
+let lbSort={k:"g",af:true}; // sorteren op g=✔ goed, f=💩 fout, s=⏱ seconden; af=aflopend
 function toonToplijst(p){
   const rijen=LANDEN.filter(c=>c.cont===passCont&&heeftKaart(c))
-    .map(c=>({c,n:toplijstTelling(p,c.id)}))
-    .sort((a,b)=>b.n-a.n||a.c.n.localeCompare(b.c.n));
-  $("#lb-lijst").innerHTML=rijen.map((r,i)=>{
-    const plek=r.n===0?"·":i===0?"🥇":i===1?"🥈":i===2?"🥉":i<10?"👍":String(i+1);
-    return `<div class="lbrij"><span class="plek">${plek}</span><span>${r.c.f} ${esc(r.c.n)}</span><span class="telling">${r.n}×</span></div>`;
-  }).join("");
+    .map(c=>({c,g:toplijstTelling(p,c.id),f:toplijstFout(p,c.id),s:toplijstTijd(p,c.id)}));
+  rijen.sort((a,b)=>{
+    let d;
+    if(lbSort.k==="g")d=a.g-b.g;
+    else if(lbSort.k==="f")d=a.f-b.f;
+    else{ // tijd: landen zonder gemeten tijd altijd onderaan
+      if(a.s===null||b.s===null){if(a.s===b.s)d=0;else return a.s===null?1:-1;}
+      else d=a.s-b.s;
+    }
+    if(lbSort.af)d=-d;
+    return d||b.g-a.g||a.c.n.localeCompare(b.c.n,"nl");
+  });
+  const pijl=k=>lbSort.k===k?(lbSort.af?" ▾":" ▴"):"";
+  const sec=s=>`${(s/1000).toFixed(1).replace(".",",")} sec`;
+  const standaard=lbSort.k==="g"&&lbSort.af; // medailles alleen bij de gewone volgorde (meeste goed eerst)
+  $("#lb-lijst").innerHTML=
+    `<div class="lbrij lbkop"><span class="plek"></span><span class="lbland"></span>`+
+    `<button class="lbcel" data-ls="g" title="Aantal keer goed geraden">✔${pijl("g")}</button>`+
+    `<button class="lbcel" data-ls="f" title="Aantal keer fout geraden">💩${pijl("f")}</button>`+
+    `<button class="lbcel lbtijd" data-ls="s" title="Gemiddelde tijd van je goede antwoorden">⏱${pijl("s")}</button></div>`+
+    rijen.map((r,i)=>{
+      const plek=standaard?(r.g===0?"·":i===0?"🥇":i===1?"🥈":i===2?"🥉":i<10?"👍":String(i+1)):String(i+1);
+      return `<div class="lbrij"><span class="plek">${plek}</span><span class="lbland">${r.c.f} ${esc(r.c.n)}</span>`+
+        `<span class="lbcel">✔ ${r.g}</span><span class="lbcel">💩 ${r.f}</span>`+
+        `<span class="lbcel lbtijd">${r.s===null?"—":"⏱ "+sec(r.s)}</span></div>`;
+    }).join("");
+  $("#lb-lijst").querySelectorAll(".lbkop [data-ls]").forEach(b=>{
+    b.onclick=()=>{sndKlik();
+      const k=b.dataset.ls;
+      if(lbSort.k===k)lbSort.af=!lbSort.af; // nóg een tik op dezelfde kolom draait de volgorde om
+      else lbSort={k,af:k!=="s"};           // tellingen: meeste eerst; tijd: snelste eerst
+      toonToplijst(passSpeler());
+    };
+  });
 }
 // veroverde wereld: 3D-globe, goud bij 10× en zilver bij 5× goed
 function kleurPassKaart(p){
