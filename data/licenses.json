@@ -4,6 +4,11 @@
   "url": "https://www.naturalearthdata.com",
   "licentie": "publiek domein"
  },
+ "gebieden (provincies/staten)": {
+  "bron": "Natural Earth 1:10m admin-1 states & provinces",
+  "url": "https://www.naturalearthdata.com",
+  "licentie": "publiek domein"
+ },
  "kaartgrenzen diep detail": {
   "bron": "geoBoundaries CGAZ (Runfola e.a.)",
   "url": "https://www.geoboundaries.org",

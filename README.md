@@ -42,9 +42,11 @@ curl -sL -o rivieren.geojson "https://raw.githubusercontent.com/nvkelso/natural-
 curl -sL -o rivieren-europa.geojson "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_rivers_europe.geojson"
 curl -sL -o rivieren-noord-amerika.geojson "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_rivers_north_america.geojson"
 curl -sL -o cgaz_adm0.geojson "https://media.githubusercontent.com/media/wmgeolab/geoBoundaries/main/releaseData/CGAZ/geoBoundariesCGAZ_ADM0.geojson"  # 401 MB — diep grensdetail
+curl -sL -o ne10m_admin1.geojson "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_admin_1_states_provinces.geojson"  # 41 MB — provincies/staten
 npm install              # topojson-buildgereedschap (eenmalig)
 node build-kaart.mjs     # platte kaarten per continent → data/continents/
 node build-globe.mjs     # 3D-globe (3 detailniveaus + rivieren) → data/core/
+node build-gebieden.mjs  # gebiedenronde: provincies/staten/deelstaten per land → data/gebieden/ (lazy)
 node --max-old-space-size=18000 build-diep.mjs --w=2e-6  # diep werelddetail (geoBoundaries CGAZ) → data/diep/
 node --max-old-space-size=8000 build-hoogte.mjs  # hoogtebanden/reliëf (Terrain Tiles, download ~256 tegels) → data/core/hoogte.json
 node maak-manifest.mjs   # manifest bijwerken

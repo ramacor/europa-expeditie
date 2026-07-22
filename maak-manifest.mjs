@@ -13,7 +13,9 @@ function loop(dir) {
     if (!naam.endsWith(".json") || naam === "manifest.json" || naam === "licenses.json") continue;
     const buf = readFileSync(pad);
     const rel = pad.slice(DATA.length + 1).replaceAll("\\", "/");
-    const lazy = rel.startsWith("diep/"); // diep-packs zijn groot: niet precachen, wel bewaren zodra opgehaald
+    // diep- en gebiedenpacks zijn groot/optioneel: niet precachen, wel bewaren zodra opgehaald
+    // (gebieden/index.json is de kleine landenlijst voor de keuzetegel: die wél precachen)
+    const lazy = rel.startsWith("diep/") || (rel.startsWith("gebieden/") && !rel.endsWith("index.json"));
     packs[rel] = { hash: createHash("sha256").update(buf).digest("hex").slice(0, 12), bytes: buf.length, ...(lazy ? { lazy: true } : {}) };
   }
 }

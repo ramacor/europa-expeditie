@@ -15,6 +15,8 @@ const GLOBE_FIJN_INLINE=${pak("core/globe-fijn.json")};
 const RIVIEREN_INLINE=${pak("core/rivieren.json")};
 const HOOGTE_INLINE=${pak("core/hoogte.json")};
 const LANDMODUS_INLINE=${pak("landen/nederland.json")};
+const GEBIED_INDEX_INLINE=${pak("gebieden/index.json")};
+const GEBIEDEN_INLINE={nl:${pak("gebieden/nl.json")},de:${pak("gebieden/de.json")},us:${pak("gebieden/us.json")}}; // kleine selectie voor de preview; de rest laadt via internet
 const ARTIFACT_DEMO=true; // preview: toon voorbeeldstempels in het paspoort om het ontwerp te beoordelen
 const DATA_KLAAR=Promise.resolve();
 </${"script"}>
