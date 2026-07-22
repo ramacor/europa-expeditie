@@ -784,7 +784,7 @@
       <span>✅ goed = 10 🪙</span>
       <span>🎯⚡ moeilijk of bliksem = 20 🪙</span>
       <span><svg class="gstaaf" viewBox="0 0 260 140" aria-hidden="true"><use href="#staafsym"/></svg> 10 goed = goudstaaf</span>
-      <span>🔥 3 op rij = bonus</span>
+      <span>🔥 5 op rij = bonus</span>
     </div>
   </div>
 
@@ -1109,7 +1109,7 @@
         <div class="schatverdien">
           <span>✅ Goed antwoord = <b>🪙 10</b></span>
           <span>🎯⚡ Moeilijk of bliksem = <b>🪙 20</b></span>
-          <span>🔥 3 op een rij = <b>🪙 +10 bonus</b></span>
+          <span>🔥 5 op een rij = <b>🪙 +10 bonus</b> — je reeks loopt door over rondes!</span>
           <span>🌟 Perfecte ronde = <b>🪙 +50 bonus</b></span>
           <span>🔟 Elke 10 goed = <b><svg class="gstaaf" viewBox="0 0 260 140" aria-hidden="true"><use href="#staafsym"/></svg> 1 goudstaaf</b></span>
           <span>⏱️ Elke 10 minuten spelen = <b><svg class="gstaaf" viewBox="0 0 260 140" aria-hidden="true"><use href="#staafsym"/></svg> 1</b></span>
@@ -1233,7 +1233,7 @@ const DATA_KLAAR=(async()=>{
 </script>
 <script>
 "use strict";
-const VERSIE="54"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="55"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -2551,7 +2551,7 @@ function startRonde(moeilijk=false){
   st.vragen=moeilijk?maakMoeilijkeVragen():maakVragen();
   if(!st.vragen.length){toast("Geen vragen mogelijk met deze instellingen 🤔");return;}
   menuSync(null);$("#s-game").classList.remove("metmenu");toonPlatteKaart();
-  st.qi=0;st.streak=0;st.verken=false;st.rondeStart=Date.now();st.stedenronde=false;st.gebied=null;st.wasPuzzel=false;st.motor=null;
+  st.qi=0;st.streak=(passSpeler()||{}).streak||0;st.verken=false;st.rondeStart=Date.now();st.stedenronde=false;st.gebied=null;st.wasPuzzel=false;st.motor=null;
   st.moeilijk=moeilijk; // moeilijke ronde = dubbele punten
   st.stemNaGoed=true; // eerste goede antwoord van de ronde krijgt altijd een gesproken aanmoediging
   st.ronde={goed:0,punt:0,best:0,diam:0,staven:0,rob:0,stempels:[],uitslagen:[]};
@@ -2628,7 +2628,7 @@ async function startStedenRonde(){
     return q;
   });
   menuSync(null);$("#s-game").classList.remove("metmenu");toonPlatteKaart();
-  st.qi=0;st.streak=0;st.verken=false;st.rondeStart=Date.now();st.stemNaGoed=true;st.stedenronde=true;st.gebied=null;st.moeilijk=false;st.wasPuzzel=false;st.motor=null;
+  st.qi=0;st.streak=(passSpeler()||{}).streak||0;st.verken=false;st.rondeStart=Date.now();st.stemNaGoed=true;st.stedenronde=true;st.gebied=null;st.moeilijk=false;st.wasPuzzel=false;st.motor=null;
   st.ronde={goed:0,punt:0,best:0,diam:0,staven:0,rob:0,stempels:[],uitslagen:[]};
   const p=speler();
   $("#hud-naam").textContent=p.naam;$("#hud-ava").textContent=p.naam[0].toUpperCase();
@@ -2699,7 +2699,7 @@ async function startGebiedRonde(key){
     return q;
   });
   menuSync(null);$("#s-game").classList.remove("metmenu");toonPlatteKaart();
-  st.qi=0;st.streak=0;st.verken=false;st.rondeStart=Date.now();st.stemNaGoed=true;
+  st.qi=0;st.streak=(passSpeler()||{}).streak||0;st.verken=false;st.rondeStart=Date.now();st.stemNaGoed=true;
   st.stedenronde=false;st.gebied=key;st.moeilijk=false;st.wasPuzzel=false;st.motor=null;
   st.ronde={goed:0,punt:0,best:0,diam:0,staven:0,rob:0,stempels:[],uitslagen:[]};
   const p=speler();
@@ -2896,7 +2896,7 @@ function startPuzzel(){
   menuSync(null);$("#s-game").classList.remove("metmenu");toonPlatteKaart();
   setKaart(cont);
   kaartReset();stopTimer(); // ruimt óók een eventuele vorige puzzel op — dus vóór het klaarzetten
-  st.qi=0;st.streak=0;st.verken=false;st.rondeStart=Date.now();st.stedenronde=false;st.gebied=null;st.moeilijk=false;
+  st.qi=0;st.streak=(passSpeler()||{}).streak||0;st.verken=false;st.rondeStart=Date.now();st.stedenronde=false;st.gebied=null;st.moeilijk=false;
   st.wasPuzzel=true;st.stemNaGoed=true;st.q=null;st.answered=false;st.hints=0;st.motor=null;
   st.vragen=gekozen.map(c=>({type:"puzzel",c}));
   st.ronde={goed:0,punt:0,best:0,diam:0,staven:0,rob:0,stempels:[],uitslagen:[]};
@@ -3084,7 +3084,7 @@ function misPoging(d){ // op de kaart losgelaten, maar niet op de juiste plek
   if(!s.gemist){ // alleen de eerste misser telt als fout (streak, log en moeilijke-ronde-lijst)
     s.gemist=true;
     const p=speler();logVan(p,s.c.id).of++;p.fouten=p.fouten||{};p.fouten[s.c.id]=(p.fouten[s.c.id]||0)+1;
-    st.streak=0;save();hudSync();
+    st.streak=0;p.streak=0;save();hudSync();
     sndFout();
   }else{toon(300,.08,"sine",.1);toon(240,.14,"sine",.09,.08);}
   toast(rnd(["Bijna! Probeer het nog eens 💪","Nét niet — kijk goed naar de vorm! 🔍","Andere plek proberen? Jij kunt dit! 🌟"]),1600);
@@ -3109,11 +3109,11 @@ function pzPunten(s,px,py){ // zelfde economie als een gewone vraag: eerste pogi
   if(eerste){
     const l=logVan(p,c.id);l.og++;
     if(totGoed(p,c.id)>=10&&!l.d)l.d=Date.now(); // datum van de 10e goede → op de paspoortstempel
-    st.ronde.goed++;st.streak++;
+    st.ronde.goed++;st.streak++;p.streak=st.streak; // de reeks loopt dóór over rondes heen (opgeslagen bij de speler)
     if(st.streak>st.ronde.best)st.ronde.best=st.streak;
     if(st.streak>p.best)p.best=st.streak;
     let pts=10;
-    if(st.streak>0&&st.streak%3===0){pts+=10;setTimeout(()=>{vlamEffect();sndVlam();},650);}
+    if(st.streak>0&&st.streak%5===0){pts+=10;setTimeout(()=>{vlamEffect();sndVlam();},650);}
     st.ronde.punt+=pts;p.points+=pts;p.xp=(p.xp||0)+pts;p.goedTotaal++;
     const eerder=p.pass[c.id]||0;p.pass[c.id]=eerder+1;if(eerder===0)st.ronde.stempels.push(c);
     const staaf=checkBeloningen(p); // goudstaaf per 10 goed + etappes/levels/cups
@@ -3276,7 +3276,7 @@ function startMotorRonde(startC,doelC){
   if(!kortste){toast("Die reis kan niet — kies een ander doel 🤔");return;}
   setKaart(cont);
   menuSync(null);$("#s-game").classList.remove("metmenu");toonPlatteKaart();
-  st.qi=0;st.streak=0;st.verken=false;st.rondeStart=Date.now();st.stedenronde=false;st.gebied=null;
+  st.qi=0;st.streak=(passSpeler()||{}).streak||0;st.verken=false;st.rondeStart=Date.now();st.stedenronde=false;st.gebied=null;
   st.moeilijk=false;st.wasPuzzel=false;st.puzzel=null;st.q=null;st.vragen=[];st.stemNaGoed=true;
   st.ronde={goed:0,punt:0,best:0,diam:0,staven:0,rob:0,stempels:[],uitslagen:[]};
   const tank=kortste.length-1+MR_TANK_EXTRA;
@@ -3510,11 +3510,11 @@ function mrAntwoord(goed,knop,c,soort,laatste,opts){ // zelfde economie als een 
   }
   if(goed&&totGoed(p,c.id)>=10){const lg=logVan(p,c.id);if(!lg.d)lg.d=Date.now();}
   if(goed){
-    st.ronde.goed++;st.streak++;
+    st.ronde.goed++;st.streak++;p.streak=st.streak; // de reeks loopt dóór over rondes heen (opgeslagen bij de speler)
     if(st.streak>st.ronde.best)st.ronde.best=st.streak;
     if(st.streak>p.best)p.best=st.streak;
     let pts=10;
-    if(st.streak%3===0){pts+=10;setTimeout(()=>{vlamEffect();sndVlam();},600);}
+    if(st.streak%5===0){pts+=10;setTimeout(()=>{vlamEffect();sndVlam();},600);}
     st.ronde.punt+=pts;p.points+=pts;p.xp=(p.xp||0)+pts;p.goedTotaal++;
     const eerder=p.pass[c.id]||0;p.pass[c.id]=eerder+1;if(eerder===0)st.ronde.stempels.push(c);
     checkBeloningen(p); // goudstaaf per 10 goed + etappes/levels/cups
@@ -3522,7 +3522,7 @@ function mrAntwoord(goed,knop,c,soort,laatste,opts){ // zelfde economie als een 
     const lr=paden[c.id].getBoundingClientRect();
     for(let i=0;i<3;i++)vliegMunt(lr.left+lr.width/2,lr.top+lr.height/2,i*180);
   }else{
-    st.streak=0;sndFout();
+    st.streak=0;p.streak=0;sndFout();
     p.fouten=p.fouten||{};p.fouten[c.id]=(p.fouten[c.id]||0)+1;
     $("#q-text").innerHTML+=`<div style="margin-top:6px">${soort==="h"
       ?`De hoofdstad van ${esc(c.n)} is <b>${esc(c.h)}</b>.`
@@ -3832,12 +3832,12 @@ function beantwoord(goed,knop,timeout=false,geklikt=null){
   const belon=[];
   let stemTekst=null; // gesproken zin (indien afgespeeld) → pop-up-tekst moet hiermee overeenkomen
   if(goed){
-    st.ronde.goed++;st.streak++;
+    st.ronde.goed++;st.streak++;p.streak=st.streak; // de reeks loopt dóór over rondes heen (opgeslagen bij de speler)
     if(st.streak>st.ronde.best)st.ronde.best=st.streak;
     if(st.streak>p.best)p.best=st.streak;
     let pts=(st.moeilijk||db.settings.flits)?20:10; // 10 per goed antwoord; moeilijke ronde of bliksemronde = 20
     belon.push(`🪙 +${pts} muntjes`);
-    if(st.streak>0&&st.streak%3===0){pts+=10;belon.push("🔥 3 op een rij: +10 bonus!");setTimeout(()=>{vlamEffect();sndVlam();},650);}
+    if(st.streak>0&&st.streak%5===0){pts+=10;belon.push(`🔥 ${st.streak} op een rij: +10 bonus!`);setTimeout(()=>{vlamEffect();sndVlam();},650);}
     st.ronde.punt+=pts;p.points+=pts;p.xp=(p.xp||0)+pts;p.goedTotaal++; // muntjes zijn óók de valuta van de schatkist (landen kopen); xp telt mee voor het level
     if(!q.stad&&!q.gebied){ // paspoortstempels zijn er alleen voor landen
       const eerder=p.pass[c.id]||0;
@@ -3860,7 +3860,7 @@ function beantwoord(goed,knop,timeout=false,geklikt=null){
     const r=$("#map").getBoundingClientRect();
     knal(r.left+r.width/2,r.top+r.height/2,70);
   }else{
-    st.streak=0;sndFout();
+    st.streak=0;p.streak=0;sndFout();
     st.ronde.uitslagen[st.qi]={goed:false,staaf:false};
     if(!q.stad&&!q.gebied){p.fouten=p.fouten||{};p.fouten[c.id]=(p.fouten[c.id]||0)+1;} // voor de moeilijke ronde
     st.stemNaGoed=true; // ná een fout speelt het eerstvolgende goede antwoord altijd een aanmoediging
@@ -4398,7 +4398,7 @@ function hudSyncVeilig(){
   $("#hud-diamant").textContent=`💎 ${p?p.diamonds:0}`;
   $("#hud-staaf").innerHTML=`${STAAF_ICO} ${p?(p.staven||0):0}`;
   $("#hud-robijn").innerHTML=`${ROBIJN_ICO} ${p?(p.robijnen||0):0}`;
-  $("#hud-streak").textContent=`🔥 0`;
+  $("#hud-streak").textContent=`🔥 ${p?(p.streak||0):0}`;
   $("#hud-munt").textContent=`🪙 ${p?p.points:0}`;
 }
 function verkenInfoHtml(c){
