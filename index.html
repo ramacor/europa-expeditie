@@ -503,7 +503,8 @@
     text-transform:uppercase; letter-spacing:.7px; white-space:nowrap;
     display:flex; align-items:center; justify-content:center; background:var(--gold-grad); color:#3A2A00;
     box-shadow:inset 0 0 0 1.5px #3D5E9E, 0 0 6px rgba(232,148,10,.6)}
-  .pd-volgende{font-size:10.5px; color:#51617E; font-style:italic}
+  /* toelichtingsregel onder een pillenrij: kleiner, en met lucht tussen de tekst en de pillen */
+  .pd-onder{margin-top:6px; font-size:9px; line-height:1.35; color:#51617E; font-style:italic}
   .boektabs{display:flex; background:none; padding:8px 8px 0; gap:5px} /* pastel van .pasblok schijnt erdoorheen → contouren van de tabjes zichtbaar */
   .boektab{flex:1; border:none; background:var(--panel2); color:var(--muted); padding:9px 4px; font-size:13px; font-weight:bold; cursor:pointer; border-radius:10px 10px 0 0}
   .boektab.actief{opacity:1; background:var(--pagina); color:var(--accent)}
@@ -874,10 +875,11 @@
       <div class="pasid-stats" id="pd-velden"></div>
       <div class="pv" style="margin-top:8px"><small><i>11</i> continent-cups / trophies</small><div class="pd-cups" id="pd-cups"></div></div>
       <div class="pv pd-rij"><small><i>12</i> levels / levels</small>
-        <div class="pd-balk" id="pd-balk" aria-label="Levelvoortgang"></div></div>
+        <div class="pd-balk" id="pd-balk" aria-label="Levelvoortgang"></div>
+        <div class="pd-onder" id="pd-levelinfo"></div></div>
       <div class="pv pd-rij"><small><i>13</i> etappes / stages</small>
-        <div class="pd-subbalk" id="pd-subbalk" aria-label="Etappes binnen dit level"></div></div>
-      <div class="pd-volgende" id="pd-volgende"></div>
+        <div class="pd-subbalk" id="pd-subbalk" aria-label="Etappes binnen dit level"></div>
+        <div class="pd-onder" id="pd-volgende"></div></div>
     </div>
     <div class="boektabs">
       <button class="boektab actief" data-tab="stempels">📔 Stempels</button>
@@ -1304,7 +1306,16 @@ function levelInfo(p){
   const volgende=klaar?`Alles gehaald — ${LVL[19].n}! 👑`
     :(gedaan===etappes.length-1&&nr<20?`${nog} tot level ${nr+1}: ${LVL[nr].n}`
       :`${nog} tot ${etappes[gedaan]}`);
-  return {nr,naam:LVL[i].n,etappes,gedaan,volgendeEtappe:klaar?null:etappes[gedaan],volgende,stap,frac,klaar};
+  // aparte regels onder de twee rijen in het paspoort: één over het level, één over de etappe
+  const eindIdx=(i+1<LVL.length?LVL_VANAF[i+1]:LVL_ETAPPES)-1; // laatste etappe van dít level
+  const restLvl=klaar?0:Math.max(1,Math.ceil(tr[eindIdx]-v));
+  const nogL=`nog ${restLvl} goed${restLvl===1?" antwoord":"e antwoorden"}`;
+  const levelTekst=klaar?"Level 20 van 20 · alles gehaald! 👑"
+    :(nr<20?`Level ${nr} van 20 · ${nogL} tot level ${nr+1}: ${LVL[nr].n}`
+      :`Level 20 van 20 · het laatste level!`);
+  const etappeTekst=klaar?"Alle 100 etappes behaald! 🎉":`${nog} tot ${etappes[gedaan]}`;
+  return {nr,naam:LVL[i].n,etappes,gedaan,volgendeEtappe:klaar?null:etappes[gedaan],
+    volgende,levelTekst,etappeTekst,stap,frac,klaar};
 }
 // etappes van het huidige level, met de behaalde gemarkeerd en de namen zichtbaar
 function etappeHtml(li){
@@ -3575,7 +3586,9 @@ function passDataSync(p){
     cups=CONT_CODES.filter(ct=>contCup(p,ct));
   }else if(DEMO&&!p){p={naam:"Finn",points:1234,diamonds:12,best:9,speeltijd:47*60000,rounds:24,perfect:2}; // voorbeeld om het ontwerp te beoordelen
     li={nr:7,naam:LVL[6].n,etappes:LVL[6].e,gedaan:2,volgendeEtappe:LVL[6].e[2],
-      volgende:`Nog 14 goede antwoorden tot ${LVL[6].e[2]}`,stap:23,frac:.23,klaar:false};
+      volgende:`Nog 14 goede antwoorden tot ${LVL[6].e[2]}`,
+      levelTekst:`Level 7 van 20 · nog 82 goede antwoorden tot level 8: ${LVL[7].n}`,
+      etappeTekst:`Nog 14 goede antwoorden tot ${LVL[6].e[2]}`,stap:23,frac:.23,klaar:false};
     datum=pasDatum(new Date(2026,4,12));cups=["EU"];}
   $("#pid-naam").textContent=p&&p.naam?p.naam:"—";
   $("#pid-level").textContent=li?li.naam:"—";
@@ -3587,8 +3600,9 @@ function passDataSync(p){
     s.className=li?(nu?"nu":(i<li.nr-1?"vol":"")):"";
     s.textContent=nu?`${li.nr}. ${li.naam}`:"";
   });
+  $("#pd-levelinfo").textContent=li?li.levelTekst:""; // regel onder de levelrij
   $("#pd-subbalk").innerHTML=li?etappeHtml(li):""; // de etappes van het huidige level (aantal verschilt per level)
-  $("#pd-volgende").textContent=li?`Level ${li.nr} van 20 · ${li.volgende}`:"Speel een ronde om je paspoort te vullen!";
+  $("#pd-volgende").textContent=li?li.etappeTekst:"Speel een ronde om je paspoort te vullen!"; // regel onder de etappes
   const st6=p||{points:0,diamonds:0,best:0,speeltijd:0,rounds:0,perfect:0};
   const V=[["🪙",st6.points,"munten / coins",5],["💎",st6.diamonds,"diamanten / gems",6],["🔥",st6.best,"reeks / streak",7],
     ["🌟",st6.perfect||0,"perfect",8],["🏋️",st6.rounds,"rondes / rounds",9],["⏱️",Math.round((st6.speeltijd||0)/60000),"minuten / minutes",10]];
