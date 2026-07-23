@@ -200,6 +200,8 @@
   @keyframes wiebel{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}50%{transform:translateX(7px)}75%{transform:translateX(-4px)}}
   .subrow{display:flex; gap:10px; width:min(560px,100%)}
   .subbtn{flex:1; border:none; border-radius:13px; padding:12px; font-size:15px; cursor:pointer; background:var(--panel); box-shadow:var(--shadow)}
+  /* 'Naar het beginscherm' op het resultaatscherm: blauw met omtrek, zodat hij duidelijk opvalt */
+  #b-anders{background:#2F5AA8; color:#fff; font-weight:bold; border:2.5px solid #7FA8E8}
   .subbtn:hover{outline:2px solid var(--teal)}
 
   /* ---------- Spelscherm ---------- */
@@ -1233,7 +1235,7 @@ const DATA_KLAAR=(async()=>{
 </script>
 <script>
 "use strict";
-const VERSIE="55"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="56"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
@@ -2551,7 +2553,7 @@ function startRonde(moeilijk=false){
   st.vragen=moeilijk?maakMoeilijkeVragen():maakVragen();
   if(!st.vragen.length){toast("Geen vragen mogelijk met deze instellingen 🤔");return;}
   menuSync(null);$("#s-game").classList.remove("metmenu");toonPlatteKaart();
-  st.qi=0;st.streak=(passSpeler()||{}).streak||0;st.verken=false;st.rondeStart=Date.now();st.stedenronde=false;st.gebied=null;st.wasPuzzel=false;st.motor=null;
+  st.qi=0;st.streak=(passSpeler()||{}).streak||0;st.wasVormen=false;st.verken=false;st.rondeStart=Date.now();st.stedenronde=false;st.gebied=null;st.wasPuzzel=false;st.motor=null;
   st.moeilijk=moeilijk; // moeilijke ronde = dubbele punten
   st.stemNaGoed=true; // eerste goede antwoord van de ronde krijgt altijd een gesproken aanmoediging
   st.ronde={goed:0,punt:0,best:0,diam:0,staven:0,rob:0,stempels:[],uitslagen:[]};
@@ -2628,7 +2630,7 @@ async function startStedenRonde(){
     return q;
   });
   menuSync(null);$("#s-game").classList.remove("metmenu");toonPlatteKaart();
-  st.qi=0;st.streak=(passSpeler()||{}).streak||0;st.verken=false;st.rondeStart=Date.now();st.stemNaGoed=true;st.stedenronde=true;st.gebied=null;st.moeilijk=false;st.wasPuzzel=false;st.motor=null;
+  st.qi=0;st.streak=(passSpeler()||{}).streak||0;st.wasVormen=false;st.verken=false;st.rondeStart=Date.now();st.stemNaGoed=true;st.stedenronde=true;st.gebied=null;st.moeilijk=false;st.wasPuzzel=false;st.motor=null;
   st.ronde={goed:0,punt:0,best:0,diam:0,staven:0,rob:0,stempels:[],uitslagen:[]};
   const p=speler();
   $("#hud-naam").textContent=p.naam;$("#hud-ava").textContent=p.naam[0].toUpperCase();
@@ -2637,6 +2639,7 @@ async function startStedenRonde(){
 }
 $("#b-vormen").onclick=()=>{ // vormenronde (silhouetten raden), los van de gekozen oefenstand
   sndKlik();const vorig=db.settings.oefen;db.settings.oefen="vormen";startRonde();db.settings.oefen=vorig;
+  st.wasVormen=true; // onthouden voor 'Nog een ronde!': dan wéér een vormenronde
 };
 
 /* ============ GEBIEDENRONDE (provincies/staten/deelstaten binnen een land) ============ */
@@ -2699,7 +2702,7 @@ async function startGebiedRonde(key){
     return q;
   });
   menuSync(null);$("#s-game").classList.remove("metmenu");toonPlatteKaart();
-  st.qi=0;st.streak=(passSpeler()||{}).streak||0;st.verken=false;st.rondeStart=Date.now();st.stemNaGoed=true;
+  st.qi=0;st.streak=(passSpeler()||{}).streak||0;st.wasVormen=false;st.verken=false;st.rondeStart=Date.now();st.stemNaGoed=true;
   st.stedenronde=false;st.gebied=key;st.moeilijk=false;st.wasPuzzel=false;st.motor=null;
   st.ronde={goed:0,punt:0,best:0,diam:0,staven:0,rob:0,stempels:[],uitslagen:[]};
   const p=speler();
@@ -2896,7 +2899,7 @@ function startPuzzel(){
   menuSync(null);$("#s-game").classList.remove("metmenu");toonPlatteKaart();
   setKaart(cont);
   kaartReset();stopTimer(); // ruimt óók een eventuele vorige puzzel op — dus vóór het klaarzetten
-  st.qi=0;st.streak=(passSpeler()||{}).streak||0;st.verken=false;st.rondeStart=Date.now();st.stedenronde=false;st.gebied=null;st.moeilijk=false;
+  st.qi=0;st.streak=(passSpeler()||{}).streak||0;st.wasVormen=false;st.verken=false;st.rondeStart=Date.now();st.stedenronde=false;st.gebied=null;st.moeilijk=false;
   st.wasPuzzel=true;st.stemNaGoed=true;st.q=null;st.answered=false;st.hints=0;st.motor=null;
   st.vragen=gekozen.map(c=>({type:"puzzel",c}));
   st.ronde={goed:0,punt:0,best:0,diam:0,staven:0,rob:0,stempels:[],uitslagen:[]};
@@ -3276,7 +3279,7 @@ function startMotorRonde(startC,doelC){
   if(!kortste){toast("Die reis kan niet — kies een ander doel 🤔");return;}
   setKaart(cont);
   menuSync(null);$("#s-game").classList.remove("metmenu");toonPlatteKaart();
-  st.qi=0;st.streak=(passSpeler()||{}).streak||0;st.verken=false;st.rondeStart=Date.now();st.stedenronde=false;st.gebied=null;
+  st.qi=0;st.streak=(passSpeler()||{}).streak||0;st.wasVormen=false;st.verken=false;st.rondeStart=Date.now();st.stedenronde=false;st.gebied=null;
   st.moeilijk=false;st.wasPuzzel=false;st.puzzel=null;st.q=null;st.vragen=[];st.stemNaGoed=true;
   st.ronde={goed:0,punt:0,best:0,diam:0,staven:0,rob:0,stempels:[],uitslagen:[]};
   const tank=kortste.length-1+MR_TANK_EXTRA;
@@ -4982,7 +4985,15 @@ $("#mp-aan").onclick=()=>{ wisselMuziek(); $("#mp-aan").classList.toggle("aan",m
 $("#mp-vol").oninput=()=>{ const v=parseFloat($("#mp-vol").value); zetMuziekVol(v); $("#mp-volval").textContent=Math.round(v*100)+"%"; };
 $("#mp-tracks").addEventListener("change",e=>{ if(e.target.name==="mptrack"){ kiesTrack(e.target.value);
   document.querySelectorAll(".mp-track").forEach(l=>l.classList.toggle("sel",l.querySelector("input").checked)); } });
-$("#b-nogeens").onclick=()=>{sndKlik();if(st.wasPuzzel)startPuzzel();else if(st.motor)toonMotorKeuze();else if(st.gebied)startGebiedRonde(st.gebied);else startRonde();};
+$("#b-nogeens").onclick=()=>{ // 'Nog een ronde!' herhaalt hetzelfde rondetype (vormen, moeilijk, steden, puzzel, …)
+  sndKlik();
+  if(st.wasPuzzel)startPuzzel();
+  else if(st.motor)toonMotorKeuze();
+  else if(st.gebied)startGebiedRonde(st.gebied);
+  else if(st.stedenronde)startStedenRonde();
+  else if(st.wasVormen){const vorig=db.settings.oefen;db.settings.oefen="vormen";startRonde();db.settings.oefen=vorig;st.wasVormen=true;}
+  else startRonde(st.moeilijk);
+};
 $("#b-anders").onclick=()=>{chipsSync();segSync();toonScherm("#s-start");menuSync("expeditie");};
 $("#s-result").addEventListener("click",ev=>{if(ev.target===ev.currentTarget)$("#b-anders").click();}); // naast het overzicht klikken = home
 addEventListener("keydown",ev=>{
