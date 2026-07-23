@@ -200,8 +200,8 @@
   @keyframes wiebel{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}50%{transform:translateX(7px)}75%{transform:translateX(-4px)}}
   .subrow{display:flex; gap:10px; width:min(560px,100%)}
   .subbtn{flex:1; border:none; border-radius:13px; padding:12px; font-size:15px; cursor:pointer; background:var(--panel); box-shadow:var(--shadow)}
-  /* 'Naar het beginscherm' op het resultaatscherm: blauw met omtrek, zodat hij duidelijk opvalt */
-  #b-anders{background:#2F5AA8; color:#fff; font-weight:bold; border:2.5px solid #7FA8E8}
+  /* 'Naar het beginscherm' op het resultaatscherm: neongroen met omtrek (zelfde accent als elders), zodat hij duidelijk opvalt */
+  #b-anders{background:var(--teal); color:#03251E; font-weight:bold; border:2.5px solid color-mix(in srgb, var(--teal) 45%, white)}
   .subbtn:hover{outline:2px solid var(--teal)}
 
   /* ---------- Spelscherm ---------- */
@@ -1235,7 +1235,7 @@ const DATA_KLAAR=(async()=>{
 </script>
 <script>
 "use strict";
-const VERSIE="56"; // bij elke release ophogen (samen met CACHE in sw.js)
+const VERSIE="57"; // bij elke release ophogen (samen met CACHE in sw.js)
 /* ================= DATA ================= */
 // poly = lijst van ringen [x,y]; dot = ministaat-stip. lvl 1=bekend, 2=expert, 3=ministaat
 const LANDEN=[
